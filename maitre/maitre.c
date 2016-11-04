@@ -99,8 +99,8 @@ int main(int argc , char *argv[])
 
 	//Initialisation des variables
     int socket_desc, c;
-    int nombre_machines = 0;
-    int nb_etapes = 0;
+    int nombre_machines = 6;
+    int nb_etapes = 5;
     c = sizeof(struct sockaddr_in);
     struct sockaddr_in server;
     struct sockaddr_in* client_addr = malloc(sizeof(struct sockaddr_in)*nombre_machines);
@@ -169,7 +169,7 @@ int main(int argc , char *argv[])
 			return 1;
 		}
 	}
-    
+
     //affiche_tab(clients_id,nombre_machines);
     //initialisation 
     for(i=0;i<nombre_machines;i++)
