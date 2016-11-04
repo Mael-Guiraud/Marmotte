@@ -1,5 +1,8 @@
 /*simulation d'une reseau en tandem de 10 files
  avec buffer entre 0 et 100 pour chaque file */
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define NComponent 10
 #define SizeDistrib 3*NComponent
@@ -79,18 +82,18 @@ void Equation(int* OldS,int indexevt,int* NewS)
     {    NewS[i]=OldS[i];
     }
     if (indexevt<NComponent) {
-        if (NewS[i]<Max[i]) {NewS[i]++;} /*  arrivee */
+        if (NewS[indexevt]<Max[indexevt]) {NewS[indexevt]++;} /*  arrivee */
     }
     else if (indexevt<2*NComponent) {
-        if (NewS[i-NComponent]>Min[i-NComponent]) {NewS[i-NComponent]--;} /* depart definitf */
+        if (NewS[indexevt-NComponent]>Min[indexevt-NComponent]) {NewS[indexevt-NComponent]--;} /* depart definitf */
     }
     else if (indexevt<3*NComponent-1) {
-        if (NewS[i-NComponent]>Min[i-NComponent]) {
-            NewS[i-NComponent]--;
-            if (NewS[i-NComponent+1]<Max[i-NComponent+1]) {NewS[i-NComponent+1]++;}
+        if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {
+            NewS[indexevt-2*NComponent]--;
+            if (NewS[indexevt-2*NComponent+1]<Max[indexevt-2*NComponent+1]) {NewS[indexevt-2*NComponent+1]++;}
         } /* transit entre deux files successives */
     }
-    else {if (NewS[i-2*NComponent]>Min[i-2*NComponent]) {NewS[i-2*NComponent]--;}
+    else {if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {NewS[indexevt-2*NComponent]--;}
         /* depart definitf, la derniere file est particuliere */
     }
 }
@@ -105,4 +108,47 @@ void F (int * OldS,double U ,int * NewS)
 /*   Il faut que ta fonction appelante ait defini les etats OldS et NewS (de type Etat)
  et ait genere le U par un random. */
 
+void afficheEtat(Etat e)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        printf("%d ",e[i]);
+    }
+    printf("\n");
+}
+void initEtat(Etat e)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        e[i] = 0;
+    }
+}
 
+int main(){
+    srand(time(NULL));
+    InitDistribution();
+    InitRectangle();
+    double u;
+    Etat OldS, NewS;
+    initEtat(OldS);
+    afficheEtat(OldS);
+    
+    int i;
+    for(i=0;i<100000;i++)
+    {
+        u = (double)rand()/RAND_MAX;
+        if(i%2)
+            F(NewS,u,OldS);
+        else
+            F(OldS,u,NewS);
+        afficheEtat(NewS);
+        afficheEtat(OldS);
+            
+    }
+    printf("\n");
+
+
+    return 0;
+}
