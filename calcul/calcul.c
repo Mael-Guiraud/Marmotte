@@ -1,82 +1,74 @@
-#include <stdio.h> //printf
-#include <string.h>    //strlen
-#include <sys/socket.h>    //socket
-#include <arpa/inet.h> //inet_addr
-#include <fcntl.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <errno.h>
+#include "headers.h"
+
+
+unsigned int state_i = 0;
+unsigned int STATE[R];
+unsigned int z0, z1, z2;
+unsigned int B[JMAX];
+
+
+int Min[NComponent], Max[NComponent];
+double Distrib[SizeDistrib];
+double arrival[NComponent], service[NComponent], departure[NComponent];
 
 
 
-#define W 32
-#define R 16
-#define P 0
-#define M1 13
-#define M2 9
-#define M3 5
 
-#define MAT0POS(t,v) (v^(v>>t))
-#define MAT0NEG(t,v) (v^(v<<(-(t))))
-#define MAT3NEG(t,v) (v<<(-(t)))
-#define MAT4NEG(t,b,v) (v ^ ((v<<(-(t))) & b))
-
-#define V0            STATE[state_i                   ]
-#define VM1           STATE[(state_i+M1) & 0x0000000fU]
-#define VM2           STATE[(state_i+M2) & 0x0000000fU]
-#define VM3           STATE[(state_i+M3) & 0x0000000fU]
-#define VRm1          STATE[(state_i+15) & 0x0000000fU]
-#define VRm2          STATE[(state_i+14) & 0x0000000fU]
-#define newV0         STATE[(state_i+15) & 0x0000000fU]
-#define newV1         STATE[state_i                 ]
-#define newVRm1       STATE[(state_i+14) & 0x0000000fU]
-
-#define FACT 2.32830643653869628906e-10
-
-static unsigned int state_i = 0;
-static unsigned int STATE[R];
-static unsigned int z0, z1, z2;
-void InitWELLRNG512a (unsigned int *seed);
-
-double WELLRNG512a (void);
-
-#define MASK32  0xffffffffU
-#define JMAX 16
-static unsigned int B[JMAX];
-
-
-  typedef struct message{
-	int author;
-	int mess;
-} message;
+void cpy_state(Etat e1, Etat e2)
+{
+	int i;
+	for(i=0;i<NComponent;i++)
+	{
+		e2[i] = e1[i];
+	}
+}
  
 int main(int argc , char *argv[])
 {
+
     int sock;
     struct sockaddr_in server;
-    char server_reply[2000];
-     message m;
-    //Create socket
+	//Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
-    if (sock == -1)
+ 	if (sock == -1)
     {
         printf("Could not create socket");
     }
     puts("Socket created");
-     
     server.sin_addr.s_addr = inet_addr("169.254.147.32");
     server.sin_family = AF_INET;
     server.sin_port = htons( 8888 );
- 
-    //Connect to remote server
-    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
     {
         perror("connect failed. Error");
         return 1;
     }
      
     puts("Connected\n");
-     
+
+    //Reception de la graine et génération de la sequence aléa
+    seed s;
+    if( recv(sock , &s , sizeof(seed) , 0) <= 0)
+    {
+        puts("Connection Closed");
+        return 0;
+    }
+    printf("Génération de la séquence Aléatoire...\n");
+    int i;
+    double * sequence = (double *)malloc(sizeof(double)*s.nb_elems);
+    init(B,s.seed);
+    InitWELLRNG512a(B);
+    for(i=0;i<s.nb_elems;i++)
+    {
+    	sequence[i]= WELLRNG512a();
+    }
+
+    //Initialisation de la fonction de calcul
+    InitDistribution();
+	InitRectangle();
+
+     message m; 
+     reponse r;
     //keep communicating with server
     while(1)
     {
@@ -86,29 +78,41 @@ int main(int argc , char *argv[])
             puts("Connection Closed");
             break;
         }
-        //Calculation
-        printf("on a recu %d (author = %d )\n",m.mess,m.author);
-
-        //Calcul de la réponse
-        m.author = m.mess;
-        m.mess++; 
-          
-        
-        
-        //Send some data
-        if( send(sock , &m , sizeof(message) , 0) < 0)
+        //On n'a pas couplé à l'étape d'avant.
+        if(!couplage(m.x0,m.y0))
         {
-            puts("Send failed");
-            return 1;
+
+		  for(i=0;i<m.nb_elems;i++)
+			{
+		  		F(m.x0,sequence[i+m.indice_Un]);
+		  		F(m.y0,sequence[i+m.indice_Un]);
+			}
+			cpy_state(m.x0,r.x0);
+			cpy_state(m.y0,r.y0);
+
+		   //Send some data
+	       if( send(sock , &r , sizeof(reponse) , 0) < 0)
+	        {
+	            puts("Send failed");
+	            break;
+	        }
+	        printf("Retour de reponse\n");
+        }        
+        else
+        {
+        	printf("COUPLAGE\n");
+        	break;
         }
-        printf("reemis\n");
-         
+       
 
     }
      
     close(sock);
     return 0;
 }
+
+
+
 
 void InitWELLRNG512a (unsigned int *init)
 {
@@ -127,4 +131,118 @@ double WELLRNG512a (void)
    newV0 = MAT0NEG(-2, z0) ^ MAT0NEG(-18, z1) ^ MAT3NEG(-28, z2) ^ MAT4NEG(-5, 0xda442d24U, newV1);
    state_i = (state_i + 15) & 0x0000000fU;
    return ((double) STATE[state_i]) * FACT;
+}
+
+
+void init (unsigned int *A,int seed)
+{
+   int i;
+   A[0] = seed;
+   for (i = 1; i < JMAX; i++)
+      A[i] = (663608941 * A[i - 1]) & MASK32;
+}
+
+
+void InitRectangle()
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        Min[i ] = 0;
+        Max[i ] = 100;
+    }
+}
+
+
+
+void InitDistribution()
+{
+    int i;
+    double total;
+    /* construit la distribution pour un reseau en tandem */
+    /* la premeire partie permet de coder les taux d'arrivee, puis de sortie definitive
+     et enfin de service
+     pour aller a la file suivante . Ca pourrait être mis dans un
+     fichier de parametre pour eviter de recompiler */
+    
+    
+    for(i=0;i<NComponent;i++)
+    {
+        arrival[i ] = 10.0;
+        service[i ] = 20.0*i;
+        departure[i]= 5.0;
+    }
+    
+    total = 0.0;
+    
+    for(i=0;i<NComponent;i++)
+    {    total+=arrival[i]+service[i]+departure[i];
+    }
+    for(i=0;i<NComponent;i++)
+    {   Distrib[i] = arrival[i]/total;
+        Distrib[i+NComponent] = departure[i]/total;
+        Distrib[i+2*NComponent] = service[i]/total;
+    }
+}
+
+int Inverse(double U)
+{
+    /* Methode de transformée inverse, pas optimisee  */
+    int i,j;
+    double sum;
+    j=SizeDistrib;
+    sum =0.0;
+    for (i=0; i<SizeDistrib;i++){
+        sum+=Distrib[i];
+        if (sum>=U) {j=i; break;}
+    }
+    return(j);
+}
+
+void Equation(int* NewS,int indexevt)
+{
+    /* effet des evenements dans le reseau, indexevt entre 0 et 3NComponent-1 */
+    if (indexevt<NComponent) {
+        if (NewS[indexevt]<Max[indexevt]) {NewS[indexevt]++;} /*  arrivee */
+    }
+    else if (indexevt<2*NComponent) {
+        if (NewS[indexevt-NComponent]>Min[indexevt-NComponent]) {NewS[indexevt-NComponent]--;} /* depart definitf */
+    }
+    else if (indexevt<3*NComponent-1) {
+        if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {
+            NewS[indexevt-2*NComponent]--;
+            if (NewS[indexevt-2*NComponent+1]<Max[indexevt-2*NComponent+1]) {NewS[indexevt-2*NComponent+1]++;}
+        } /* transit entre deux files successives */
+    }
+    else {if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {NewS[indexevt-2*NComponent]--;}
+        /* depart definitf, la derniere file est particuliere */
+    }
+}
+
+void F (int * OldS,double U )
+{ int indexevt;
+    indexevt = Inverse(U);
+    Equation(OldS,indexevt);
+}
+
+
+void initEtat(Etat e)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        e[i] = 0;
+    }
+}
+
+//retourne 1 si deux etats ont couplé
+int couplage(Etat e1, Etat e2)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        if(e1[i]!=e2[i])
+            return 0;
+    }
+    return 1;
 }

@@ -5,7 +5,7 @@
 #include <arpa/inet.h> //inet_addr
 #include <unistd.h>    //write
 #include <pthread.h> //for threading , link with lpthread
-#include <sys/time.h>//pour le caclul du temps 
+#include <time.h>//pour le caclul du temps 
 
 #define N 1200000
 #define NB_MACHINES 6
@@ -59,7 +59,7 @@ static void init (unsigned int *A)
  //Structure des messages envoyées entre les machines
   typedef struct message{
 	int author;
-	double mess[nd];
+	double* mess;
 } message;
  
 
@@ -112,7 +112,7 @@ int main(int argc , char *argv[])
 	//Initialisation des variables
     int socket_desc, c;
     int nombre_machines = NB_MACHINES;
-    int nb_etapes = 2;
+    int nb_etapes = 1;
     c = sizeof(struct sockaddr_in);
     struct sockaddr_in server;
     struct sockaddr_in* client_addr = malloc(sizeof(struct sockaddr_in)*nombre_machines);
@@ -136,8 +136,7 @@ int main(int argc , char *argv[])
        //printf ("%f\n", u); 
    }
  printf("date après %f \ntemps de calcul de %d de données : %f s\n",(double)(clock ()) / CLOCKS_PER_SEC,N, (double)(clock () - debut) / CLOCKS_PER_SEC);
-printf("%d\n",sizeof(message));
-     
+    
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1)
@@ -191,13 +190,14 @@ printf("%d\n",sizeof(message));
     {
         args[i].res = res;
         args[i].id = clients_id[i];
-		args[i].numero = i;
-    for(j=0;j<nd;j++)
-    {
-     // printf("%d ",i*nd+j);
-		  res[i].mess[j] = vals[i*nd+j];
-     // printf("%f %f\n",res[i].mess[j],vals[i*nd+j]);
-    }
+        args[i].numero = i;
+        res[i].mess = malloc(sizeof(double)*nd);
+        for(j=0;j<nd;j++)
+        {
+         // printf("%d ",i*nd+j);
+          res[i].mess[j] = vals[i*nd+j];
+         // printf("%f %f\n",res[i].mess[j],vals[i*nd+j]);
+        }
 	}
 
     for(etapes = 0;etapes < nb_etapes;etapes++)
@@ -210,8 +210,8 @@ printf("%d\n",sizeof(message));
 			
 			res[i].author = 1;//on signe le message comme envoyé par le server
      //affiche_message(res[i]);
-      printf("on envoie à \n",clients_id[i]);
-			int val = send(clients_id[i] , (message *)&res[i] , sizeof(message) , 0);
+      printf("on envoie à %d\n",clients_id[i]);
+			int val = send(clients_id[i] , (double *)res[i].mess , 8*nd , 0);
       printf("Val de send = %d\n",val);
 			//printf("envoyé\n");
 			//printf("Creation de thread i=%d\n",i);
@@ -233,8 +233,6 @@ printf("%d\n",sizeof(message));
 
 		printf("--------------------------\n");
 	}
-
-        printf("%d\n",sizeof(message));
     close(socket_desc);
     free(vals);
 

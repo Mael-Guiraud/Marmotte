@@ -6,11 +6,14 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <time.h>//pour le caclul du temps 
 
 
+#define taille_mess 200000
   typedef struct message{
 	int author;
-	double mess[200000];
+	double *mess;
 } message;
  
 
@@ -18,7 +21,7 @@
  {
    int i;
    printf("Author = %d\n",m.author);
-   for(i=0;i<200000;i++)
+   for(i=0;i<taille_mess;i++)
    {
      printf("%f(%d) ",m.mess[i],i);
    }
@@ -30,6 +33,7 @@ int main(int argc , char *argv[])
     int sock;
     struct sockaddr_in server;
      message m;
+     m.mess = malloc(sizeof(double)*taille_mess);
     //Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
     if (sock == -1)
@@ -52,16 +56,22 @@ int main(int argc , char *argv[])
     puts("Connected\n");
      int nb_objet = 0;
      int recvnumber;
+    clock_t debut ;
     //keep communicating with server
     while(1)
     {
+      debut = clock();
+     printf("Date avant le recv : %f\n",(double)debut/ CLOCKS_PER_SEC);
+
 		//Receive a reply from the server
-      recvnumber = recv(sock , (message *)&m , sizeof(message) , MSG_WAITALL);
+      recvnumber = recv(sock , (double *)m.mess , taille_mess*8 , MSG_WAITALL);
         if(recvnumber <= 0)
         {
             puts("Connection Closed");
             break;
         }
+        printf("Date après reception : %f (temps total %f)\n",(double)clock() / CLOCKS_PER_SEC, (double)(clock () - debut) / CLOCKS_PER_SEC);
+
         //Calculation
         printf("on a recu %f (author = %d /%d) \n",m.mess[0],m.author,recvnumber);
        //affiche_message(m);
@@ -79,7 +89,7 @@ int main(int argc , char *argv[])
         }
         printf("reemis(%d)\n",nb_objet);
          
-        printf("%d\n",sizeof(message));
+
     }
      
     close(sock);
