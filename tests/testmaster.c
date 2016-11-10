@@ -7,8 +7,8 @@
 #include <pthread.h> //for threading , link with lpthread
 #include <time.h>//pour le caclul du temps 
 
-#define N 1200000
-#define NB_MACHINES 6
+#define N 120
+#define NB_MACHINES 1
 #define nd N/NB_MACHINES
 
 #define W 32
@@ -65,9 +65,9 @@ static void init (unsigned int *A)
 
  //Structure de l'argument passé à la fonction de thread
 typedef struct argument{
-	int id;		//Socket id
-	int numero;	//id dans le programme
-	message *res;
+  int id;   //Socket id
+  int numero; //id dans le programme
+  message *res;
 } argument;
  
  
@@ -126,17 +126,23 @@ int main(int argc , char *argv[])
    double u, som = 0;
    int n = N;
    double* vals = malloc(sizeof(double)*n);
-    clock_t debut = clock();
-    printf("Date avant la génération des %d aléatoires : %f\n",N,(double)debut/ CLOCKS_PER_SEC);
-   init (B);
+    
+  struct timeval tv1, tv2;
+  long long temps;
+
+
+    gettimeofday (&tv1, NULL);
+    init (B);
    InitWELLRNG512a (B);
    for (i = 0; i < n; i++) {
       u = WELLRNG512a();
       vals[i]=u;
        //printf ("%f\n", u); 
    }
- printf("date après %f \ntemps de calcul de %d de données : %f s\n",(double)(clock ()) / CLOCKS_PER_SEC,N, (double)(clock () - debut) / CLOCKS_PER_SEC);
-    
+      gettimeofday (&tv2, NULL);
+      temps = ( (tv2.tv_sec*1000LL +tv2.tv_usec/1000) - (tv1.tv_sec*1000LL-tv1.tv_usec/1000));
+      printf ("temps de calcul=%lld millisecondes\n", temps);
+
     //Create socket
     socket_desc = socket(AF_INET , SOCK_STREAM , 0);
     if (socket_desc == -1)
@@ -202,9 +208,8 @@ int main(int argc , char *argv[])
 
     for(etapes = 0;etapes < nb_etapes;etapes++)
     {
-        debut = clock();
-         printf("Date avant l'envoi des %d aléatoires : %f\n",N,(double)debut/ CLOCKS_PER_SEC);
-
+        gettimeofday (&tv1, NULL);
+ 
 		for(i=0;i<nombre_machines;i++)
 		{
 			
@@ -229,7 +234,9 @@ int main(int argc , char *argv[])
 			pthread_join( sniffer_thread[i] , NULL);
 		}
 		//affiche_res(res,nombre_machines);
-     printf("Date après l'emission (et reception de l'acusé) %f \ntemps d'envoi de %d de données : %f s\n",(double)clock() / CLOCKS_PER_SEC,N, (double)(clock () - debut) / CLOCKS_PER_SEC);
+    gettimeofday (&tv2, NULL);
+      temps = ( (tv2.tv_sec*1000LL +tv2.tv_usec/1000) - (tv1.tv_sec*1000LL-tv1.tv_usec/1000));
+      printf ("temps d'envoi=%lld millisecondes\n", temps);
 
 		printf("--------------------------\n");
 	}

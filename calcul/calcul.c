@@ -12,7 +12,15 @@ double Distrib[SizeDistrib];
 double arrival[NComponent], service[NComponent], departure[NComponent];
 
 
-
+void affiche_state(Etat e)
+{
+	int i;
+	for(i=0;i<NComponent;i++)
+	{
+		printf("%d ",e[i]);
+	}
+	printf("\n");
+}
 
 void cpy_state(Etat e1, Etat e2)
 {
@@ -48,7 +56,7 @@ int main(int argc , char *argv[])
 
     //Reception de la graine et génération de la sequence aléa
     seed s;
-    if( recv(sock , &s , sizeof(seed) , 0) <= 0)
+    if( recv(sock , &s , sizeof(seed) , MSG_WAITALL) <= 0)
     {
         puts("Connection Closed");
         return 0;
@@ -73,15 +81,18 @@ int main(int argc , char *argv[])
     while(1)
     {
 		//Receive a reply from the server
-        if( recv(sock , &m , sizeof(message) , 0) <= 0)
+        if( recv(sock , &m , sizeof(message) , MSG_WAITALL) <= 0)
         {
             puts("Connection Closed");
             break;
         }
+        printf("on a recu :\n");
+          affiche_state(m.x0);
+          affiche_state(m.y0);
         //On n'a pas couplé à l'étape d'avant.
         if(!couplage(m.x0,m.y0))
         {
-
+          
 		  for(i=0;i<m.nb_elems;i++)
 			{
 		  		F(m.x0,sequence[i+m.indice_Un]);
@@ -90,6 +101,10 @@ int main(int argc , char *argv[])
 			cpy_state(m.x0,r.x0);
 			cpy_state(m.y0,r.y0);
 
+          printf("on a renvoi :\n");
+          affiche_state(r.x0);
+          affiche_state(r.y0);
+          printf("\n\n");
 		   //Send some data
 	       if( send(sock , &r , sizeof(reponse) , 0) < 0)
 	        {

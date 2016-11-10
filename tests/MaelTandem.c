@@ -35,6 +35,8 @@
 static unsigned int state_i = 0;
 static unsigned int STATE[R];
 static unsigned int z0, z1, z2;
+
+
 void InitWELLRNG512a (unsigned int *seed);
 
 double WELLRNG512a (void);
@@ -98,7 +100,7 @@ void InitDistribution()
     for(i=0;i<NComponent;i++)
     {
         arrival[i ] = 10.0;
-        service[i ] = 20.0*i;
+        service[i ] = 20.0*(i+1);
         departure[i]= 5.0;
     }
     
@@ -128,13 +130,10 @@ int Inverse(double U)
     return(j);
 }
 
-void Equation(int* OldS,int indexevt,int* NewS)
+void Equation(int* NewS,int indexevt)
 {
     int i;
-    /* effet des evenements dans le reseau, indexevt entre 0 et 3NComponent-1 */
-    for(i=0;i<NComponent;i++)
-    {    NewS[i]=OldS[i];
-    }
+
     if (indexevt<NComponent) {
         if (NewS[indexevt]<Max[indexevt]) {NewS[indexevt]++;} /*  arrivee */
     }
@@ -152,13 +151,23 @@ void Equation(int* OldS,int indexevt,int* NewS)
     }
 }
 
-void F (int * OldS,double U ,int * NewS)
+void F (int * OldS,double U )
 { int indexevt;
     indexevt = Inverse(U);
-    Equation(OldS,indexevt,NewS);
+    Equation(OldS,indexevt);
 }
 
-
+//retourne 1 si deux etats ont couplé
+int couplage(Etat e1, Etat e2)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        if(e1[i]!=e2[i])
+            return 0;
+    }
+    return 1;
+}
 /*   Il faut que ta fonction appelante ait defini les etats OldS et NewS (de type Etat)
  et ait genere le U par un random. */
 
@@ -171,7 +180,7 @@ void afficheEtat(Etat e)
     }
     printf("\n");
 }
-void initEtat(Etat e)
+void initEtatMIN(Etat e)
 {
     int i;
     for(i=0;i<NComponent;i++)
@@ -180,6 +189,14 @@ void initEtat(Etat e)
     }
 }
 
+void initEtatMAX(Etat e)
+{
+    int i;
+    for(i=0;i<NComponent;i++)
+    {
+        e[i] = 100;
+    }
+}
 int main(){
     
     int temps = time(NULL);
@@ -188,29 +205,33 @@ int main(){
     InitDistribution();
     InitRectangle();
     double u;
-    Etat OldS, NewS;
-    initEtat(OldS);
-   
+    Etat min, max;
+    initEtatMIN(min);
+    initEtatMAX(max);
+    int bool_couplage = 0;
     
     int i;
     int time=0;
     for(i=0;i<10000000;i++)
     {
          u = WELLRNG512a();
-        if(i%2)
-            F(NewS,u,OldS);
-        else
-            F(OldS,u,NewS);
-        
+         F(min,u);
+         F(max,u);
+        if((couplage(min,max))&&(!bool_couplage))
+        {
+            printf("Couplage pour i = %d.\n",i);
+            afficheEtat(min);
+            afficheEtat(max);
+            bool_couplage = 1;
+
+        }
             
     }
-    afficheEtat(OldS);
-    time = clock();
-    printf("temps de simulation pour %d etapes : %f s\n",i,time);
-    printf("\n");
-
-
+    printf("Fin de la simulation de %d Etapes.\n",i);
+    afficheEtat(min);
+    afficheEtat(max);
     return 0;
+
 }
 
 
