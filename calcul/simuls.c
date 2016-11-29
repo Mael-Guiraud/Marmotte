@@ -1,8 +1,8 @@
-#include "headers.h"
+#include "simuls.h"
 
 
 
-/* ces deux fonctions sont à faire au debut, une seule fois... */
+
 
 void InitRectangle()
 {
@@ -13,8 +13,6 @@ void InitRectangle()
         Max[i ] = 100;
     }
 }
-
-
 
 void InitDistribution()
 {
@@ -30,7 +28,7 @@ void InitDistribution()
     for(i=0;i<NComponent;i++)
     {
         arrival[i ] = 10.0;
-        service[i ] = 20.0*i;
+        service[i ] = 20.0*(i+1);
         departure[i]= 5.0;
     }
     

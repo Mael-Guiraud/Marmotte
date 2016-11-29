@@ -189,12 +189,12 @@ void initEtatMIN(Etat e)
     }
 }
 
-void initEtatMAX(Etat e)
+void initEtatMAX(Etat e,int val)
 {
     int i;
     for(i=0;i<NComponent;i++)
     {
-        e[i] = 100;
+        e[i] = val;
     }
 }
 int main(){
@@ -206,30 +206,53 @@ int main(){
     InitRectangle();
     double u;
     Etat min, max;
-    initEtatMIN(min);
-    initEtatMAX(max);
-    int bool_couplage = 0;
-    
-    int i;
-    int time=0;
-    for(i=0;i<10000000;i++)
-    {
-         u = WELLRNG512a();
-         F(min,u);
-         F(max,u);
-        if((couplage(min,max))&&(!bool_couplage))
-        {
-            printf("Couplage pour i = %d.\n",i);
-            afficheEtat(min);
-            afficheEtat(max);
-            bool_couplage = 1;
 
+    int nombre_occurences[20000];
+    int i,j,k;
+    int nb_simuls = 100000;
+    FILE * f; 
+    char nom[64];
+    long long int nb_couplage;
+    for(k=100;k>0;k-=10)
+    {
+        for(i=0;i<20000;i++)
+        {
+            nombre_occurences[i]=0;
         }
+       
+        printf("Calcul des %d temps de couplage avec états initaux à %d...\n",nb_simuls,k);
+        for(j=0;j<nb_simuls;j++)
+        {
+
+            initEtatMIN(min);
+            initEtatMAX(max,k);
+            for(i=0;i<20000;i++)
+            {
+                 u = WELLRNG512a();
+                 F(min,u);
+                 F(max,u);
+                if(couplage(min,max))
+                {
+                    if(i<20000)nombre_occurences[i]++;
+                    break;
+                    nb_couplage+=i;
+
+                }
+
+                    
+            }
+            if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
             
+        }
+        printf("\n Temps de couplage moyen pour %d Etapes: %lld\n",j,nb_couplage/nb_simuls);
+        sprintf(nom,"distribution_couplage%d",k);
+        f = fopen(nom,"w");
+        for(i=0;i<20000;i++)
+        {
+            fprintf(f,"%d %d\n",i,nombre_occurences[i]);
+        }
+        fclose(f);
     }
-    printf("Fin de la simulation de %d Etapes.\n",i);
-    afficheEtat(min);
-    afficheEtat(max);
     return 0;
 
 }

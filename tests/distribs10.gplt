@@ -1,0 +1,8 @@
+plot   'distribution_couplage10'  using 1:2  notitle 
+	set title "distribution des temps de couplage"
+	set ylabel "nb occurences(pour 1 million)"
+	set xlabel "temps de couplage "
+	set term postscript color solid
+	set output "distribs10.ps"
+	replot
+	
