@@ -12,10 +12,11 @@
 #include <sys/time.h>//pour le caclul du temps 
 
 
-typedef int Etat[NComponent];
-typedef Etat trajectoire_partielle[TAILLE_SEQUENCE/(X*NB_MACHINES) +1];
+typedef int * Etat;
+typedef Etat * trajectoire_partielle;
+    #define TAILLE_TRAJECTOIRE_PARTIELLE TAILLE_SEQUENCE/(X*NB_MACHINES) +1
 
-typedef Etat trajectoire_finale[TAILLE_SEQUENCE];
+typedef Etat * trajectoire_finale;
 
 
 typedef struct seed{
@@ -198,10 +199,16 @@ int premier_libre()
 }
 
 int a_repondu[X*NB_MACHINES];
+
 int main(int argc , char *argv[])
 {
 
-
+    RESULT = malloc(sizeof(Etat)*TAILLE_SEQUENCE);
+     int i;
+    for(i = 0;i<TAILLE_SEQUENCE;i++)
+    {
+        RESULT[i]=malloc(sizeof(int)*NComponent);
+    }
     int nombre_machines = NB_MACHINES;
     int n = TAILLE_SEQUENCE;
     int x = X;
@@ -213,6 +220,11 @@ int main(int argc , char *argv[])
     pthread_t * sniffer_thread = malloc(sizeof(pthread_t)*(x*nombre_machines) ); // tableau des id de thread
     int * clients_id = malloc(sizeof(int)*nombre_machines ); // tableay des id de socket
     reponse * res = malloc(sizeof(reponse)*(nombre_machines*x) ); // tableau des resultats
+    for(i = 0;i<nombre_machines*x;i++)
+    {
+        res[i].x0 = malloc(sizeof(int)*NComponent);
+        res[i].y0 = malloc(sizeof(int)*NComponent);
+    }
     c = sizeof(struct sockaddr_in);
     argument * args = malloc(sizeof(argument)*(x*nombre_machines) ); // tableau des arguments que l'on passe aux threads (chaque argument contient une adresse vers le tableau de messages précédent, commun à tous)
     
@@ -250,7 +262,6 @@ int main(int argc , char *argv[])
    // puts("Waiting for incoming connections...");
 
 
-    int i;
     for(i=0;i<nombre_machines;i++)  
     {
         disponibilite_machines[i] = 1;
@@ -268,7 +279,7 @@ int main(int argc , char *argv[])
     int recu[x*nombre_machines];
    
     struct timeval tv1, tv2;
-    long long temps;
+    long long temps=0;
     gettimeofday (&tv1, NULL);
     //initialisation 
     for(i=0;i<x*nombre_machines;i++)
@@ -288,11 +299,15 @@ int main(int argc , char *argv[])
         args[i].res = res;
         
 		args[i].numero = i;
-        send(clients_id[i] , &s , sizeof(seed) , 0);
+       
 	}
+    for(i=0;i<nombre_machines;i++) send(clients_id[i] , &s , sizeof(seed) , 0);
+    
     message m;
     int nb_recup = 0;
-
+        m.x0 = malloc(sizeof(int)*NComponent);
+        m.y0 = malloc(sizeof(int)*NComponent);
+    //int taille_message = sizeof(int)*(NComponent*2+2);
 
     int machine_utilisee;
     int nb_tours = 0;
@@ -301,7 +316,7 @@ int main(int argc , char *argv[])
 
     while(nb_recup != x*nombre_machines)
     {
-        
+        //affiche_all_states(res,nombre_machines*x);
 		for(i=0;i<nombre_machines*X;i++)
 		{
 
@@ -334,7 +349,17 @@ int main(int argc , char *argv[])
                 cpy_state(res[i].y0,m.y0);
                 m.indice_Un = n/(x*nombre_machines)*i;
                 m.nb_elems = n/(x*nombre_machines)+1;
-                send(args[i].id , &m , sizeof(message) , 0);
+
+ 
+                //envoi d'un message (décomposé)
+                send(args[i].id , &m.indice_Un , sizeof(int) , 0);
+                send(args[i].id , &m.nb_elems , sizeof(int) , 0);
+                //printf("envoi de :\n");
+                //affiche_state(m.x0);
+               // affiche_state(m.y0);
+                send(args[i].id , m.x0 , sizeof(int)*NComponent , 0);
+                send(args[i].id , m.y0 , sizeof(int)*NComponent , 0);
+
 
     	        if(pthread_create( &sniffer_thread[i] , NULL ,  reception_results , (void*)&args[i]) < 0)
     	        {
@@ -365,21 +390,38 @@ int main(int argc , char *argv[])
             cpy_state(res[i-1].x0,res[i].x0);
             cpy_state(res[i-1].y0,res[i].y0); 
 
-     
         }
         
 	nb_tours++;	
-    //printf(" %d trajectoires/%d\n",nb_recup,NB_MACHINES*X);
+  //  printf(" %d trajectoires/%d\n",nb_recup,NB_MACHINES*X);
     }
     gettimeofday (&tv2, NULL);
-    temps = ( (tv2.tv_sec*1000LL +tv2.tv_usec/1000) - (tv1.tv_sec*1000LL-tv1.tv_usec/1000));
+    temps = ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
     printf("%d %lld\n",nb_tours,temps);
     //fprintf(f,"%d %lld\n",nb_tours,temps);
     close(socket_desc);
 
     //ecrire_trajectoire_finale();
 
+    for(i = 0;i<TAILLE_SEQUENCE;i++)
+    {
+        free(RESULT[i]);
+    }
+   free(RESULT);
+    free(m.x0);
+    free(m.y0);
+    for(i = 0;i<nombre_machines*x;i++)
+    {
+        free(res[i].x0);
+        free(res[i].y0);
 
+    }
+    free(args);
+    free(res);
+    free(clients_id);
+    free(sniffer_thread);
+    free(client_addr);
+        
     return 0;
 }
  
@@ -390,23 +432,51 @@ void *reception_results(void *arg)
     //Get the socket descriptor
     argument a = *(argument*)arg;
     int read_size;
+    int read_size2;
+    int taille_reponse = sizeof(int)*(NComponent);
     //printf("On est dans le calcul du thread (%d)(utilisation de la machine %d)\n",a.numero,a.id_machine);
     if(a.type_reponse == 0)
     {
-	   read_size = recv(a.id , &a.res[a.numero] , sizeof(reponse), MSG_WAITALL); 
+       read_size = recv(a.id , a.res[a.numero].x0 , taille_reponse, MSG_WAITALL); 
+	   read_size2 = recv(a.id , a.res[a.numero].y0 , taille_reponse, MSG_WAITALL); 
+           if(read_size2 == 0)
+            {
+                puts("Client disconnected");
+                fflush(stdout);
+            }
+            else 
+            {
+                if(read_size2 == -1)
+                {
+                    perror("recv failed");
+                }
+            }  
+              //  printf("reception de :\n");
+               // affiche_state(a.res[a.numero].x0);
+               // affiche_state(a.res[a.numero].y0);
     }
     else
     {
-        trajectoire_partielle reponse ;
-       read_size = recv(a.id , &reponse , sizeof(trajectoire_partielle), MSG_WAITALL);  
+        trajectoire_partielle reponse =malloc(sizeof(int*)*(TAILLE_TRAJECTOIRE_PARTIELLE) );
         int i;
+        for(i=0;i<TAILLE_TRAJECTOIRE_PARTIELLE;i++)
+        {
+            reponse[i]=malloc(sizeof(int)*NComponent);
+            read_size = recv(a.id , reponse[i] , sizeof(int)*(NComponent), MSG_WAITALL);  
+
+        }
+
        for(i=0;i<TAILLE_SEQUENCE/(X*NB_MACHINES)+1;i++)
         {
 
             if(i==TAILLE_SEQUENCE/(X*NB_MACHINES)) // derniere etape
             {
+                //printf("%d /",i);affiche_state(reponse[i]);
+
                 if(a.numero!=(NB_MACHINES*X)-1)
                 {
+                     //printf("ECRITURE de :\n");
+          //  affiche_state(reponse[i]);
                     //on ecrit dans l'etat initial de la prochaine iteration
                     cpy_state(reponse[i],a.res[a.numero].x0);
                     cpy_state(reponse[i],a.res[a.numero].y0);
@@ -417,6 +487,12 @@ void *reception_results(void *arg)
                 cpy_state(reponse[i],RESULT[a.numero*(TAILLE_SEQUENCE/(NB_MACHINES*X))+i]);
             }
        }
+        for(i=0;i<TAILLE_TRAJECTOIRE_PARTIELLE;i++)
+        {
+            free(reponse[i]);
+        }
+        free(reponse);
+
     }        
     if(read_size == 0)
     {
@@ -424,12 +500,13 @@ void *reception_results(void *arg)
         fflush(stdout);
     }
     else 
-	{
-		if(read_size == -1)
-	    {
-	        perror("recv failed");
-	    }
-	}  
+    {
+        if(read_size == -1)
+        {
+            perror("recv failed");
+        }
+    } 
+   
     a_repondu[a.numero]=1;
     //printf("%d remis en service--------------------------\n",a.id_machine);
     disponibilite_machines[a.id_machine] = 1;

@@ -60,7 +60,7 @@ static void init (unsigned int *A,int seed)
 
 
 
-#define NComponent 10
+#define NComponent 5
 #define SizeDistrib 3*NComponent
 
 
@@ -86,7 +86,7 @@ void InitRectangle()
 
 
 
-void InitDistribution()
+void InitDistribution(double charge)
 {
     int i;
     double total;
@@ -96,19 +96,30 @@ void InitDistribution()
      pour aller a la file suivante . Ca pourrait être mis dans un
      fichier de parametre pour eviter de recompiler */
     
-    
     for(i=0;i<NComponent;i++)
     {
-        arrival[i ] = 10.0;
+        arrival[i ] = 50.0;
+        if(i==0)
+        {
+            service[i ] = 3*( arrival[i]/charge )/4;  
+            departure[i]= ( arrival[i]/charge  )/4;
+        }
+        else
+        {
+            service[i ] = 3*( (arrival[i] + service[i-1])/charge )/4;  
+            departure[i]= ( (arrival[i] + service[i-1])/charge  )/4;
+        }
+        /*     arrival[i ] = 10.0;
         service[i ] = 20.0*(i+1);
-        departure[i]= 5.0;
-    }
+        departure[i]= 5.0;*/
+     }
     
     total = 0.0;
     
     for(i=0;i<NComponent;i++)
     {    total+=arrival[i]+service[i]+departure[i];
     }
+
     for(i=0;i<NComponent;i++)
     {   Distrib[i] = arrival[i]/total;
         Distrib[i+NComponent] = departure[i]/total;
@@ -202,40 +213,49 @@ int main(){
     int temps = time(NULL);
     init(B,temps);
     InitWELLRNG512a (B);
-    InitDistribution();
+    
     InitRectangle();
     double u;
     Etat min, max;
 
-    int nombre_occurences[20000];
-    int i,j,k;
-    int nb_simuls = 100000;
+   
+    int i,j;
+    double k;
+    int nb_simuls = 1000000;
+    int temps_couplage_max = 110000;
+    int diviseur = 100;
+    int taille_tab = temps_couplage_max/diviseur;
+    int nombre_occurences[taille_tab];
     FILE * f; 
     char nom[64];
-    long long int nb_couplage;
-    for(k=100;k>0;k-=10)
+    long long int nb_couplage =0;
+    for(k=1.0;k<1.1;k+=0.1)
     {
-        for(i=0;i<20000;i++)
+        InitDistribution(k);
+        for(i=0;i<taille_tab;i++)
         {
             nombre_occurences[i]=0;
         }
        
-        printf("Calcul des %d temps de couplage avec états initaux à %d...\n",nb_simuls,k);
+        printf("Calcul des %d temps de couplage avec états initaux à %.3f...\n",nb_simuls,k);
         for(j=0;j<nb_simuls;j++)
         {
 
             initEtatMIN(min);
-            initEtatMAX(max,k);
-            for(i=0;i<20000;i++)
+            initEtatMAX(max,100);
+            for(i=0;i<1000000;i++)
             {
                  u = WELLRNG512a();
+                 /*afficheEtat(min);
+                 afficheEtat(max);
+                 printf("-----\n");*/
                  F(min,u);
                  F(max,u);
                 if(couplage(min,max))
                 {
-                    if(i<20000)nombre_occurences[i]++;
-                    break;
+                    if(i/diviseur<taille_tab)nombre_occurences[i/diviseur]++;
                     nb_couplage+=i;
+                    break;
 
                 }
 
@@ -244,12 +264,12 @@ int main(){
             if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
             
         }
-        printf("\n Temps de couplage moyen pour %d Etapes: %lld\n",j,nb_couplage/nb_simuls);
-        sprintf(nom,"distribution_couplage%d",k);
+        printf("\n Temps de couplage moyen pour %d simulations: %lld\n",j,nb_couplage/nb_simuls);
+        sprintf(nom,"distribution_couplage%.1f.data",k);
         f = fopen(nom,"w");
-        for(i=0;i<20000;i++)
+        for(i=0;i<taille_tab;i++)
         {
-            fprintf(f,"%d %d\n",i,nombre_occurences[i]);
+            fprintf(f,"%d %f\n",i*diviseur,(float)((float)nombre_occurences[i]/(float)nb_simuls*100));
         }
         fclose(f);
     }

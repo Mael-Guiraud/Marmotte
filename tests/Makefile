@@ -10,4 +10,5 @@ occurences: MaelTandem.c
 	
 clean:
 	rm -f *.ps
-	rm -f convert
+	rm -f occurences
+

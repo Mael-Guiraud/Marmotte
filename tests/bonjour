@@ -1,6 +1,0 @@
-
-#define NComponent 10
-
-#define NB_MACHINES 6
-#define X 1
-#define TAILLE_SEQUENCE 200000

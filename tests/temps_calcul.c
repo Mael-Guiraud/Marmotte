@@ -198,6 +198,36 @@ void initEtatMAX(Etat e)
         e[i] = 100;
     }
 }
+
+// Return current time in second-micro/nanosecond
+double what_time_is_it () {
+//  clock_gettime is on recent linux but not in MacOS
+//  We use gettimeofday instead
+
+//  struct timespec tp;
+//  clock_gettime(CLOCK_REALTIME,&tp);
+//  double current_time = tp.tv_sec + tp.tv_nsec*1e-9;
+
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    double current_time = tv.tv_sec + tv.tv_usec*1e-6;
+
+    return current_time;
+}
+
+double chrono() {
+  static double start_time;
+  static double last_time;
+  static int first = 1;
+  double current_time = what_time_is_it();;
+  if (first) { start_time = last_time = current_time; first = 0; }
+  else printf("\r\033[2K   TIME Elapsed %.3lfs Total %.3lfs\n\n",current_time - last_time, current_time - start_time);
+  last_time = current_time;
+  return current_time - start_time;
+}
+
+
+
 int main(){
     
    int graine = time(NULL);
@@ -211,27 +241,27 @@ int main(){
     int i,j;
 
     struct timeval tv1, tv2;
-    long long temps;
+    double temps =0.0;
     
     int TAILLE = 120000;
     double * u = malloc(sizeof(double)*TAILLE);
-
+    double t;
     initEtatMIN(min);
     initEtatMAX(max);
     //FILE *f = fopen("res_temps","w");
-    
 
-    for(j=0;j<10;j++)
+    for(j=0;j<100;j++)
     { 
+        
         gettimeofday (&tv1, NULL);
         //printf("Calcul sur 1 processeur d'une sequence de taille %d.\n",TAILLE);
-    
         for(i=0;i<TAILLE;i++)
          {
               u[i] = WELLRNG512a();
-                    
          }
-        for(i=0;i<TAILLE;i++)
+
+
+       for(i=0;i<TAILLE;i++)
          {
 
                 F(min,u[i]);
@@ -239,12 +269,16 @@ int main(){
             //if(i%(TAILLE/100)==0)printf("\r[%3d%%]",i/(TAILLE/100));     
          }
         gettimeofday (&tv2, NULL);
-        temps += ( (tv2.tv_sec*1000LL +tv2.tv_usec/1000) - (tv1.tv_sec*1000LL-tv1.tv_usec/1000));
-        //fprintf(f,"%d %lld \n",j,temps);
+      
+        temps +=  ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+       // temps += (tv2.tv_sec + tv2.tv_usec*1e-6)-(tv1.tv_sec + tv1.tv_usec*1e-6);
+        //temps +=  chrono();
+      //fprintf(f,"%d %lld \n",j,temps);
 
         //FAIRE UNE MOYENNE
+  
     }
-    printf("temps_moyen :%d\n",temps/j);
+    printf("temps_moyen :%f \n",temps/j);
     
     free(u);
     return 0;

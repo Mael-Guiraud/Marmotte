@@ -30,7 +30,9 @@ typedef struct reponse{
 	Etat y0;
 } reponse;
 
-typedef Etat trajectoire_partielle[TAILLE_SEQUENCE/(X*NB_MACHINES) +1];
+typedef Etat* trajectoire_partielle;
+	#define TAILLE_TRAJECTOIRE_PARTIELLE TAILLE_SEQUENCE/(NB_INTER) +1
+
 
 
 

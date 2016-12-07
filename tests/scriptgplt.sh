@@ -2,10 +2,10 @@
 
 
 
-for X in '10' '20' '30' '40' '50' '60' '70' '80' '90' '100'
+for X in '1.0'
 do
 
-	echo "plot   'distribution_couplage$X'  using 1:2  notitle 
+	echo "plot   'distribution_couplage$X.data'  using 1:2  notitle 
 	set title \"distribution des temps de couplage\"
 	set ylabel \"nb occurences(pour 1 million)\"
 	set xlabel \"temps de couplage \"

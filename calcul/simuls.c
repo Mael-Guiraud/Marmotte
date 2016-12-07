@@ -27,9 +27,17 @@ void InitDistribution()
     
     for(i=0;i<NComponent;i++)
     {
-        arrival[i ] = 10.0;
-        service[i ] = 20.0*(i+1);
-        departure[i]= 5.0;
+       arrival[i ] = 50.0;
+        if(i==0)
+        {
+            service[i ] = 3*( arrival[i] )/4;  
+            departure[i]= ( arrival[i]  )/4;
+        }
+        else
+        {
+            service[i ] = 3*( arrival[i] +  service[i-1] )/4;  
+            departure[i]= ( arrival[i] + service[i-1] )/4;
+        }
     }
     
     total = 0.0;
