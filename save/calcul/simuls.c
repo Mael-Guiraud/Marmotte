@@ -30,13 +30,13 @@ void InitDistribution()
        arrival[i ] = 50.0;
         if(i==0)
         {
-            service[i ] = 3*( 2*arrival[i] )/4;  
-            departure[i]= ( 2*arrival[i]  )/4;
+            service[i ] = 3*( arrival[i] )/4;  
+            departure[i]= ( arrival[i]  )/4;
         }
         else
         {
-            service[i ] = 3*( 2*arrival[i] + 2 * service[i-1] )/4;  
-            departure[i]= ( 2*arrival[i] + 2 * service[i-1] )/4;
+            service[i ] = 3*( arrival[i] +  service[i-1] )/4;  
+            departure[i]= ( arrival[i] + service[i-1] )/4;
         }
     }
     

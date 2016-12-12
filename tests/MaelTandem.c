@@ -60,7 +60,7 @@ static void init (unsigned int *A,int seed)
 
 
 
-#define NComponent 5
+#define NComponent 2
 #define SizeDistrib 3*NComponent
 
 
@@ -84,30 +84,41 @@ void InitRectangle()
     }
 }
 
-
+double puissance(double p,int puissance)
+{
+    if(puissance==0)return 1;
+    int i;
+    double res = p;
+    for(i=0;i<puissance-1;i++)
+    {
+        res*=p;
+    }
+    return res;
+}
 
 void InitDistribution(double charge)
 {
-    int i;
+    int i,j;
     double total;
+    double p= 0.75;
+    double mu = 300.0;
     /* construit la distribution pour un reseau en tandem */
     /* la premeire partie permet de coder les taux d'arrivee, puis de sortie definitive
      et enfin de service
      pour aller a la file suivante . Ca pourrait être mis dans un
      fichier de parametre pour eviter de recompiler */
-    
-    for(i=0;i<NComponent;i++)
+   
+    service[0] = p*( mu);  
+    departure[0]= (1-p)*(  mu);
+    arrival[0] = mu*charge;
+    for(i=1;i<NComponent;i++)
     {
-        arrival[i ] = 50.0;
-        if(i==0)
+        service[i] = p*( mu);  
+        departure[i]= (1-p)*(  mu);
+        arrival[i] = mu*charge;
+        for(j=i-1;j>=0;j--)
         {
-            service[i ] = 3*( arrival[i]/charge )/4;  
-            departure[i]= ( arrival[i]/charge  )/4;
-        }
-        else
-        {
-            service[i ] = 3*( (arrival[i] + service[i-1])/charge )/4;  
-            departure[i]= ( (arrival[i] + service[i-1])/charge  )/4;
+            arrival[i]-= (arrival[j]*puissance(p,i-j));
         }
         /*     arrival[i ] = 10.0;
         service[i ] = 20.0*(i+1);
@@ -125,6 +136,12 @@ void InitDistribution(double charge)
         Distrib[i+NComponent] = departure[i]/total;
         Distrib[i+2*NComponent] = service[i]/total;
     }
+    total = 0.0;
+    for(i=0;i<NComponent;i++)
+    {    
+        total+=Distrib[i]+ Distrib[i+NComponent]+Distrib[i+2*NComponent];
+    }
+    printf("%f\n",total);
 }
 
 int Inverse(double U)
@@ -209,7 +226,7 @@ void initEtatMAX(Etat e,int val)
     }
 }
 int main(){
-    
+
     int temps = time(NULL);
     init(B,temps);
     InitWELLRNG512a (B);
@@ -221,15 +238,15 @@ int main(){
    
     int i,j;
     double k;
-    int nb_simuls = 1000000;
-    int temps_couplage_max = 110000;
-    int diviseur = 100;
+    int nb_simuls = 10000000;
+    int temps_couplage_max = 50000;
+    int diviseur = 10;
     int taille_tab = temps_couplage_max/diviseur;
     int nombre_occurences[taille_tab];
     FILE * f; 
     char nom[64];
     long long int nb_couplage =0;
-    for(k=1.0;k<1.1;k+=0.1)
+    for(k=0.1;k<1.6;k+=0.1)
     {
         InitDistribution(k);
         for(i=0;i<taille_tab;i++)
@@ -246,25 +263,30 @@ int main(){
             for(i=0;i<1000000;i++)
             {
                  u = WELLRNG512a();
-                 /*afficheEtat(min);
-                 afficheEtat(max);
-                 printf("-----\n");*/
+                 /*printf("%d-----\n",i);
+                 afficheEtat(min);
+                 afficheEtat(max);*/
+                 
                  F(min,u);
                  F(max,u);
                 if(couplage(min,max))
                 {
                     if(i/diviseur<taille_tab)nombre_occurences[i/diviseur]++;
                     nb_couplage+=i;
+                    //printf("Couplage en %d\n",i);
+                    //afficheEtat(min);
+                    //afficheEtat(max);
                     break;
 
                 }
 
                     
             }
-            if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
+           if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
             
         }
-        printf("\n Temps de couplage moyen pour %d simulations: %lld\n",j,nb_couplage/nb_simuls);
+        printf("\n Temps de couplage moyen pour %d simulations: %lld\n",j,nb_couplage/nb_simuls+1);
+        nb_couplage = 0;
         sprintf(nom,"distribution_couplage%.1f.data",k);
         f = fopen(nom,"w");
         for(i=0;i<taille_tab;i++)

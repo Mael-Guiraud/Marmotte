@@ -14,43 +14,64 @@ void InitRectangle()
     }
 }
 
-void InitDistribution()
+double puissance(double p,int puissance)
 {
+    if(puissance==0)return 1;
     int i;
+    double res = p;
+    for(i=0;i<puissance-1;i++)
+    {
+        res*=p;
+    }
+    return res;
+}
+void InitDistribution(double charge)
+{
+    int i,j;
     double total;
+    double p= 0.75;
+    double mu = 300.0;
     /* construit la distribution pour un reseau en tandem */
     /* la premeire partie permet de coder les taux d'arrivee, puis de sortie definitive
      et enfin de service
      pour aller a la file suivante . Ca pourrait être mis dans un
      fichier de parametre pour eviter de recompiler */
-    
-    
-    for(i=0;i<NComponent;i++)
+   
+    service[0] = p*( mu);  
+    departure[0]= (1-p)*(  mu);
+    arrival[0] = mu*charge;
+    for(i=1;i<NComponent;i++)
     {
-       arrival[i ] = 50.0;
-        if(i==0)
+        service[i] = p*( mu);  
+        departure[i]= (1-p)*(  mu);
+        arrival[i] = mu*charge;
+        for(j=i-1;j>=0;j--)
         {
-            service[i ] = 3*( arrival[i] )/4;  
-            departure[i]= ( arrival[i]  )/4;
+            arrival[i]-= (arrival[j]*puissance(p,i-j));
         }
-        else
-        {
-            service[i ] = 3*( arrival[i] +  service[i-1] )/4;  
-            departure[i]= ( arrival[i] + service[i-1] )/4;
-        }
-    }
+        /*     arrival[i ] = 10.0;
+        service[i ] = 20.0*(i+1);
+        departure[i]= 5.0;*/
+     }
     
     total = 0.0;
     
     for(i=0;i<NComponent;i++)
     {    total+=arrival[i]+service[i]+departure[i];
     }
+
     for(i=0;i<NComponent;i++)
     {   Distrib[i] = arrival[i]/total;
         Distrib[i+NComponent] = departure[i]/total;
         Distrib[i+2*NComponent] = service[i]/total;
     }
+    total = 0.0;
+    for(i=0;i<NComponent;i++)
+    {    
+        total+=Distrib[i]+ Distrib[i+NComponent]+Distrib[i+2*NComponent];
+    }
 }
+
 
 int Inverse(double U)
 {

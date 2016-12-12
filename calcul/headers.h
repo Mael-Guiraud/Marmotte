@@ -12,12 +12,6 @@
 #include <sys/time.h>
 
 
-typedef struct seed{
-	int seed;
-	int nb_elems;
-}seed;
-
-
 typedef struct message{
 	int indice_Un;
 	int nb_elems;
@@ -31,7 +25,7 @@ typedef struct reponse{
 } reponse;
 
 typedef Etat* trajectoire_partielle;
-	#define TAILLE_TRAJECTOIRE_PARTIELLE TAILLE_SEQUENCE/(NB_INTER) +1
+
 
 
 
