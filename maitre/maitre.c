@@ -74,7 +74,7 @@ int main(int argc , char *argv[])
         }
 
     int i;
-    int nb_simuls=100;
+    int nb_simuls=10000;
     int taille_inter;
     simulation_result res;
     double temps_total ;
