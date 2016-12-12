@@ -5,3 +5,6 @@ a.out
 occurences
 convert
 *.data
+*.o
+prog
+maitre
