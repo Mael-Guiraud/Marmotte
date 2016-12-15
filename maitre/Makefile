@@ -1,7 +1,7 @@
 CFLAGS = -c -g -std=c99 -lpthread -Wall -O2 
 
 all: maitre
-	./maitre
+	valgrind ./maitre
 
 maitre: main.o operations.o simulation.o thread.o
 	gcc -o maitre main.o operations.o thread.o simulation.o -lpthread

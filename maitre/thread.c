@@ -87,8 +87,7 @@ void *server_listener(void *arg)
             {
                 cpy_state(&partial_trajectory[1+i*NB_QUEUES],final_result[interval_id*(SEQUENCE_SIZE/(nb_inter))+i]);
             }
-          
-            //on ecrit dans l'etat initial de la prochaine iteration
+
             cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].x0);
             cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
             interval_state[interval_id]=FINISHED;
@@ -101,6 +100,86 @@ void *server_listener(void *arg)
     return 0;
 }
 
+
+//Wait for the server's replys
+void *server_listener_optim(void *arg)
+{
+    argument a = *(argument*)arg;
+
+    int interval_id;
+    int i;
+    int * bounds ;
+    int * partial_trajectory;
+
+    int bounds_bytes_size = sizeof(int)*(NB_QUEUES*2+1);
+    int trajectory_bytes_size = sizeof(int)*(interval_size*NB_QUEUES+1);
+    assert(bounds= malloc(bounds_bytes_size));
+    assert(partial_trajectory= malloc(trajectory_bytes_size));
+
+    while(1)
+    {   
+        //Waiting for something to read
+        while(what_do_i_read[a.id_machine]==PAUSE)
+        {
+            if(quit_threads)
+            {
+                free(bounds);
+                free(partial_trajectory);
+                thread_activity[a.id_machine]=CLOSED;
+                pthread_exit(NULL);
+            }
+        }     
+        
+        if(what_do_i_read[a.id_machine] == BOUNDS)//Reception of two bounds
+        {
+            if( recv(a.id_socket , bounds , bounds_bytes_size, MSG_WAITALL) <= 0)
+            {
+                printf("Connection Closed by server %d",a.id_machine);
+                break;
+            }
+            interval_id = bounds[0]/(interval_size-1);
+            if(coupling(&bounds[1],&bounds[1+NB_QUEUES]) || better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0))
+            {
+                if(interval_id != nb_inter-1 )
+                {
+                    cpy_state(&bounds[1],res[interval_id+1].x0);
+                    cpy_state(&bounds[1+NB_QUEUES],res[interval_id+1].y0);
+                }
+            }
+
+            interval_state[interval_id+1]=UPDATED;
+        }
+        else//Reception of a partial_trajectory
+        {
+            if( recv(a.id_socket , partial_trajectory , trajectory_bytes_size, MSG_WAITALL) <= 0)
+            {
+                printf("Connection Closed by server %d",a.id_machine);
+                break;
+            }
+            interval_id = partial_trajectory[0]/(interval_size-1);
+
+                            
+            for(i=0;i<interval_size-1;i++)
+            {
+                cpy_state(&partial_trajectory[1+i*NB_QUEUES],final_result[interval_id*(SEQUENCE_SIZE/(nb_inter))+i]);
+            }
+          
+             if(interval_id != nb_inter-1 )
+                {
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
+                }
+                printf("%d finished\n",interval_id);
+            interval_state[interval_id]=FINISHED;
+        }
+        machine_availability[a.id_machine] = FREE;
+        what_do_i_read[a.id_machine]=PAUSE;
+       
+        
+    }   
+
+    return 0;
+}
 
 int* create_sockets(int * socket_desc)
 {
@@ -165,12 +244,27 @@ int create_threads(int * servers_id,argument * args)
         machine_availability[i] = FREE;
         args[i].id_socket = servers_id[i];
         args[i].id_machine = i;
-        if(pthread_create( &sniffer_thread , NULL ,  server_listener , (void*)&args[i]) < 0)
-                    {
-                        perror("could not create thread");
-                        return 0;
-                    }  
-                    pthread_detach(sniffer_thread); 
+        
+        switch(MOD)
+        {
+            case 1:
+                if(pthread_create( &sniffer_thread , NULL ,  server_listener_optim , (void*)&args[i]) < 0)
+                            {
+                                perror("could not create thread");
+                                return 0;
+                            }  
+                break;
+            default:
+                if(pthread_create( &sniffer_thread , NULL ,  server_listener , (void*)&args[i]) < 0)
+                            {
+                                perror("could not create thread");
+                                return 0;
+                            }  
+                break;
+                            
+        }
+        pthread_detach(sniffer_thread); 
+
     }
     return 1;
 }

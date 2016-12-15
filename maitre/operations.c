@@ -75,3 +75,34 @@ void alloc_res()
         assert(res[i].y0 = malloc(sizeof(int)*NB_QUEUES));
     }
 }
+
+//Return the number of the first updated interval, -1 otherwise
+int number_updated()
+{
+    int i;
+    for( i = 0; i< nb_inter && !(interval_state[i]==UPDATED); i++)printf("%d ",interval_state[i]);printf("\n");
+    return (i<nb_inter) ? i : -1;
+}
+
+
+//Wait for an interval to be updated, and returns its number
+int sniffer_interval()
+{
+    int i;
+    while( (i = number_updated()) == -1);
+    return i;
+
+}
+int sum(int * s)
+{
+    int sum=0;
+    for(int i =0;i<NB_QUEUES;i++)sum+=s[i];
+    return sum;
+}
+//return 1 if s1 and s2 are  closer to coupling than s3 and s4,0 otherwise
+int better(int *s1,int*s2,int*s3,int*s4)
+{
+    int coupling1=sum(s2)-sum(s1);
+    int coupling2=sum(s4)-sum(s3);
+    return (coupling1<coupling2)?1:0;
+}
