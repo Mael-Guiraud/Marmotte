@@ -1,29 +1,33 @@
-#include "headers.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>  
+#include <sys/time.h>
+#include <unistd.h>
+#include <assert.h>
+//socket libs
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+#include "const.h"
+#include "struct.h"
+#include "alea.h"
+#include "simuls.h"
 
 
-void affiche_state(Etat e)
-{
-	int i;
-	for(i=0;i<NComponent;i++)
-	{
-		printf("%d ",e[i]);
-	}
-	printf("\n");
-}
-
-void cpy_state(Etat e1, Etat e2)
-{
-	int i;
-	for(i=0;i<NComponent;i++)
-	{
-		e2[i] = e1[i];
-	}
-}
-
+typedef struct message{
+	int Un_id;
+	int nb_elems;
+	int * x0;
+	int * y0;
+} Message;
 
 
 int main(int argc , char *argv[])
 {
+	struct timeval tv1, tv2;
+    double tps_e=0.0;
+    double tps_c=0.0;
+    double tps_r=0.0;
 
     int sock;
     struct sockaddr_in server;
@@ -32,8 +36,8 @@ int main(int argc , char *argv[])
     {
         printf("Could not create socket");
     }
-    server.sin_addr.s_addr = inet_addr("127.0.0.1");
-    //server.sin_addr.s_addr = inet_addr("192.168.90.219");
+    //server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server.sin_addr.s_addr = inet_addr("192.168.90.178");
     server.sin_family = AF_INET;
     server.sin_port = htons( 8888 );
 	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -41,18 +45,20 @@ int main(int argc , char *argv[])
         perror("connect failed. Error");
         return 1;
     }
-    message m;
+    Message m;
 
-    int taille_message = sizeof(int)*(NComponent*2 + 3);
-    int taille_reponse = sizeof(int)*(NComponent*2+1);
-    int taille_trajectoire;
+    int message_size = sizeof(int)*(NB_QUEUES*2 + 3);
+    int reply_size = sizeof(int)*(NB_QUEUES*2+1);
+    int interval_size;
 
-     m.x0 = malloc(sizeof(int)*NComponent); 
-     m.y0 = malloc(sizeof(int)*NComponent); 
+     assert(m.x0 = malloc(sizeof(int)*NB_QUEUES)); 
+     assert(m.y0 = malloc(sizeof(int)*NB_QUEUES)); 
 
-     int * MESSAGE=malloc(taille_message);
-     int * REPONSE = malloc(taille_reponse);
-     int * TRAJECTOIRE;
+     int * message;
+     assert(message=malloc(message_size));
+     int * reply;
+     assert(reply = malloc(reply_size));
+     int * trajectory;
       //Initialisation de la fonction de calcul
     InitDistribution(1.0);
 	InitRectangle();
@@ -60,77 +66,92 @@ int main(int argc , char *argv[])
 	int i;
     int nb_elems;
 
-
-
-    int continuer = 1;
-
-    while(continuer)
+    while(1)
     {
+    	gettimeofday (&tv1, NULL);
 		//Reception du message
-        if( recv(sock , MESSAGE, taille_message , MSG_WAITALL) <= 0)
+        if( recv(sock , message, message_size , MSG_WAITALL) <= 0)
         {
             puts("Connection Closed by MASTER");
             break;
         }
-        nb_elems = MESSAGE[2];
-        if(MESSAGE[0] == 0)//Si on doit générer une nouvelle graine
+            gettimeofday (&tv2, NULL);
+            tps_r += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+           gettimeofday (&tv1, NULL); 
+        nb_elems = message[2];
+        if(message[0] == 0)//New seed
         {
-        	if(sequence != NULL)free(sequence);//Si ce n'est pas la premiere initialisation, on free l'ancienne sequence 
-		    sequence = (double *)malloc(sizeof(double)*nb_elems);
-		    init(B,MESSAGE[1]);
+        	if(sequence != NULL)free(sequence);
+		    assert(sequence = (double *)malloc(sizeof(double)*nb_elems));
+		    init(B,message[1]);
 		    InitWELLRNG512a(B);
 		    for(i=0;i<nb_elems;i++)
 		    {
 		    	sequence[i]= WELLRNG512a();
 		    }
+		    gettimeofday (&tv2, NULL);
+            tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
         }
         else
         {
         	m.nb_elems = nb_elems;
-        	m.indice_Un = MESSAGE[1];
-        	cpy_state(&MESSAGE[3],m.x0);
-        	cpy_state(&MESSAGE[NComponent+3],m.y0);
-	        if(!couplage(m.x0,m.y0))
+        	m.Un_id = message[1];
+        	cpy_state(&message[3],m.x0);
+        	cpy_state(&message[NB_QUEUES+3],m.y0);
+	        if(!coupling(m.x0,m.y0))
 	        {
-	          REPONSE[0]=MESSAGE[1];
+	          reply[0]=message[1];
 			  for(i=0;i<m.nb_elems;i++)
 				{
-			  		F(m.x0,sequence[i+m.indice_Un]);
-			  		F(m.y0,sequence[i+m.indice_Un]);
+			  		F(m.x0,sequence[i+m.Un_id]);
+			  		F(m.y0,sequence[i+m.Un_id]);
 				}
-	        	cpy_state(m.x0,&REPONSE[1]);
-	        	cpy_state(m.y0,&REPONSE[NComponent+1]);
-		       if( send(sock ,REPONSE, taille_reponse  , 0) < 0)
+	        	cpy_state(m.x0,&reply[1]);
+	        	cpy_state(m.y0,&reply[NB_QUEUES+1]);
+	        	gettimeofday (&tv2, NULL);
+            	tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	 gettimeofday (&tv1, NULL); 
+		       if( send(sock ,reply, reply_size  , 0) < 0)
 		        {
-		            puts("Send (reponse) failed");
+		            puts("Send (reply) failed");
 		            break;
 		        }
+		        gettimeofday (&tv2, NULL);
+            	tps_e += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
 	        }        
 	        else
 	        {
-	        	taille_trajectoire= sizeof(int)*(m.nb_elems*NComponent+1);
-	        	TRAJECTOIRE= malloc(taille_trajectoire);
-	        	TRAJECTOIRE[0]=m.indice_Un;
+	        	interval_size= sizeof(int)*(m.nb_elems*NB_QUEUES+1);
+	        	assert(trajectory= malloc(interval_size));
+	        	trajectory[0]=m.Un_id;
 	        	for(i=0;i<m.nb_elems;i++)
 				{
-					F(m.x0,sequence[i+m.indice_Un]);
-			  		cpy_state(m.x0,&TRAJECTOIRE[1+i*NComponent]);
+					F(m.x0,sequence[i+m.Un_id]);
+			  		cpy_state(m.x0,&trajectory[1+i*NB_QUEUES]);
 				}
-				if( send(sock ,TRAJECTOIRE, taille_trajectoire  , 0) < 0)
+				gettimeofday (&tv2, NULL);
+            	tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	 gettimeofday (&tv1, NULL); 
+				if( send(sock ,trajectory, interval_size  , 0) < 0)
 		        {
-		            puts("Send (trajectoire) failed");
+		            puts("Send (trajectory) failed");
 		            break;
 		        }
-		        free(TRAJECTOIRE);
+		        gettimeofday (&tv2, NULL);
+            	tps_e += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+		        free(trajectory);
 
 			}
         }
 
     }
+    printf("Time spent in calulations = %f \n",tps_c);
+    printf("Time spent in emissions = %f \n",tps_e);
+    printf("Time spent in receptions+wait = %f \n",tps_r);
     free(m.x0);
-	free(REPONSE);
+	free(reply);
     free(m.y0);
-    free(MESSAGE);
+    free(message);
     free(sequence);
     
     close(sock);

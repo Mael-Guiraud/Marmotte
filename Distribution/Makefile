@@ -5,8 +5,8 @@ gnuplot: calcul
 	
 calcul: occurences
 	./occurences
-occurences: MaelTandem.c
-	gcc -o occurences MaelTandem.c
+occurences: distributions.c
+	gcc -o occurences distributions.c
 	
 clean:
 	rm -f *.ps

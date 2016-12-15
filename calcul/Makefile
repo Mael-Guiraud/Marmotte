@@ -1,19 +1,19 @@
-CFLAGS = -Wall -g -O2
+CFLAGS = -c -Wall -g -O3 
 
-all: prog
+all: clean prog
 	 ./prog
 
 prog: calcul.o alea.o simuls.o
-	gcc -o prog calcul.o alea.o simuls.o 
+	gcc -o prog calcul.o alea.o simuls.o -lm
 
-calcul.o: calcul.c headers.h constantes.h
-	gcc -c calcul.c $(CFLAGS)
+calcul.o: calcul.c simuls.o alea.o
+	gcc $(CFLAGS) calcul.c 
 
-alea.o: alea.c alea.h
-	gcc -c -Wall alea.c $(CFLAGS)
+alea.o: alea.c
+	gcc $(CFLAGS) alea.c 
 
-simuls.o: simuls.c simuls.h constantes.h
-	gcc -c -Wall simuls.c $(CFLAGS)
+simuls.o: simuls.c const.h
+	gcc $(CFLAGS) simuls.c 
 
 clean:
 	rm -f *.o

@@ -1,30 +1,39 @@
-#include "simuls.h"
+#include "const.h"
+#include <math.h>
+#include <string.h>
+void InitRectangle();
+int couplage(int * e1, int * e2);
+void InitDistribution();
+int Inverse(double U);
+void Equation(int* OldS,int indexevt);
+void initEtat(int * e);
 
 
+int Min[NB_QUEUES], Max[NB_QUEUES];
+double Distrib[SizeDistrib];
+double arrival[NB_QUEUES], service[NB_QUEUES], departure[NB_QUEUES];
 
+void cpy_state(int* s1, int* s2)
+{
+	int i;
+	for(i=0;i<NB_QUEUES;i++)
+	{
+		s2[i] = s1[i];
+	}
+}
 
 
 void InitRectangle()
 {
     int i;
-    for(i=0;i<NComponent;i++)
+    for(i=0;i<NB_QUEUES;i++)
     {
         Min[i ] = 0;
         Max[i ] = 100;
     }
 }
 
-double puissance(double p,int puissance)
-{
-    if(puissance==0)return 1;
-    int i;
-    double res = p;
-    for(i=0;i<puissance-1;i++)
-    {
-        res*=p;
-    }
-    return res;
-}
+
 void InitDistribution(double charge)
 {
     int i,j;
@@ -40,14 +49,14 @@ void InitDistribution(double charge)
     service[0] = p*( mu);  
     departure[0]= (1-p)*(  mu);
     arrival[0] = mu*charge;
-    for(i=1;i<NComponent;i++)
+    for(i=1;i<NB_QUEUES;i++)
     {
         service[i] = p*( mu);  
         departure[i]= (1-p)*(  mu);
         arrival[i] = mu*charge;
         for(j=i-1;j>=0;j--)
         {
-            arrival[i]-= (arrival[j]*puissance(p,i-j));
+            arrival[i]-= (arrival[j]*pow(p,(double)(i-j)));
         }
         /*     arrival[i ] = 10.0;
         service[i ] = 20.0*(i+1);
@@ -56,19 +65,19 @@ void InitDistribution(double charge)
     
     total = 0.0;
     
-    for(i=0;i<NComponent;i++)
+    for(i=0;i<NB_QUEUES;i++)
     {    total+=arrival[i]+service[i]+departure[i];
     }
 
-    for(i=0;i<NComponent;i++)
+    for(i=0;i<NB_QUEUES;i++)
     {   Distrib[i] = arrival[i]/total;
-        Distrib[i+NComponent] = departure[i]/total;
-        Distrib[i+2*NComponent] = service[i]/total;
+        Distrib[i+NB_QUEUES] = departure[i]/total;
+        Distrib[i+2*NB_QUEUES] = service[i]/total;
     }
     total = 0.0;
-    for(i=0;i<NComponent;i++)
+    for(i=0;i<NB_QUEUES;i++)
     {    
-        total+=Distrib[i]+ Distrib[i+NComponent]+Distrib[i+2*NComponent];
+        total+=Distrib[i]+ Distrib[i+NB_QUEUES]+Distrib[i+2*NB_QUEUES];
     }
 }
 
@@ -89,20 +98,20 @@ int Inverse(double U)
 
 void Equation(int* NewS,int indexevt)
 {
-    /* effet des evenements dans le reseau, indexevt entre 0 et 3NComponent-1 */
-    if (indexevt<NComponent) {
+    /* effet des evenements dans le reseau, indexevt entre 0 et 3NB_QUEUES-1 */
+    if (indexevt<NB_QUEUES) {
         if (NewS[indexevt]<Max[indexevt]) {NewS[indexevt]++;} /*  arrivee */
     }
-    else if (indexevt<2*NComponent) {
-        if (NewS[indexevt-NComponent]>Min[indexevt-NComponent]) {NewS[indexevt-NComponent]--;} /* depart definitf */
+    else if (indexevt<2*NB_QUEUES) {
+        if (NewS[indexevt-NB_QUEUES]>Min[indexevt-NB_QUEUES]) {NewS[indexevt-NB_QUEUES]--;} /* depart definitf */
     }
-    else if (indexevt<3*NComponent-1) {
-        if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {
-            NewS[indexevt-2*NComponent]--;
-            if (NewS[indexevt-2*NComponent+1]<Max[indexevt-2*NComponent+1]) {NewS[indexevt-2*NComponent+1]++;}
+    else if (indexevt<3*NB_QUEUES-1) {
+        if (NewS[indexevt-2*NB_QUEUES]>Min[indexevt-2*NB_QUEUES]) {
+            NewS[indexevt-2*NB_QUEUES]--;
+            if (NewS[indexevt-2*NB_QUEUES+1]<Max[indexevt-2*NB_QUEUES+1]) {NewS[indexevt-2*NB_QUEUES+1]++;}
         } /* transit entre deux files successives */
     }
-    else {if (NewS[indexevt-2*NComponent]>Min[indexevt-2*NComponent]) {NewS[indexevt-2*NComponent]--;}
+    else {if (NewS[indexevt-2*NB_QUEUES]>Min[indexevt-2*NB_QUEUES]) {NewS[indexevt-2*NB_QUEUES]--;}
         /* depart definitf, la derniere file est particuliere */
     }
 }
@@ -114,23 +123,15 @@ void F (int * OldS,double U )
 }
 
 
-void initEtat(Etat e)
+void initEtat(int * e)
 {
-    int i;
-    for(i=0;i<NComponent;i++)
-    {
-        e[i] = 0;
-    }
+    memset(e,0,sizeof(int)*NB_QUEUES);
 }
 
-//retourne 1 si deux etats ont couplé
-int couplage(Etat e1, Etat e2)
+//Return 1 if s1 and s2 are the same, 0 otherwise
+int coupling(int* s1, int* s2)
 {
-    int i;
-    for(i=0;i<NComponent;i++)
-    {
-        if(e1[i]!=e2[i])
-            return 0;
-    }
-    return 1;
+    int i=0;
+    while(i<NB_QUEUES && s1[i]==s2[i])i++;
+    return (i==NB_QUEUES);
 }
