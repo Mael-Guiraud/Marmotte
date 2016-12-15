@@ -8,8 +8,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "const.h"
-#include "struct.h"
+#include "../const.h"
 #include "alea.h"
 #include "simuls.h"
 
@@ -21,7 +20,10 @@ typedef struct message{
 	int * y0;
 } Message;
 
-
+double time_diff(struct timeval tv1, struct timeval tv2)
+{
+    return (((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+}
 int main(int argc , char *argv[])
 {
 	struct timeval tv1, tv2;
@@ -36,8 +38,10 @@ int main(int argc , char *argv[])
     {
         printf("Could not create socket");
     }
-    //server.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server.sin_addr.s_addr = inet_addr("192.168.90.178");
+    if(EXEC_TYPE == 0)
+        server.sin_addr.s_addr = inet_addr("127.0.0.1");
+    else
+        server.sin_addr.s_addr = inet_addr("192.168.90.178");
     server.sin_family = AF_INET;
     server.sin_port = htons( 8888 );
 	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
@@ -60,7 +64,7 @@ int main(int argc , char *argv[])
      assert(reply = malloc(reply_size));
      int * trajectory;
       //Initialisation de la fonction de calcul
-    InitDistribution(1.0);
+    InitDistribution(LOAD);
 	InitRectangle();
 	double * sequence =NULL;
 	int i;
@@ -76,7 +80,7 @@ int main(int argc , char *argv[])
             break;
         }
             gettimeofday (&tv2, NULL);
-            tps_r += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            tps_r += time_diff(tv1,tv2);
            gettimeofday (&tv1, NULL); 
         nb_elems = message[2];
         if(message[0] == 0)//New seed
@@ -90,7 +94,7 @@ int main(int argc , char *argv[])
 		    	sequence[i]= WELLRNG512a();
 		    }
 		    gettimeofday (&tv2, NULL);
-            tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            tps_c += time_diff(tv1,tv2);
         }
         else
         {
@@ -109,7 +113,7 @@ int main(int argc , char *argv[])
 	        	cpy_state(m.x0,&reply[1]);
 	        	cpy_state(m.y0,&reply[NB_QUEUES+1]);
 	        	gettimeofday (&tv2, NULL);
-            	tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	tps_c += time_diff(tv1,tv2);
             	 gettimeofday (&tv1, NULL); 
 		       if( send(sock ,reply, reply_size  , 0) < 0)
 		        {
@@ -117,7 +121,7 @@ int main(int argc , char *argv[])
 		            break;
 		        }
 		        gettimeofday (&tv2, NULL);
-            	tps_e += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	tps_e += time_diff(tv1,tv2);
 	        }        
 	        else
 	        {
@@ -130,7 +134,7 @@ int main(int argc , char *argv[])
 			  		cpy_state(m.x0,&trajectory[1+i*NB_QUEUES]);
 				}
 				gettimeofday (&tv2, NULL);
-            	tps_c += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	tps_c += time_diff(tv1,tv2);
             	 gettimeofday (&tv1, NULL); 
 				if( send(sock ,trajectory, interval_size  , 0) < 0)
 		        {
@@ -138,7 +142,7 @@ int main(int argc , char *argv[])
 		            break;
 		        }
 		        gettimeofday (&tv2, NULL);
-            	tps_e += ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+            	tps_e += time_diff(tv1,tv2);
 		        free(trajectory);
 
 			}

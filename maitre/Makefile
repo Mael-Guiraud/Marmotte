@@ -9,7 +9,7 @@ maitre: main.o operations.o simulation.o thread.o
 main.o: main.c simulation.o
 	gcc $(CFLAGS) main.c  
 
-operations.o: operations.c operations.h struct.h const.h
+operations.o: operations.c operations.h struct.h ../const.h
 	gcc $(CFLAGS) operations.c
 
 simulation.o: simulation.c thread.o

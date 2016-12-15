@@ -1,4 +1,4 @@
-#include "const.h"
+#include "../const.h"
 #include <math.h>
 #include <string.h>
 void InitRectangle();

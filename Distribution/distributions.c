@@ -238,7 +238,7 @@ int main(){
    
     int i,j;
     double k;
-    int nb_simuls = 10000000;
+    int nb_simuls = 1000000;
     int temps_couplage_max = 50000;
     int diviseur = 10;
     int taille_tab = temps_couplage_max/diviseur;
