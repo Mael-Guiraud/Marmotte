@@ -190,7 +190,7 @@ int simul_optim(int * servers_id)
     }
     for(int i=0;i<nb_inter;i++)
     {
-        while(interval_state[i]==FINISHED);      
+        while(interval_state[i]!=FINISHED);      
     }
 
     free(message);

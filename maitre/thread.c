@@ -144,10 +144,11 @@ void *server_listener_optim(void *arg)
                 {
                     cpy_state(&bounds[1],res[interval_id+1].x0);
                     cpy_state(&bounds[1+NB_QUEUES],res[interval_id+1].y0);
+                    interval_state[interval_id+1]=UPDATED;
                 }
             }
 
-            interval_state[interval_id+1]=UPDATED;
+           
         }
         else//Reception of a partial_trajectory
         {
@@ -168,6 +169,7 @@ void *server_listener_optim(void *arg)
                 {
                     cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
                     cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
+                    if(interval_state[interval_id] != FINISHED)interval_state[interval_id+1]=UPDATED;
                 }
                 printf("%d finished\n",interval_id);
             interval_state[interval_id]=FINISHED;

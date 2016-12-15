@@ -80,7 +80,7 @@ void alloc_res()
 int number_updated()
 {
     int i;
-    for( i = 0; i< nb_inter && !(interval_state[i]==UPDATED); i++)printf("%d ",interval_state[i]);printf("\n");
+    for( i = 0; i< nb_inter && !(interval_state[i]==UPDATED); i++);//printf("%d ",interval_state[i]);printf("\n");
     return (i<nb_inter) ? i : -1;
 }
 

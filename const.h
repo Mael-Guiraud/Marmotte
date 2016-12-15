@@ -6,18 +6,18 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 7
+#define NB_MACHINES 1
 
 
 //The parameters of the simulation loop
 #define SEQUENCE_SIZE 300000
-#define NB_SIMULS 10
+#define NB_SIMULS 1
 #define INTERVAL_SIZE_MIN 55000
 #define INTERVAL_SIZE_MAX 55000
 
 #define STEP 5000
 
-#define MOD 1
+#define MOD 1 // 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue
