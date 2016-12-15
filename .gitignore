@@ -1,10 +1,5 @@
 *.zip
-a.out
 *.pdf
 *.gplt
-occurences
-convert
 *.data
 *.o
-prog
-maitre
