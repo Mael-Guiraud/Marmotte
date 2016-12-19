@@ -119,7 +119,6 @@ int simul_optim(int * servers_id)
 {
 
     int message_bytes_size = sizeof(int)*(NB_QUEUES*2+3);
-    int nb_recv = 0;
     int machine_used;
     int interval_used;
     int * message;
@@ -150,6 +149,7 @@ int simul_optim(int * servers_id)
             initStateMAX(res[i].y0);
         }        
     } 
+    interval_state[nb_inter-1]=TODO;
     
     //Send seed to all servers
     message[0]=0;
@@ -158,39 +158,34 @@ int simul_optim(int * servers_id)
     for(int i =0;i<NB_QUEUES;i++){message[3+i]=-1;message[3+i+NB_QUEUES]=-1;};
     for(int i=0;i<NB_MACHINES;i++) send(servers_id[i] , message , message_bytes_size , 0);
     
+    nb_recv = 0;
+
 
     while(nb_recv != nb_inter)
     {
-        interval_used = sniffer_interval();
+        if( (interval_used = sniffer_interval()) == -1)break;
         if( !( (interval_used == nb_inter-1) && (!coupling(res[interval_used].x0,res[interval_used].y0)) )   )//we want to make calculation on the last inteval only if this is the good starting point
         {
-            interval_state[interval_used]=TODO;
             machine_used = sniffer_machine();
             machine_availability[machine_used]=WORKING;  
             message[0]=1;
             message[1]=(interval_size-1)*interval_used;
             message[2]=interval_size;
+
             cpy_state(res[interval_used].x0,&message[3]);
             cpy_state(res[interval_used].y0,&message[3+NB_QUEUES]);
             send(servers_id[machine_used], message , message_bytes_size , 0);
-            printf("send interval %d\n",interval_used);
-
-            if(coupling(res[interval_used].x0,res[interval_used].y0))
+            if(coupling(&message[3],&message[3+NB_QUEUES]))
             {
                 what_do_i_read[machine_used]=TRAJECTORY; 
-                nb_recv++; 
             }
             else
             {
                 what_do_i_read[machine_used]=BOUNDS;
             }
-            nb_calculed_intervals++;
+            interval_state[interval_used]=TODO;
         }
 
-    }
-    for(int i=0;i<nb_inter;i++)
-    {
-        while(interval_state[i]!=FINISHED);      
     }
 
     free(message);

@@ -5,6 +5,8 @@
 //socket libs
 #include <sys/socket.h>
 #include <arpa/inet.h> 
+#include <netinet/tcp.h>
+
 
 #include "operations.h"
 #include "struct.h"
@@ -99,7 +101,19 @@ void *server_listener(void *arg)
 
     return 0;
 }
-
+void affiche_res()
+{
+    for(int i=0;i<nb_inter;i++)
+    {
+        printf("[");
+        for(int j=0;j<NB_QUEUES;j++)
+        {
+            printf("(%d-%d)",res[i].x0[j],res[i].y0[j]);
+        }
+        printf("]");
+    }
+    printf("\n");
+}
 
 //Wait for the server's replys
 void *server_listener_optim(void *arg)
@@ -140,6 +154,9 @@ void *server_listener_optim(void *arg)
             interval_id = bounds[0]/(interval_size-1);
             if(coupling(&bounds[1],&bounds[1+NB_QUEUES]) || better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0))
             {
+                printf("On recoit [%d (%d-%d),(%d-%d)]\n",bounds[0],bounds[1],bounds[3],bounds[2],bounds[4]);
+                printf("Ce qui est strictement meilleur que : \n");
+                affiche_res();
                 if(interval_id != nb_inter-1 )
                 {
                     cpy_state(&bounds[1],res[interval_id+1].x0);
@@ -169,11 +186,15 @@ void *server_listener_optim(void *arg)
                 {
                     cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
                     cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
-                    if(interval_state[interval_id] != FINISHED)interval_state[interval_id+1]=UPDATED;
+                    if( (interval_state[interval_id+1] != FINISHED)&& !( (interval_state[interval_id+1] == TODO) &&(coupling(res[interval_id+1].x0,res[interval_id+1].y0) ) ))
+                        interval_state[interval_id+1]=UPDATED;
                 }
-                printf("%d finished\n",interval_id);
-            interval_state[interval_id]=FINISHED;
-        }
+                if(interval_state[interval_id]!=FINISHED)
+                {
+                    interval_state[interval_id]=FINISHED;
+                    nb_recv++; printf("%d finished %d\n",interval_id,nb_recv);
+                }
+            }
         machine_availability[a.id_machine] = FREE;
         what_do_i_read[a.id_machine]=PAUSE;
        
@@ -206,7 +227,8 @@ int* create_sockets(int * socket_desc)
     if (setsockopt(*socket_desc, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(SO_REUSEADDR) failed");
 
-
+    if (setsockopt(*socket_desc, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_NODELAY) failed"); 
      
     //Bind, Connect the Socket to the port 
     if( bind(*socket_desc,(struct sockaddr *)&master , sizeof(master)) < 0)

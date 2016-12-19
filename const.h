@@ -6,13 +6,13 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 1
+#define NB_MACHINES 2
 
 
 //The parameters of the simulation loop
 #define SEQUENCE_SIZE 300000
-#define NB_SIMULS 1
-#define INTERVAL_SIZE_MIN 55000
+#define NB_SIMULS 10
+#define INTERVAL_SIZE_MIN 50000
 #define INTERVAL_SIZE_MAX 55000
 
 #define STEP 5000

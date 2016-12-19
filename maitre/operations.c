@@ -7,18 +7,14 @@
 //Return 1 if s1 and s2 are the same, 0 otherwise
 int coupling(int* s1, int* s2)
 {
-    int i=0;
-    while(i<NB_QUEUES && s1[i]==s2[i])i++;
-    return (i==NB_QUEUES);
+    return(!memcmp(s1,s2,sizeof(int)*NB_QUEUES));
+
 }
 
 //Copy s1 in s2
 void cpy_state(int * s1, int* s2)
 {
-    for(int i=0;i<NB_QUEUES;i++)
-    {
-        s2[i] = s1[i];
-    }
+    memcpy(s2,s1,sizeof(int)*NB_QUEUES);
 }
 
 //Set all the queues to 0
@@ -89,7 +85,7 @@ int number_updated()
 int sniffer_interval()
 {
     int i;
-    while( (i = number_updated()) == -1);
+    while( (i = number_updated()) == -1)if(nb_recv == nb_inter)return -1;
     return i;
 
 }
