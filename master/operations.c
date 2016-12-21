@@ -82,7 +82,7 @@ int number_updated()
 
 
 //Wait for an interval to be updated, and returns its number
-int sniffer_interval()
+int sniffer_interval(int nb_recv)
 {
     int i;
     while( (i = number_updated()) == -1)if(nb_recv == nb_inter)return -1;

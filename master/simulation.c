@@ -123,6 +123,7 @@ int simul_optim(int * servers_id)
     int interval_used;
     int * message;
     int nb_calculed_intervals=0;
+    int nb_recv;
 
 
     assert(final_result = malloc(sizeof(int*)*SEQUENCE_SIZE)); 
@@ -161,30 +162,16 @@ int simul_optim(int * servers_id)
     
 
     nb_recv = 0;
-
-
-    machine_used = sniffer_machine();
-    interval_state[0]=TODO;
-    machine_availability[machine_used]=WORKING;  
-    message[0]=1;
-    message[1]=0;
-    message[2]=interval_size;
-    cpy_state(res[0].x0,&message[3]);
-    cpy_state(res[0].y0,&message[3+NB_QUEUES]);
-    send(servers_id[machine_used], message , message_bytes_size , 0);
-    what_do_i_read[machine_used]=TRAJECTORY; 
-    nb_recv++;
     
-
+  
     while(nb_recv != nb_inter)
     {
-        if( (interval_used = sniffer_interval()) == -1)break;
-     
+        if( (interval_used = sniffer_interval(nb_recv)) == -1)break;
         machine_used = sniffer_machine();
         interval_state[interval_used]=TODO;
         machine_availability[machine_used]=WORKING;  
         message[0]=1;
-        message[1]=(interval_size-1)*(interval_used+1);
+        message[1]=(interval_size-1)*(interval_used);
         message[2]=interval_size;
 
         cpy_state(res[interval_used].x0,&message[3]);
@@ -199,8 +186,7 @@ int simul_optim(int * servers_id)
         {
             what_do_i_read[machine_used]=BOUNDS;
         }
-           
-        
+        nb_calculed_intervals++;
 
     }
     for(int i = 0;i<NB_MACHINES;i++)

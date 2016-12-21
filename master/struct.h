@@ -39,7 +39,7 @@ volatile Machine_state machine_availability[NB_MACHINES];
 volatile Thread_state thread_activity[NB_MACHINES];
 volatile Interval_state * interval_state;
 volatile Message_kind what_do_i_read[NB_MACHINES];
-volatile int nb_recv;
+
 
 int nb_inter;
 int quit_threads;

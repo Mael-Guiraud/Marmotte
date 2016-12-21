@@ -139,14 +139,15 @@ void *server_listener_optim(void *arg)
                 break;
             }
             interval_id = bounds[0]/(interval_size-1);
-            if( better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id].x0,res[interval_id].y0) )
+            if(interval_id != nb_inter-1)
             {
-
-                cpy_state(&bounds[1],res[interval_id].x0);
-                cpy_state(&bounds[1+NB_QUEUES],res[interval_id].y0);
-                interval_state[interval_id]=UPDATED;
-    
-            }          
+                cpy_state(&bounds[1],res[interval_id+1].x0);
+                cpy_state(&bounds[1+NB_QUEUES],res[interval_id+1].y0);
+                 interval_state[interval_id+1]=UPDATED;
+            }
+           
+      
+                     
         }
         else//Reception of a partial_trajectory
         {
@@ -162,20 +163,15 @@ void *server_listener_optim(void *arg)
             {
                 cpy_state(&partial_trajectory[1+i*NB_QUEUES],final_result[interval_id*(SEQUENCE_SIZE/(nb_inter))+i]);
             }
-            cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].x0);
-            cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
-    
-            if( better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id].x0,res[interval_id].y0) )
+            if(interval_id != nb_inter-1)
             {
-
-                cpy_state(&bounds[1],res[interval_id].x0);
-                cpy_state(&bounds[1+NB_QUEUES],res[interval_id].y0);
-                interval_state[interval_id]=UPDATED;
-
+                cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
+                cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
+                interval_state[interval_id+1]=UPDATED;
             }
-            if(interval_id != 0)
-            interval_state[interval_id-1]=FINISHED;
-               printf("%d finished \n",interval_id);
+
+           
+            
         }
         machine_availability[a.id_machine] = FREE;
         what_do_i_read[a.id_machine]=PAUSE;
