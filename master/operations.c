@@ -28,21 +28,15 @@ void initStateMAX(int* s)
     for(int i=0;i<NB_QUEUES;i++)s[i]=100;
 }
 
-//Return the number of the first free machine, -1 otherwise
-int number_free()
-{
-    int i;
-    for( i = 0; i< NB_MACHINES && !(machine_availability[i]==FREE); i++);
-    return (i<NB_MACHINES) ? i : -1;
-}
-
 //Wait for one machine to be available, and returns its number
 int sniffer_machine()
 {
-    int i;
-    while( (i = number_free()) == -1);
-    return i;
-
+    int i; 
+    while(1){
+        for( i = 0; i< NB_MACHINES; i++){
+            if(machine_availability[i]==FREE) return i;
+        }
+    }
 }
 
 void write_result_file(FILE * f,int inter_size,double rounds,double time)
@@ -72,22 +66,20 @@ void alloc_res()
     }
 }
 
-//Return the number of the first updated interval, -1 otherwise
-int number_updated()
-{
-    int i;
-    for( i = 0; i< nb_inter-1 && !(interval_state[i]==UPDATED); i++);//printf("%d ",interval_state[i]);printf("\n");
-    return (i<nb_inter-1) ? i : -1;
-}
-
-
 //Wait for an interval to be updated, and returns its number
-int sniffer_interval(int nb_recv)
+int sniffer_interval()
 {
-    int i;
-    while( (i = number_updated()) == -1)if(nb_recv == nb_inter)return -1;
-    return i;
-
+    int i; 
+    int end = 0;
+    while(!end){
+        end = 1;
+        for( i = 0; i < nb_inter-1; i++){  
+            if (interval_state[i] == UPDATED) return i;
+            end = (end && interval_state[i]==FINISHED); // end is set to 0 if some element is not finished
+        }
+        if(end && interval_state[i]== UPDATED){ return i;} //deal with the last interval only at the end
+    }
+    return -1;   
 }
 int sum(int * s)
 {
@@ -95,10 +87,18 @@ int sum(int * s)
     for(int i =0;i<NB_QUEUES;i++)sum+=s[i];
     return sum;
 }
-//return 1 if s1 and s2 are  closer to coupling than s3 and s4,0 otherwise
-int better(int *s1,int*s2,int*s3,int*s4)
+
+int better(int *s1,int*s2,int*s3,int*s4) //(s1,s2) couple borne inf borne sup comparé à (s3,s4) couple born inf borne sup
 {
-    int coupling1=sum(s2)-sum(s1);
-    int coupling2=sum(s4)-sum(s3);
-    return (coupling1<coupling2);
+    int i;
+    for( i = 0; i < NB_QUEUES && s1[i]== s3[i]; i++); // va au premier indice pour lequel il y a une différence entre s1 et s3
+    if( i != NB_QUEUES) {
+        return s1[i] < s3[i] ? -1 : 1;
+    } // si cet indice est dans le tableau on peut décider: si s1 < s3 alors
+                                                        //s3,s4 est plus proche de coupler sinon c'est s1,s2
+    for( i = 0; i < NB_QUEUES && s2[i]==s4[i]; i++);//même test pour s2, s4 si s1 et s3 sont égaux.
+    if( i != NB_QUEUES) {
+        return s2[i] > s4[i] ? -1 : 1;
+    }//l'ordre est inverse car on compare les bornes sup cette fois
+    return 0;
 }

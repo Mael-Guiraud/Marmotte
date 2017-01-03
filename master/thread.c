@@ -139,14 +139,14 @@ void *server_listener_optim(void *arg)
                 break;
             }
             interval_id = bounds[0]/(interval_size-1);
-            if(interval_id != nb_inter-1)
+            if(better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0 ) == 1)
+            //here we modify the state only if bounds are better than res
             {
                 cpy_state(&bounds[1],res[interval_id+1].x0);
                 cpy_state(&bounds[1+NB_QUEUES],res[interval_id+1].y0);
-                 interval_state[interval_id+1]=UPDATED;
+                interval_state[interval_id+1] = UPDATED;
+                //printf("Meilleurs bornes pour %d\n",interval_id+1);
             }
-           
-      
                      
         }
         else//Reception of a partial_trajectory
@@ -165,10 +165,14 @@ void *server_listener_optim(void *arg)
             }
             if(interval_id != nb_inter-1)
             {
-                cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
-                cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
-                interval_state[interval_id+1]=UPDATED;
+                if(better(&partial_trajectory[1+i*NB_QUEUES],&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0 ) == 1)//update only if it is better 
+                {
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
+                    interval_state[interval_id+1]=UPDATED;
+                }
             }
+            interval_state[interval_id]=FINISHED;
 
            
             

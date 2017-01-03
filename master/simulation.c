@@ -25,7 +25,7 @@ int simul(int * servers_id)
     {
         assert(final_result[i]=malloc(sizeof(int)*NB_QUEUES));
     }
-    assert(interval_state = malloc(sizeof(int)*(nb_inter)));
+    assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
     assert(message = malloc(message_bytes_size));
    
 
@@ -108,8 +108,6 @@ int simul(int * servers_id)
     free(final_result);
 
     free((void*)interval_state);  
-
-
     return nb_round;
 
 }   
@@ -123,7 +121,6 @@ int simul_optim(int * servers_id)
     int interval_used;
     int * message;
     int nb_calculed_intervals=0;
-    int nb_recv;
 
 
     assert(final_result = malloc(sizeof(int*)*SEQUENCE_SIZE)); 
@@ -131,7 +128,7 @@ int simul_optim(int * servers_id)
     {
         assert(final_result[i]=malloc(sizeof(int)*NB_QUEUES));
     }
-    assert(interval_state = malloc(sizeof(int)*(nb_inter)));
+    assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
     assert(message = malloc(message_bytes_size));
    
 
@@ -159,14 +156,10 @@ int simul_optim(int * servers_id)
     for(int i =0;i<NB_QUEUES;i++){message[3+i]=-1;message[3+i+NB_QUEUES]=-1;};
     for(int i=0;i<NB_MACHINES;i++) send(servers_id[i] , message , message_bytes_size , 0);
     
-    
 
-    nb_recv = 0;
-    
-  
-    while(nb_recv != nb_inter)
+    while(1)
     {
-        if( (interval_used = sniffer_interval(nb_recv)) == -1)break;
+        if( (interval_used = sniffer_interval()) == -1)break;
         machine_used = sniffer_machine();
         interval_state[interval_used]=TODO;
         machine_availability[machine_used]=WORKING;  
@@ -176,16 +169,16 @@ int simul_optim(int * servers_id)
 
         cpy_state(res[interval_used].x0,&message[3]);
         cpy_state(res[interval_used].y0,&message[3+NB_QUEUES]);
-        send(servers_id[machine_used], message , message_bytes_size , 0);
+        
         if(coupling(&message[3],&message[3+NB_QUEUES]))
         {
-            what_do_i_read[machine_used]=TRAJECTORY; 
-            nb_recv++;
+            what_do_i_read[machine_used]=TRAJECTORY;
         }
         else
         {
             what_do_i_read[machine_used]=BOUNDS;
         }
+        send(servers_id[machine_used], message , message_bytes_size , 0);
         nb_calculed_intervals++;
 
     }
