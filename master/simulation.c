@@ -63,8 +63,6 @@ int simul(int * servers_id)
                 interval_state[i]=TODO;
 
                 machine_used = sniffer_machine();
-                machine_availability[machine_used]=WORKING;
-            
 
                 message[0]=1;
                 message[1]=(interval_size)*i;
@@ -160,8 +158,7 @@ int simul_optim(int * servers_id)
     {
         if( (interval_used = sniffer_interval()) == -1)break;
         machine_used = sniffer_machine();
-        interval_state[interval_used]=TODO;
-        machine_availability[machine_used]=WORKING;  
+        interval_state[interval_used]=TODO; 
         message[0]=1;
         message[1]=(interval_size)*(interval_used);
         message[2]=interval_size;

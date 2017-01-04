@@ -95,7 +95,6 @@ void *server_listener(void *arg)
             interval_state[interval_id]=FINISHED;
         }
        
-        machine_availability[a.id_machine] = FREE;
         what_do_i_read[a.id_machine]=PAUSE;
     }   
 
@@ -178,7 +177,6 @@ void *server_listener_optim(void *arg)
            
             
         }
-        machine_availability[a.id_machine] = FREE;
         what_do_i_read[a.id_machine]=PAUSE;
        
         
@@ -251,7 +249,6 @@ int create_threads(int * servers_id,argument * args)
         //Initialising and creating threads
         what_do_i_read[i]=PAUSE;
         thread_activity[i]=OPEN;
-        machine_availability[i] = FREE;
         args[i].id_socket = servers_id[i];
         args[i].id_machine = i;
         

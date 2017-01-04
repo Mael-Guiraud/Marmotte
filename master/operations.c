@@ -34,7 +34,7 @@ int sniffer_machine()
     int i; 
     while(1){
         for( i = 0; i< NB_MACHINES; i++){
-            if(machine_availability[i]==FREE) return i;
+            if(what_do_i_read[i]==PAUSE) return i;
         }
     }
 }

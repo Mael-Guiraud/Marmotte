@@ -13,11 +13,6 @@ typedef struct argument{
     int id_machine;	   
 } argument;
 
-//States of the machines 
-typedef enum machine_state{
-    FREE, WORKING
-} Machine_state;
-
 //States of the threads
 typedef enum thread_state{
     OPEN, CLOSED
@@ -35,7 +30,6 @@ typedef enum message_kind{
 
 
 //Communication between threads and main 
-volatile Machine_state machine_availability[NB_MACHINES];
 volatile Thread_state thread_activity[NB_MACHINES];
 volatile Interval_state * interval_state;
 volatile Message_kind what_do_i_read[NB_MACHINES];
