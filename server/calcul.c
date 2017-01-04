@@ -7,6 +7,7 @@
 //socket libs
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 #include "../const.h"
 #include "alea.h"
@@ -39,10 +40,12 @@ int main(int argc , char *argv[])
     {
         printf("Could not create socket");
     }
-     if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
+     
+    if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_NODELAY) failed"); 
 
-    if (setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, &(i
+    if (setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_QUICKACK) failed"); 
     if(EXEC_TYPE == 0)
         server.sin_addr.s_addr = inet_addr("127.0.0.1");
     else
