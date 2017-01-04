@@ -84,12 +84,12 @@ void *server_listener(void *arg)
             }
             interval_id = partial_trajectory[0]/(interval_size);
 
-                            
+            i--;      
             for(i=0;i<interval_size;i++)
             {
                 cpy_state(&partial_trajectory[1+i*NB_QUEUES],final_result[interval_id*(SEQUENCE_SIZE/(nb_inter))+i]);
             }
-            i--;
+
             cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].x0);
             cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
             interval_state[interval_id]=FINISHED;
@@ -138,7 +138,7 @@ void *server_listener_optim(void *arg)
                 printf("Connection Closed by server %d",a.id_machine);
                 break;
             }
-            interval_id = bounds[0]/(interval_size-1);
+            interval_id = bounds[0]/(interval_size);
             if(better(&bounds[1],&bounds[1+NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0 ) == 1)
             //here we modify the state only if bounds are better than res
             {
@@ -156,19 +156,20 @@ void *server_listener_optim(void *arg)
                 printf("Connection Closed by server %d",a.id_machine);
                 break;
             }
-            interval_id = partial_trajectory[0]/(interval_size-1);
+            interval_id = partial_trajectory[0]/(interval_size);
 
                             
-            for(i=0;i<interval_size-1;i++)
+            for(i=0;i<interval_size;i++)
             {
                 cpy_state(&partial_trajectory[1+i*NB_QUEUES],final_result[interval_id*(SEQUENCE_SIZE/(nb_inter))+i]);
             }
+            i--;
             if(interval_id != nb_inter-1)
             {
-                if(better(&partial_trajectory[1+(interval_size-1)*NB_QUEUES],&partial_trajectory[1+interval_size-1*NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0 ) == 1)//update only if it is better 
+                if(better(&partial_trajectory[1+i*NB_QUEUES],&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0,res[interval_id+1].y0 ) == 1)//update only if it is better 
                 {
-                    cpy_state(&partial_trajectory[1+interval_size-1*NB_QUEUES],res[interval_id+1].x0);
-                    cpy_state(&partial_trajectory[1+interval_size-1*NB_QUEUES],res[interval_id+1].y0);
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].x0);
+                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id+1].y0);
                     interval_state[interval_id+1]=UPDATED;
                 }
             }
@@ -212,6 +213,9 @@ int* create_sockets(int * socket_desc)
     if (setsockopt(*socket_desc, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_NODELAY) failed"); 
      
+    if (setsockopt(*socket_desc, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_QUICKACK) failed"); 
+    
     //Bind, Connect the Socket to the port 
     if( bind(*socket_desc,(struct sockaddr *)&master , sizeof(master)) < 0)
     {

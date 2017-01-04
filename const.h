@@ -6,7 +6,7 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 7
+#define NB_MACHINES 2
 
 
 //The parameters of the simulation loop
@@ -17,7 +17,7 @@
 
 #define STEP 5000
 
-#define MOD 1// 0 For round count, 1 for optimized version
+#define MOD 0// 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue

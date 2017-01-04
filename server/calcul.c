@@ -34,10 +34,15 @@ int main(int argc , char *argv[])
     int sock;
     struct sockaddr_in server;
     sock = socket(AF_INET , SOCK_STREAM , 0);
+
  	if (sock == -1)
     {
         printf("Could not create socket");
     }
+     if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_NODELAY) failed"); 
+
+    if (setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, &(i
     if(EXEC_TYPE == 0)
         server.sin_addr.s_addr = inet_addr("127.0.0.1");
     else

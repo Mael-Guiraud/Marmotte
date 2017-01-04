@@ -37,13 +37,11 @@ int main(int argc , char *argv[])
     }
 
     int last_size = 0;
-
     for(int expected_size=INTERVAL_SIZE_MIN;expected_size<= INTERVAL_SIZE_MAX;expected_size+=STEP)
     {      
         nb_inter = SEQUENCE_SIZE/expected_size;
         if( (interval_size = SEQUENCE_SIZE/(nb_inter)) != last_size)
         {
-            interval_size+=1;
             printf("SEQUENCE_SIZE = %d /nb_inter = %d /interval_size = %d\n",SEQUENCE_SIZE,nb_inter,interval_size);
 
             total_rounds =0.0;

@@ -147,7 +147,6 @@ int simul_optim(int * servers_id)
             initStateMAX(res[i].y0);
         }        
     } 
-    interval_state[nb_inter-1]=TODO;
     
     //Send seed to all servers
     message[0]=0;
@@ -164,7 +163,7 @@ int simul_optim(int * servers_id)
         interval_state[interval_used]=TODO;
         machine_availability[machine_used]=WORKING;  
         message[0]=1;
-        message[1]=(interval_size-1)*(interval_used);
+        message[1]=(interval_size)*(interval_used);
         message[2]=interval_size;
 
         cpy_state(res[interval_used].x0,&message[3]);
