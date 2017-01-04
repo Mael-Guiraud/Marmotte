@@ -68,15 +68,8 @@ int main(int argc , char *argv[])
                     fprintf(stdout,"\rStep%3d ",i+1);fflush(stdout);
                 }
                 gettimeofday (&tv1, NULL);
-                switch(MOD)
-                {
-                    case 1:
-                        rounds= simul_optim(servers_id);
-                        break;
-                    default:
-                        rounds= simul(servers_id);
-                        break;
-                }
+                rounds= simul(servers_id);
+
 
                 gettimeofday (&tv2, NULL);
                 time = ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));

@@ -17,7 +17,7 @@
 
 #define STEP 5000
 
-#define MOD 1// 0 For round count, 1 for optimized version
+#define MOD 1 // 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue

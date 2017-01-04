@@ -20,7 +20,7 @@ typedef enum thread_state{
 
 //States of the intervals
 typedef enum interval_state{
-    TODO, UPDATED,FINISHED
+    SENT, UPDATED,FINISHED
 } Interval_state;
 
 //Different kinds of messages sent by the servers
