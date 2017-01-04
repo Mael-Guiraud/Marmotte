@@ -200,11 +200,15 @@ int create_threads(int * servers_id,argument * args)
         thread_activity[i]=OPEN;
         args[i].id_socket = servers_id[i];
         args[i].id_machine = i;
+
         if(pthread_create( &sniffer_thread , NULL ,  server_listener , (void*)&args[i]) < 0)
                     {
                         perror("could not create thread");
                         return 0;
                     }  
+            
+                            
+        
         pthread_detach(sniffer_thread); 
 
     }

@@ -6,7 +6,7 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 2
+#define NB_MACHINES 7
 
 
 //The parameters of the simulation loop
@@ -17,16 +17,18 @@
 
 #define STEP 5000
 
-#define MOD 1 // 0 For round count, 1 for optimized version
+#define MOD 0// 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue
 #define BUFF_MAX 100
 
+// For mod 0 : if 1, then return the number of rounds, if 0, return the number of calulcated intervals
+#define MACRO 0
 
 ////////////////////For servers///////////////////////
 
-#define EXEC_TYPE 0 // 0 = 127.0.0.1 / 1=192.168.90.178
+#define EXEC_TYPE 1 // 0 = 127.0.0.1 / 1=192.168.90.178
 
 #define SizeDistrib 3*NB_QUEUES
 #define LOAD 1.0

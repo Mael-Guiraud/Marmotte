@@ -6,15 +6,17 @@
 #	do
 #		scp /home/merelas/Bureau/parallel/maitre/$j pi@$maitre:/home/pi
 #done
-#scp /home/merelas/Bureau/parallel/constantes.h pi@$maitre:/home/pi
+
+
 
 
 for i in `cat /home/merelas/Bureau/parallel/addressescalcul`;
 do
 	echo "envoi a $i$"
-	for j in `ls /home/merelas/Bureau/parallel/calcul/`;
+	scp /home/merelas/Bureau/parallel/const.h pi@$i:/home/pi
+	for j in `ls /home/merelas/Bureau/parallel/server/`;
 	do
-		scp /home/merelas/Bureau/parallel/calcul/$j pi@$i:/home/pi
+		scp /home/merelas/Bureau/parallel/server/$j pi@$i:/home/pi
 	done
 
 done

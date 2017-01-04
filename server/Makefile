@@ -2,7 +2,7 @@ CFLAGS = -c -Wall -g -O3
 
 all: run
 
-run: prog 
+run: compil 
 	 ./prog
 
 compil: calcul.o alea.o simuls.o

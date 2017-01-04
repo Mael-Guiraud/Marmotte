@@ -67,7 +67,7 @@ int simul(int * servers_id)
     switch(MOD)
     {
         case 1:
-             while(1)
+            while(1)
             {
                 if( (interval_used = sniffer_interval()) == -1)break;
                 machine_used = sniffer_machine();
@@ -90,6 +90,10 @@ int simul(int * servers_id)
                 send(servers_id[machine_used], message , message_bytes_size , 0);
                 nb_calculed_intervals++;
 
+            }
+            for(int i = 0;i<NB_MACHINES;i++)//wait for all threads to finish before closing the simulation (otherwise, one thread could write in free'd memory)
+            {
+                while(what_do_i_read[i]!=PAUSE);
             }
             break;
         default:
@@ -121,7 +125,9 @@ int simul(int * servers_id)
                         {
                            what_do_i_read[machine_used]=BOUNDS;
                         }
+                        nb_calculed_intervals++;
                     }
+
 
                 }
                 //waiting for all the intervals reply
@@ -159,7 +165,10 @@ int simul(int * servers_id)
             return nb_calculed_intervals;
             break;
         default:
-            return nb_round;
+            if(MACRO)
+                return nb_round;
+            else
+                return nb_calculed_intervals;
             break;
     }
 
