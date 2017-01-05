@@ -17,7 +17,7 @@
 
 #define STEP 5000
 
-#define MOD 0// 0 For round count, 1 for optimized version
+#define MOD 2// 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue
@@ -28,7 +28,7 @@
 
 ////////////////////For servers///////////////////////
 
-#define EXEC_TYPE 1 // 0 = 127.0.0.1 / 1=192.168.90.178
+#define EXEC_TYPE 0// 0 = 127.0.0.1 / 1=192.168.90.178
 
 #define SizeDistrib 3*NB_QUEUES
 #define LOAD 1.0

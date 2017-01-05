@@ -84,21 +84,24 @@ void *server_listener(void *arg)
                     break;
                 default:
                     cpy_state(&bounds[1],res[interval_id].x0);
-                    cpy_state(&bounds[1+NB_QUEUES],res[interval_id].y0);
+                    if(MOD == 0)
+                        cpy_state(&bounds[1+NB_QUEUES],res[interval_id].y0);
                     interval_state[interval_id]=UPDATED;
+            
                     break;
             }
             
         }
         else//Reception of a partial_trajectory
         {
+
             if( recv(a.id_socket , partial_trajectory , trajectory_bytes_size, MSG_WAITALL) <= 0)
             {
                 printf("Connection Closed by server %d",a.id_machine);
                 break;
             }
             interval_id = partial_trajectory[0]/(interval_size);
-
+          
                
             for(i=0;i<interval_size;i++)
             {
@@ -121,9 +124,11 @@ void *server_listener(void *arg)
                     break;
                 default:
                     cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].x0);
-                    cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
+                    if(MOD == 0)
+                        cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
                     break;
             }
+           
             interval_state[interval_id]=FINISHED;
             
         }

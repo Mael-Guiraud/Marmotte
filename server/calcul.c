@@ -91,69 +91,94 @@ int main(int argc , char *argv[])
             tps_r += time_diff(tv1,tv2);
            gettimeofday (&tv1, NULL); 
         nb_elems = message[2];
-        if(message[0] == 0)//New seed
+        switch(message[0])
         {
-        	if(sequence != NULL)free(sequence);
-		    assert(sequence = (double *)malloc(sizeof(double)*nb_elems));
-		    init(B,message[1]);
-		    InitWELLRNG512a(B);
-		    for(i=0;i<nb_elems;i++)
-		    {
-		    	sequence[i]= WELLRNG512a();
-		    }
-		    gettimeofday (&tv2, NULL);
-            tps_c += time_diff(tv1,tv2);
-        }
-        else
-        {
-        	m.nb_elems = nb_elems;
-        	m.Un_id = message[1];
-        	cpy_state(&message[3],m.x0);
-        	cpy_state(&message[NB_QUEUES+3],m.y0);
-	        if(!coupling(m.x0,m.y0))
-	        {
-	          reply[0]=message[1];
-			  for(i=0;i<m.nb_elems;i++)
-				{
-			  		F(m.x0,sequence[i+m.Un_id]);
-			  		F(m.y0,sequence[i+m.Un_id]);
-				}
-	        	cpy_state(m.x0,&reply[1]);
-	        	cpy_state(m.y0,&reply[NB_QUEUES+1]);
-	        	gettimeofday (&tv2, NULL);
-            	tps_c += time_diff(tv1,tv2);
-            	 gettimeofday (&tv1, NULL); 
-		       if( send(sock ,reply, reply_size  , 0) < 0)
-		        {
-		            puts("Send (reply) failed");
-		            break;
-		        }
-		        gettimeofday (&tv2, NULL);
-            	tps_e += time_diff(tv1,tv2);
-	        }        
-	        else
-	        {
-	        	interval_size= sizeof(int)*(m.nb_elems*NB_QUEUES+1);
-	        	assert(trajectory= malloc(interval_size));
-	        	trajectory[0]=m.Un_id;
-	        	for(i=0;i<m.nb_elems;i++)
-				{
-					F(m.x0,sequence[i+m.Un_id]);
-			  		cpy_state(m.x0,&trajectory[1+i*NB_QUEUES]);
-				}
-				gettimeofday (&tv2, NULL);
-            	tps_c += time_diff(tv1,tv2);
-            	 gettimeofday (&tv1, NULL); 
-				if( send(sock ,trajectory, interval_size  , 0) < 0)
-		        {
-		            puts("Send (trajectory) failed");
-		            break;
-		        }
-		        gettimeofday (&tv2, NULL);
-            	tps_e += time_diff(tv1,tv2);
-		        free(trajectory);
+            case 0://New seed
+            	if(sequence != NULL)free(sequence);
+    		    assert(sequence = (double *)malloc(sizeof(double)*nb_elems));
+    		    init(B,message[1]);
+    		    InitWELLRNG512a(B);
+    		    for(i=0;i<nb_elems;i++)
+    		    {
+    		    	sequence[i]= WELLRNG512a();
+    		    }
+    		    gettimeofday (&tv2, NULL);
+                tps_c += time_diff(tv1,tv2);
+                break;       
+            default:
+            	m.nb_elems = nb_elems;
+            	m.Un_id = message[1];
+            	cpy_state(&message[3],m.x0);
+            	cpy_state(&message[NB_QUEUES+3],m.y0);
+    	        if(!coupling(m.x0,m.y0))
+    	        {
+    	          reply[0]=message[1];
 
-			}
+                    if(message[0] == 1)
+                    {
+        			  for(i=0;i<m.nb_elems;i++)
+        				{
+        			  		F(m.x0,sequence[i+m.Un_id]);
+        			  		F(m.y0,sequence[i+m.Un_id]);
+        				}
+        	        	cpy_state(m.x0,&reply[1]);
+        	        	cpy_state(m.y0,&reply[NB_QUEUES+1]);
+        	        	gettimeofday (&tv2, NULL);
+                    	tps_c += time_diff(tv1,tv2);
+                    	 gettimeofday (&tv1, NULL); 
+        		       if( send(sock ,reply, reply_size  , 0) < 0)
+        		        {
+        		            puts("Send (reply) failed");
+        		            break;
+        		        }
+        		        gettimeofday (&tv2, NULL);
+                    	tps_e += time_diff(tv1,tv2);
+                    }
+                    else // only one trajectory
+                    {
+                        for(i=0;i<m.nb_elems;i++)
+                        {
+                            F(m.x0,sequence[i+m.Un_id]);
+                        }
+                        cpy_state(m.x0,&reply[1]);
+                        cpy_state(m.y0,&reply[NB_QUEUES+1]);
+                        gettimeofday (&tv2, NULL);
+                        tps_c += time_diff(tv1,tv2);
+                         gettimeofday (&tv1, NULL); 
+                       if( send(sock ,reply, reply_size  , 0) < 0)
+                        {
+                            puts("Send (reply) failed");
+                            break;
+                        }
+                        gettimeofday (&tv2, NULL);
+                        tps_e += time_diff(tv1,tv2);
+                    }
+
+    	        }        
+    	        else
+    	        {
+    	        	interval_size= sizeof(int)*(m.nb_elems*NB_QUEUES+1);
+    	        	assert(trajectory= malloc(interval_size));
+    	        	trajectory[0]=m.Un_id;
+    	        	for(i=0;i<m.nb_elems;i++)
+    				{
+    					F(m.x0,sequence[i+m.Un_id]);
+    			  		cpy_state(m.x0,&trajectory[1+i*NB_QUEUES]);
+    				}
+    				gettimeofday (&tv2, NULL);
+                	tps_c += time_diff(tv1,tv2);
+                	 gettimeofday (&tv1, NULL); 
+    				if( send(sock ,trajectory, interval_size  , 0) < 0)
+    		        {
+    		            puts("Send (trajectory) failed");
+    		            break;
+    		        }
+    		        gettimeofday (&tv2, NULL);
+                	tps_e += time_diff(tv1,tv2);
+    		        free(trajectory);
+
+    			}
+                break;
         }
 
     }

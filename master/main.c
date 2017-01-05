@@ -30,7 +30,7 @@ int main(int argc , char *argv[])
 
     assert(args= malloc(sizeof(argument)*(NB_MACHINES) ));
     FILE* f;
-    if( (f = fopen("results_moyennes_%d.data","w")) == NULL)
+    if( (f = fopen("results_moyennes.data","w")) == NULL)
     {
         printf("Error : fopen : results_moyennes.data\n");
         exit(3);

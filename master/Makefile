@@ -1,4 +1,4 @@
-CFLAGS = -c -g -std=c99 -lpthread -Wall -O2 
+CFLAGS = -c -g -std=c99 -Wall -O2 
 
 all: maitre
 	./maitre
