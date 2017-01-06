@@ -48,10 +48,13 @@ int simul(int * servers_id)
         initStateMIN(res[i].x0);
          switch(MOD)
         {
+            case 2:
+                initState(res[i].y0);
+                break;
             default:
                 if(i==0)
                 {
-                    initState(res[i].y0);
+                    initStateMIN(res[i].y0);
                   
                 }
                 else
@@ -59,9 +62,7 @@ int simul(int * servers_id)
                     initStateMAX(res[i].y0);
                 }
                 break;
-            case 2:
-                initState(res[i].y0);
-                break; 
+            
         }    
     } 
     
@@ -104,14 +105,12 @@ int simul(int * servers_id)
                                 initState(&message[3+NB_QUEUES]);
                                 what_do_i_read[machine_used]=BOUNDS;
                                 interval_state[i] = SENT;
-
                             }
                         }
                         send(servers_id[machine_used], message , message_bytes_size , 0);
 
                         nb_calculed_intervals++;
                     }
-
 
                 }
          
@@ -121,19 +120,11 @@ int simul(int * servers_id)
 
                 for(int i=0;i<nb_inter-1;i++)
                 {
-                    if(interval_state[i] == FINISHED)
+                    if(interval_state[i+1]!=FINISHED)
                     {
-                      
-                        if(interval_state[i+1]!=FINISHED)
-                            interval_state[i+1]=VALIDATED;
-                    }
-                    else
-                    {
-                        if( (interval_state[i]== VALIDATED) && (coupling(res[i].x0,res[i].y0)) )
+                        if((interval_state[i] == FINISHED) || ( (interval_state[i]== VALIDATED) && (coupling(res[i].x0,res[i].y0)) ) )
                         {
-                            
-                            if(interval_state[i+1]!=FINISHED)
-                                interval_state[i+1]=VALIDATED;
+                             interval_state[i+1]=VALIDATED;
                         }
                     }
                     cpy_state(res[i].x0,res[i].y0);
@@ -152,6 +143,7 @@ int simul(int * servers_id)
             while( (interval_used = sniffer_interval()) != -1 )
             {
                 machine_used = sniffer_machine();
+                //printf("envoi de l'intervalle %d à %d\n",interval_used,machine_used);
                 interval_state[interval_used]=SENT; 
                 message[0]=1;
                 message[1]=(interval_size)*(interval_used);

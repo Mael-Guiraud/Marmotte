@@ -1,8 +1,8 @@
 CFLAGS = -c -Wall -g -O3 
 
-all: run
+all: clean run
 
-run: prog 
+run: compil 
 	 ./prog
 
 compil: calcul.o alea.o simuls.o
@@ -14,7 +14,7 @@ calcul.o: calcul.c simuls.o alea.o
 alea.o: alea.c
 	gcc $(CFLAGS) alea.c 
 
-simuls.o: simuls.c ../const.h
+simuls.o: simuls.c const.h
 	gcc $(CFLAGS) simuls.c 
 
 clean:

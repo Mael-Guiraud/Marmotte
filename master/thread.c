@@ -128,7 +128,7 @@ void *server_listener(void *arg)
                         cpy_state(&partial_trajectory[1+i*NB_QUEUES],res[interval_id].y0);
                     break;
             }
-           
+            //printf("Reception de la trajectoire %d\n",interval_id);
             interval_state[interval_id]=FINISHED;
             
         }

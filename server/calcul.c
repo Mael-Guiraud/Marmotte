@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
-#include "../const.h"
+#include "const.h"
 #include "alea.h"
 #include "simuls.h"
 

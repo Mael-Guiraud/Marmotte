@@ -13,9 +13,9 @@
 #define SEQUENCE_SIZE 300000
 #define NB_SIMULS 100
 #define INTERVAL_SIZE_MIN 5000
-#define INTERVAL_SIZE_MAX 55000
+#define INTERVAL_SIZE_MAX 50000
 
-#define STEP 5000
+#define STEP 45000
 
 #define MOD 2// 0 For round count, 1 for optimized version
 
@@ -28,7 +28,7 @@
 
 ////////////////////For servers///////////////////////
 
-#define EXEC_TYPE 0// 0 = 127.0.0.1 / 1=192.168.90.178
+#define EXEC_TYPE 1// 0 = 127.0.0.1 / 1=192.168.90.178
 
 #define SizeDistrib 3*NB_QUEUES
 #define LOAD 1.0
