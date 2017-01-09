@@ -227,10 +227,7 @@ return_values simul(int * servers_id)
             break;
 
     }
-    
 
-    
-  
 
     free(message);
     for(int i = 0;i<SEQUENCE_SIZE;i++)
