@@ -10,12 +10,73 @@
 #include "thread.h"
 
 
+//send the message of the interval given in parameter. Returns 1 if the message send is composed of 2 coupled state, 0 otherwise
+int send_message(int * servers_id,int * message,int interval,int message_bytes_size)
+{
+    int val = 0;
+    
+
+    int machine_used = sniffer_machine();
+
+    switch(MOD)
+    {
+        case 2:
+            message[0]=2;
+            break;
+        default:
+            message[0]=1;
+            break;
+    }
+    message[0]=1;
+    message[1]=(interval_size)*interval;
+    message[2]=interval_size;
+    cpy_state(res[interval].x0,&message[3]);
+
+    switch(MOD)
+    {
+        case 2:
+            if(interval_state[interval] == VALIDATED)
+            {
+                cpy_state(res[interval].x0,&message[3+NB_QUEUES]);
+                what_do_i_read[machine_used]=TRAJECTORY; 
+                val = 1;
+                interval_state[interval] = SENT;
+            }
+            else
+            {
+                if(interval_state[interval] == UPDATED)
+                {
+                    initState(&message[3+NB_QUEUES]);
+                    what_do_i_read[machine_used]=BOUNDS;
+                    interval_state[interval] = SENT;
+                }
+            }
+            break;
+        default:
+            interval_state[interval]=SENT;
+            cpy_state(res[interval].y0,&message[3+NB_QUEUES]);   
+            if(coupling(&message[3],&message[3+NB_QUEUES]))
+            {
+                what_do_i_read[machine_used]=TRAJECTORY; 
+                val = 1;
+            }
+            else
+            {
+               what_do_i_read[machine_used]=BOUNDS;
+            }
+            break;
+    }   
+    send(servers_id[machine_used], message , message_bytes_size , 0);
+
+    return val;
+
+}
+
 return_values simul(int * servers_id)
 {
 
     int message_bytes_size = sizeof(int)*(NB_QUEUES*2+3);
     int nb_recv = 0;
-    int machine_used;
     int nb_round = 0;
     int * message;
 
@@ -59,7 +120,7 @@ return_values simul(int * servers_id)
          switch(MOD)
         {
             case 2:
-                initState(res[i].y0);
+                initState(res[i].y0); 
                 break;
             default:
                 if(i==0)
@@ -79,7 +140,7 @@ return_values simul(int * servers_id)
     message[0]=0;
     message[1]=time(NULL);
     message[2]=SEQUENCE_SIZE;
-    for(int i =0;i<NB_QUEUES;i++){message[3+i]=-1;message[3+i+NB_QUEUES]=-1;};
+    for(int i =0;i<NB_QUEUES;i++){message[3+i]=-1;message[3+i+NB_QUEUES]=-1;};//fill the message with -1 instead of states
     for(int i=0;i<NB_MACHINES;i++) send(servers_id[i] , message , message_bytes_size , 0);
     switch(MOD)
     {
@@ -93,32 +154,7 @@ return_values simul(int * servers_id)
                 {
                     if(interval_state[i]!=FINISHED)//Treating only not finished intervals
                     {
-                        machine_used = sniffer_machine();
-                        message[0]=2;
-                        message[1]=(interval_size)*i;
-                        message[2]=interval_size;
-                        
-                        cpy_state(res[i].x0,&message[3]);
-                        
-                        
-                        if(interval_state[i] == VALIDATED)
-                        {
-                            cpy_state(res[i].x0,&message[3+NB_QUEUES]);
-                            what_do_i_read[machine_used]=TRAJECTORY; 
-                            nb_recv++; 
-                            interval_state[i] = SENT;
-                        }
-                        else
-                        {
-                            if(interval_state[i] == UPDATED)
-                            {
-                                initState(&message[3+NB_QUEUES]);
-                                what_do_i_read[machine_used]=BOUNDS;
-                                interval_state[i] = SENT;
-                            }
-                        }
-                        send(servers_id[machine_used], message , message_bytes_size , 0);
-
+                        nb_recv += send_message(servers_id,message,i,message_bytes_size);   
                         nb_calculed_intervals++;
                     }
 
@@ -152,25 +188,7 @@ return_values simul(int * servers_id)
         case 1:
             while( (interval_used = sniffer_interval()) != -1 )
             {
-                machine_used = sniffer_machine();
-                //printf("envoi de l'intervalle %d à %d\n",interval_used,machine_used);
-                interval_state[interval_used]=SENT; 
-                message[0]=1;
-                message[1]=(interval_size)*(interval_used);
-                message[2]=interval_size;
-
-                cpy_state(res[interval_used].x0,&message[3]);
-                cpy_state(res[interval_used].y0,&message[3+NB_QUEUES]);
-                
-                if(coupling(&message[3],&message[3+NB_QUEUES]))
-                {
-                    what_do_i_read[machine_used]=TRAJECTORY;
-                }
-                else
-                {
-                    what_do_i_read[machine_used]=BOUNDS;
-                }
-                send(servers_id[machine_used], message , message_bytes_size , 0);
+                nb_recv += send_message(servers_id,message,interval_used,message_bytes_size);
                 nb_calculed_intervals++;
 
             }
@@ -187,28 +205,9 @@ return_values simul(int * servers_id)
                 {
                     if(interval_state[i]!=FINISHED)//Treating only not finished intervals
                     {
-                        interval_state[i]=SENT;
-
-                        machine_used = sniffer_machine();
-
-                        message[0]=1;
-                        message[1]=(interval_size)*i;
-                        message[2]=interval_size;
-                        cpy_state(res[i].x0,&message[3]);
-                        cpy_state(res[i].y0,&message[3+NB_QUEUES]);
-                        send(servers_id[machine_used], message , message_bytes_size , 0);
-
-
-                        if(coupling(res[i].x0,res[i].y0))
-                        {
-                            what_do_i_read[machine_used]=TRAJECTORY; 
-                            nb_recv++; 
-                        }
-                        else
-                        {
-                           what_do_i_read[machine_used]=BOUNDS;
-                        }
+                        nb_recv += send_message(servers_id,message,i,message_bytes_size);
                         nb_calculed_intervals++;
+
                     }
 
 
