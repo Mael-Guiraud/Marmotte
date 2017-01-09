@@ -12,19 +12,21 @@
 //The parameters of the simulation loop
 #define SEQUENCE_SIZE 300000
 #define NB_SIMULS 100
-#define INTERVAL_SIZE_MIN 5000
+#define INTERVAL_SIZE_MIN 50000
 #define INTERVAL_SIZE_MAX 50000
 
 #define STEP 45000
 
-#define MOD 2// 0 For round count, 1 for optimized version
+#define MOD 0// 0 For round count, 1 for optimized version
 
 
 //The maximum number of clients in a queue
 #define BUFF_MAX 100
 
-// For mod 0 : if 1, then return the number of rounds, if 0, return the number of calulcated intervals
-#define MACRO 0
+// 1 returns the number of rounds, 0 returns the number of calulcated intervals
+#define MACRO 1
+
+#define INIT 0 //0 initial states = 0 on all queues, 1 = 100, 2 = rand
 
 ////////////////////For servers///////////////////////
 

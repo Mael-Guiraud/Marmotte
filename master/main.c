@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "struct.h"
 #include "thread.h"
@@ -13,14 +14,16 @@ int main(int argc , char *argv[])
 {
 
     struct timeval tv1, tv2;
-    double time;
+    double timer;
     double total_time ;
     double total_rounds;
+    double total_intervals;
     argument * args ; 
     int * servers_id;
     int socket_desc;
-    int rounds;
+    return_values r;
 
+    srand(time(NULL));
     //creating sockets
     if(!(servers_id= create_sockets(&socket_desc)))
         {
@@ -45,6 +48,7 @@ int main(int argc , char *argv[])
             printf("SEQUENCE_SIZE = %d /nb_inter = %d /interval_size = %d\n",SEQUENCE_SIZE,nb_inter,interval_size);
 
             total_rounds =0.0;
+            total_intervals=0.0;
             total_time=0.0;
 
             //res is greater
@@ -68,19 +72,20 @@ int main(int argc , char *argv[])
                     fprintf(stdout,"\rStep%3d ",i+1);fflush(stdout);
                 }
                 gettimeofday (&tv1, NULL);
-                rounds= simul(servers_id);
+                r= simul(servers_id);
 
 
                 gettimeofday (&tv2, NULL);
-                time = ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
-                total_rounds+=rounds;
-                total_time+=time;
+                timer = ( ((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+                total_rounds+=r.nb_round;
+                total_intervals+=r.nb_intervals;
+                total_time+=timer;
             }
             printf("\n");
 
             quit_threads=1;
             wait_all_threads_close();
-            write_result_file(f,expected_size,total_rounds/NB_SIMULS,total_time/NB_SIMULS);
+            write_result_file(f,expected_size,total_rounds/NB_SIMULS,total_intervals/NB_SIMULS,total_time/NB_SIMULS);
             free_res();
             last_size = interval_size;
         }

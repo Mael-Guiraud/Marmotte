@@ -10,7 +10,7 @@
 #include "thread.h"
 
 
-int simul(int * servers_id)
+return_values simul(int * servers_id)
 {
 
     int message_bytes_size = sizeof(int)*(NB_QUEUES*2+3);
@@ -44,8 +44,18 @@ int simul(int * servers_id)
                 interval_state[i]=UPDATED;
                 break;
         }
-
-        initStateMIN(res[i].x0);
+        switch(INIT)
+        {
+            case 2:
+                initStateRand(res[i].x0);
+                break;
+            case 1:
+                initStateMAX(res[i].x0);
+                break;
+            default:
+                initStateMIN(res[i].x0);
+                break;
+        }
          switch(MOD)
         {
             case 2:
@@ -54,8 +64,7 @@ int simul(int * servers_id)
             default:
                 if(i==0)
                 {
-                    initStateMIN(res[i].y0);
-                  
+                    cpy_state(res[i].x0,res[i].y0);
                 }
                 else
                 {
@@ -68,7 +77,7 @@ int simul(int * servers_id)
     
     //Send seed to all servers
     message[0]=0;
-    message[1]=time(NULL);;
+    message[1]=time(NULL);
     message[2]=SEQUENCE_SIZE;
     for(int i =0;i<NB_QUEUES;i++){message[3+i]=-1;message[3+i+NB_QUEUES]=-1;};
     for(int i=0;i<NB_MACHINES;i++) send(servers_id[i] , message , message_bytes_size , 0);
@@ -88,6 +97,7 @@ int simul(int * servers_id)
                         message[0]=2;
                         message[1]=(interval_size)*i;
                         message[2]=interval_size;
+                        
                         cpy_state(res[i].x0,&message[3]);
                         
                         
@@ -232,18 +242,10 @@ int simul(int * servers_id)
 
     free((void*)interval_state);  
 
-    switch(MOD)
-    {
-        case 1:
-            return nb_calculed_intervals;
-            break;
-        default:
-            if(MACRO)
-                return nb_round;
-            else
-                return nb_calculed_intervals;
-            break;
-    }
+    return_values r;
+    r.nb_round = nb_round;
+    r.nb_intervals = nb_calculed_intervals;
+    return r;
   
 
 }   

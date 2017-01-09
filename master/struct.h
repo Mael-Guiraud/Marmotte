@@ -6,6 +6,12 @@ typedef struct bounds{
     int* y0;
 } Bounds;
 
+//return values of the simulation
+typedef struct return_values{
+	int nb_round;
+	int nb_intervals;
+} return_values;
+
 
  //Thread argument
 typedef struct argument{

@@ -32,6 +32,11 @@ void initState(int* s)
 {
     for(int i=0;i<NB_QUEUES;i++)s[i]=-1;
 }
+//Set all the queues to a random number
+void initStateRand(int* s)
+{
+    for(int i=0;i<NB_QUEUES;i++)s[i]=rand()%101;
+}
 
 //Wait for one machine to be available, and returns its number
 int sniffer_machine()
@@ -44,10 +49,10 @@ int sniffer_machine()
     }
 }
 
-void write_result_file(FILE * f,int inter_size,double rounds,double time)
+void write_result_file(FILE * f,int inter_size,double rounds,double intervals,double time)
 {
-    fprintf(f,"%d %f %f\n",inter_size,rounds,time);
-    printf("%d %f %f\n",inter_size,rounds,time);
+    fprintf(f,"%d %f %f %f \n",inter_size,rounds,intervals,time);
+    printf("Average : Rounds = %f; Intervals calculated = %f; Time =  %f \n",rounds,intervals,time);
 }
 
 void free_res()

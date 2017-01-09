@@ -1,3 +1,2 @@
 
-int simul(int * servers_id);
-int simul_optim(int * servers_id);
+return_values simul(int * servers_id);
