@@ -10,13 +10,13 @@
 
 
 
-for i in `cat /home/merelas/Bureau/parallel/addressescalcul`;
+for i in `cat ../addressescalcul`;
 do
 	echo "envoi a $i$"
-	scp /home/merelas/Bureau/parallel/const.h pi@$i:/home/pi
-	for j in `ls /home/merelas/Bureau/parallel/server/`;
+	scp ../const.h pi@$i:/home/pi
+	for j in `ls ../server/`;
 	do
-		scp /home/merelas/Bureau/parallel/server/$j pi@$i:/home/pi
+		scp ../server/$j pi@$i:/home/pi
 	done
 
 done

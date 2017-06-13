@@ -49,9 +49,10 @@ int main(int argc , char *argv[])
     if(EXEC_TYPE == 0)
         server.sin_addr.s_addr = inet_addr("127.0.0.1");
     else
-        server.sin_addr.s_addr = inet_addr("192.168.90.178");
+        server.sin_addr.s_addr = inet_addr("193.51.25.106");
     server.sin_family = AF_INET;
     server.sin_port = htons( 8888 );
+    
 	if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
     {
         perror("connect failed. Error");

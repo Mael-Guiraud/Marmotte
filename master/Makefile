@@ -1,22 +1,31 @@
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+  CC = gcc-7
+else
+  CC = gcc
+endif
+
+
+
 CFLAGS = -c -g -std=c99 -Wall -O2 
 
 all: maitre
 	./maitre
 
 maitre: main.o operations.o simulation.o thread.o
-	gcc -o maitre main.o operations.o thread.o simulation.o -lpthread
+	$(CC) -o maitre main.o operations.o thread.o simulation.o -lpthread
 
 main.o: main.c simulation.o
-	gcc $(CFLAGS) main.c  
+	$(CC) $(CFLAGS) main.c  
 
 operations.o: operations.c operations.h struct.h ../const.h
-	gcc $(CFLAGS) operations.c
+	$(CC) $(CFLAGS) operations.c
 
 simulation.o: simulation.c thread.o
-	gcc $(CFLAGS) simulation.c
+	$(CC) $(CFLAGS) simulation.c
 
 thread.o: thread.c operations.o 
-	gcc $(CFLAGS) thread.c
+	$(CC) $(CFLAGS) thread.c
 
 clean:
 	rm -f *.o
