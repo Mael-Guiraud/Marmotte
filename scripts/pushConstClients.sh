@@ -1,9 +1,8 @@
 
 
-for i in `cat /home/merelas/Bureau/parallel/addressescalcul`;
+for i in `cat ../addressescalcul`;
 do
 
-	scp /home/merelas/Bureau/parallel/const.h pi@$i:/home/pi
-	
-done
+	scp ../const.h pi@$i:/home/pi
 
+done

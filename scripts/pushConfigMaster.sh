@@ -1,10 +1,9 @@
 #!/bin/bash
 
-maitre=`cat /home/merelas/Bureau/parallel/addressemaitre`
+maitre=`cat ../addressemaitre`
 
-for j in `ls /home/merelas/Bureau/parallel/maitre/`;
+for j in `ls ../maitre/`;
 	do
-		scp /home/merelas/Bureau/parallel/maitre/$j pi@$maitre:/home/pi
+		scp ../maitre/$j pi@$maitre:/home/pi
 done
-scp /home/merelas/Bureau/parallel/constantes.h pi@$maitre:/home/pi
-
+scp ../constantes.h pi@$maitre:/home/pi

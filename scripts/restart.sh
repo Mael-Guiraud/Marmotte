@@ -1,15 +1,14 @@
 #!/bin/bash
 
-maitre=`cat /home/merelas/Bureau/parallel/addressemaitre`
+maitre=`cat ../addressemaitre`
 
 ssh pi@$maitre 'sudo reboot' &
 
-for i in `cat /home/merelas/Bureau/parallel/addressescalcul`;
+for i in `cat ../addressescalcul`;
 do
-	for j in `ls /home/merelas/Bureau/parallel/calcul/`;
+	for j in `ls ../calcul/`;
 	do
 		ssh pi@$i 'sudo reboot' &
 	done
 
 done
-
