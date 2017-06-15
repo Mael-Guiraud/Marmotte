@@ -149,7 +149,7 @@ int main(int argc , char *argv[])
 				switch (message[0])
 				{
 					case 0: //New seed
-						printf("Calcule d'une nouvelle graine\n");
+						printf("Réception d'une nouvelle graine\n");
 						break;
 					case 1: //BOUNDS
 						borne_inf = message[1];

@@ -67,15 +67,10 @@ int main(int argc , char *argv[])
 		printf("Message envoyé!\n");
 
 		printf("En attente d'une réponse du server\n");
-		select(fd_max+1, &readfds, NULL, NULL, NULL);
-		for (int i=0; i<NB_MACHINES; i++)
+		if (message[0] == 1)
 		{
-			int sd = servers_id[i];
-			if ( FD_ISSET(sd, &readfds) )
-			{
-				recv(sd, message, taille_message, 0);
-				printf("Réponse : \n0 : [%d], 1 : [%d], 2 : [%d]\n", message[0], message[1], message[2]);
-			}
+			recv(servers_id[i], message, taille_message, 0);
+			printf("Réponse : 0 [%d], 1 [%d], 2 [%d],\n", message[0], message[1], message[2]);
 		}
 	}
 
