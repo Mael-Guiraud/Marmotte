@@ -1,6 +1,6 @@
 
 #include <stdlib.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <assert.h>
 #include <time.h>
 #include <sys/socket.h>
@@ -14,7 +14,7 @@
 int send_message(int * servers_id,int * message,int interval,int message_bytes_size)
 {
     int val = 0;
-    
+
 
     int machine_used = sniffer_machine();
 
@@ -38,7 +38,7 @@ int send_message(int * servers_id,int * message,int interval,int message_bytes_s
             if(interval_state[interval] == VALIDATED)
             {
                 cpy_state(res[interval].x0,&message[3+NB_QUEUES]);
-                what_do_i_read[machine_used]=TRAJECTORY; 
+                what_do_i_read[machine_used]=TRAJECTORY;
                 val = 1;
                 interval_state[interval] = SENT;
             }
@@ -54,10 +54,10 @@ int send_message(int * servers_id,int * message,int interval,int message_bytes_s
             break;
         default:
             interval_state[interval]=SENT;
-            cpy_state(res[interval].y0,&message[3+NB_QUEUES]);   
+            cpy_state(res[interval].y0,&message[3+NB_QUEUES]);
             if(coupling(&message[3],&message[3+NB_QUEUES]))
             {
-                what_do_i_read[machine_used]=TRAJECTORY; 
+                what_do_i_read[machine_used]=TRAJECTORY;
                 val = 1;
             }
             else
@@ -65,7 +65,7 @@ int send_message(int * servers_id,int * message,int interval,int message_bytes_s
                what_do_i_read[machine_used]=BOUNDS;
             }
             break;
-    }   
+    }
     send(servers_id[machine_used], message , message_bytes_size , 0);
 
     return val;
@@ -84,16 +84,16 @@ return_values simul(int * servers_id)
     int nb_calculed_intervals=0;
     int interval_used;
 
-    assert(final_result = malloc(sizeof(int*)*SEQUENCE_SIZE)); 
+    assert(final_result = malloc(sizeof(int*)*SEQUENCE_SIZE));
     for(int i = 0;i<SEQUENCE_SIZE;i++)
     {
         assert(final_result[i]=malloc(sizeof(int)*NB_QUEUES));
     }
     assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
     assert(message = malloc(message_bytes_size));
-   
 
-    //initialisation 
+
+    //initialisation
     for(int i=0;i<nb_inter;i++)
     {
         switch(MOD)
@@ -120,7 +120,7 @@ return_values simul(int * servers_id)
          switch(MOD)
         {
             case 2:
-                initState(res[i].y0); 
+                initState(res[i].y0);
                 break;
             default:
                 if(i==0)
@@ -132,10 +132,10 @@ return_values simul(int * servers_id)
                     initStateMAX(res[i].y0);
                 }
                 break;
-            
-        }    
-    } 
-    
+
+        }
+    }
+
     //Send seed to all servers
     message[0]=0;
     message[1]=time(NULL);
@@ -154,15 +154,15 @@ return_values simul(int * servers_id)
                 {
                     if(interval_state[i]!=FINISHED)//Treating only not finished intervals
                     {
-                        nb_recv += send_message(servers_id,message,i,message_bytes_size);   
+                        nb_recv += send_message(servers_id,message,i,message_bytes_size);
                         nb_calculed_intervals++;
                     }
 
                 }
-         
+
                 //waiting for all the intervals reply
-                wait_threads(nb_inter);
-     
+                //wait_threads(nb_inter);
+
 
                 for(int i=0;i<nb_inter-1;i++)
                 {
@@ -181,8 +181,8 @@ return_values simul(int * servers_id)
                 {
                     cpy_state(res[i-1].x0,res[i].x0);
                 }
-                
-            nb_round++; 
+
+            nb_round++;
             }
             break;
         case 1:
@@ -219,10 +219,10 @@ return_values simul(int * servers_id)
                 for(int i=(nb_inter)-1;i>0;i--)
                 {
                     cpy_state(res[i-1].x0,res[i].x0);
-                    cpy_state(res[i-1].y0,res[i].y0); 
+                    cpy_state(res[i-1].y0,res[i].y0);
                 }
-                
-            nb_round++; 
+
+            nb_round++;
             }
             break;
 
@@ -236,12 +236,12 @@ return_values simul(int * servers_id)
     }
     free(final_result);
 
-    free((void*)interval_state);  
+    free((void*)interval_state);
 
     return_values r;
     r.nb_round = nb_round;
     r.nb_intervals = nb_calculed_intervals;
     return r;
-  
 
-}   
+
+}

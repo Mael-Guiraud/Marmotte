@@ -6,7 +6,7 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 1
+#define NB_MACHINES 7
 
 
 //The parameters of the simulation loop

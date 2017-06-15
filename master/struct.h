@@ -15,8 +15,8 @@ typedef struct return_values{
 
  //Thread argument
 typedef struct argument{
-    int id_socket;     
-    int id_machine;	   
+    int id_socket;
+    int id_machine;
 } argument;
 
 //States of the threads
@@ -35,7 +35,7 @@ typedef enum message_kind{
 } Message_kind;
 
 
-//Communication between threads and main 
+//Communication between threads and main
 volatile Thread_state thread_activity[NB_MACHINES];
 volatile Interval_state * interval_state;
 volatile Message_kind what_do_i_read[NB_MACHINES];
@@ -46,4 +46,3 @@ int quit_threads;
 int interval_size;
 int** final_result;
 Bounds * res;
-
