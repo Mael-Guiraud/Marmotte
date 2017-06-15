@@ -145,8 +145,12 @@ int* create_sockets()
     int * servers_id; //Socket id from all servers
 
     master.sin_family = AF_INET; //IPV4 add
-    master.sin_addr.s_addr = INADDR_ANY; //use any add of the machine
     master.sin_port = htons( 8888 ); //port number
+
+	if(EXEC_TYPE == 0)
+        master.sin_addr.s_addr = inet_addr("127.0.0.1");
+    else
+        master.sin_addr.s_addr = inet_addr("192.168.90.107");
 
     assert(client_addr = malloc(sizeof(struct sockaddr_in)*NB_MACHINES));
     assert(servers_id= malloc(sizeof(int)*NB_MACHINES));

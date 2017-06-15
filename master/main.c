@@ -53,8 +53,8 @@ int main(int argc , char *argv[])
 	{
 		int fd_max = initialize_set(&readfds, servers_id);
 		printf("i : %d\n", i);
-		//message[0] = 0;	//We send a seed
-		message[0] = 1;	message[1] = 20; message[2] = 99; //We send new bounds
+		message[0] = 0;	//We send a seed
+		//message[0] = 1;	message[1] = 20; message[2] = 99; //We send new bounds
 		//message[0] = 2;	//We ask for a new configuration
 
 		int taille_message = sizeof(message);
