@@ -9,9 +9,11 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
-#include "const.h"
-#include "alea.h"
+
 #include "simuls.h"
+#include "operations.h"
+
+#define BORNE_NB 10
 
 
 typedef struct message{
@@ -21,38 +23,43 @@ typedef struct message{
 	int * y0;
 } Message;
 
-double time_diff(struct timeval tv1, struct timeval tv2)
-{
-    return (((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
-}
-
-int initialize_set(fd_set *set, int server_socket, int master_socket)
-{
-	FD_ZERO(set);
-	int max_sd = server_socket;
-
-	//if valid socket descriptor then add to read list
-	FD_SET(server_socket, set);
-	if(master_socket > 0)
-		FD_SET( master_socket , set);
-
-	//highest file descriptor number, need it for the select function
-	if(master_socket > max_sd)
-		max_sd = master_socket;
-	return max_sd;
-}
 
 int main(int argc , char *argv[])
 {
-	struct timeval tv1, tv2;
-    double tps_e=0.0;
-    double tps_c=0.0;
-    double tps_r=0.0;
 
+	//Sockets
     int server_socket = 0;
 	int master_socket = 0;
     struct sockaddr_in socket_type;
 	fd_set readfds;
+	int taille_socket_type = sizeof(socket_type);
+
+
+	//Messages Buffers
+	int message_size = sizeof(int)*(BORNE_NB*2 + 4);
+	int * message;
+	assert(message=malloc(message_size));
+	int reply_size;
+	int * reply = NULL;
+	int trajectory_size;
+	int * trajectory= NULL;
+
+
+
+	//Datas for the simulations
+	double load,p,mu;
+	int * lower_bound = NULL;
+	int * upper_bound = NULL;
+
+	//seeds
+	int ** seeds =NULL;
+
+	//Global datas
+	int nb_inter;
+	int nb_queues = -1;
+
+	//Random sequence
+	int* Un;
 
 	//create server socket
     if( (server_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
@@ -60,21 +67,22 @@ int main(int argc , char *argv[])
         perror("socket failed");
         return(-1);
     }
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
+	        perror("setsockopt(SO_REUSEADDR) failed");
+
 
     if (setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_NODELAY) failed");
 
-    if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-        perror("setsockopt(TCP_QUICKACK) failed");
+   /* if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_QUICKACK) failed");*/
 
-    if(EXEC_TYPE == 0)
-        socket_type.sin_addr.s_addr = inet_addr("127.0.0.1");
-    else
-        socket_type.sin_addr.s_addr = inet_addr("193.51.25.106");
-
+          
+   
     socket_type.sin_family = AF_INET;
+     socket_type.sin_addr.s_addr = INADDR_ANY;
     socket_type.sin_port = htons( 8888 );
-	int taille_socket_type = sizeof(socket_type);
+
 
 	if (bind(server_socket, (struct sockaddr *)&socket_type, sizeof(socket_type))<0)
     {
@@ -87,39 +95,18 @@ int main(int argc , char *argv[])
         perror("listen");
         return(-1);
     }
-	Message m;
 
-    int message_size = sizeof(int)*(NB_QUEUES*2 + 4);
-    int reply_size = sizeof(int)*(NB_QUEUES*2+1);
-    int interval_size;
-
-	assert(m.x0 = malloc(sizeof(int)*NB_QUEUES));
-	assert(m.y0 = malloc(sizeof(int)*NB_QUEUES));
-
-	int * message;
-	assert(message=malloc(message_size));
-	int * reply;
-	assert(reply = malloc(reply_size));
-	int * trajectory;
-
-	//Initialisation de la fonction de calcul
-    InitDistribution(LOAD);
-	InitRectangle();
-	double * sequence =NULL;
-	int i;
-    int nb_elems;
-
-	int borne_inf, borne_sup;
+  
     while(1)
     {
-		gettimeofday (&tv1, NULL);
+
 
 		int fd_max = initialize_set(&readfds, server_socket, master_socket);
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
         if (select( fd_max + 1 , &readfds , NULL , NULL , NULL) < 0)
         {
-            printf("select error");
+            printf("Select Failed");
 			return(-1);
         }
 
@@ -129,7 +116,7 @@ int main(int argc , char *argv[])
 			printf("Demande de connexion du maitre\n");
             if ((master_socket = accept(server_socket, (struct sockaddr *)&socket_type, (socklen_t*)&taille_socket_type))<0)
 			{
-                perror("accept");
+                perror("Accept Failed");
                 return(-1);
             }
 		}
@@ -145,49 +132,112 @@ int main(int argc , char *argv[])
 			//We received a message
 			else
 			{
-				printf("J'ai recu un message du maitre\n");
+				printf("\n");
 				switch (message[0])
 				{
 					case 0: //New seed
-						printf("Réception d'une nouvelle graine\n");
+						nb_inter=message[5];
+						free_random_sequences(seeds,nb_inter);
+						seeds = init_random_sequences(nb_inter);
 						break;
 					case 1: //BOUNDS
-						borne_inf = message[1];
-						borne_sup = message[2];
-						printf("Réception de la borne inférieure : %d et de la borne supérieure : %d\n", borne_inf, borne_sup);
+						if(!lower_bound || !upper_bound || !reply)
+						{
+							printf("Error, The simulation is not initialised\n");
+							exit(13);
+						}
+						if(!seeds)
+						{
+							printf("Error, the seeds aren't initialised\n");
+							exit(14);
+						}
+						for(int i=0;i<nb_queues;i++)
+						{
+							lower_bound[i] = message[i+4];
+							upper_bound[i] = message[i+4+nb_queues];
+						}
+						// message[1] = inter id
+						// message[2] = inter size
+						// message[3] = seed
+						Un = gives_un(seeds, message[2],message[1],message[3]);
+						printf("[%d %d] [%d %d]\n",message[4],message[5],message[6],message[7]);
+						if(!coupling(&message[4],&message[nb_queues+4]))
+		    	        {
+		    	          	reply[0]=message[1];
+		                    
+	        			  for(int i=0;i<message[2];i++)
+	        				{
+	        			  		F(&message[4],Un[i]);
+	        			  		F(&message[nb_queues+4],Un[i]);
+	        				}
+	        	        	cpy_state(&message[4],&reply[1]);
+	        	        	cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
+	      
+	        		       if( send(master_socket ,reply, reply_size  , 0) < 0)
+	        		        {
+	        		            puts("Send (reply) failed");
+	        		            break;
+	        		        }
+		    	        }        
+		    	        else
+		    	        {
+		    	        	trajectory_size = sizeof(int)*(message[2]*nb_queues+1);
+		    	        	printf("On crée une trajectoire de taille %d\n",trajectory_size);
+		    	        	if(!trajectory)
+		    	        		assert(trajectory = malloc(trajectory_size));
 
-						borne_inf = 30;
-						borne_sup = 90;
+		    	        	trajectory[0]=message[1];
+		    	        	for(int i=0;i<message[2];i++)
+		    				{
 
-						//Création de la réponse
-						reply[0] = message[1];
-						reply[1] = borne_inf;
-						reply[2] = borne_sup;
+		    					F(&message[4],Un[i]);
+		    					
+		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
+		    			  		printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
+		    				}
+		    		
+		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)
+		    		        {
+		    		            puts("Send (trajectory) failed");
+		    		            break;
+		    		        }
+		    			}
 
-						printf("Envoie d'une réponse au maitre\n");
-						if( send(master_socket ,reply, reply_size, 0) < 0)
-        		        {
-        		            puts("Send (reply) failed");
-        		            break;
-        		        }
 						break;
-
-					default: //New configuration
-						printf("Demande d'une nouvelle configuration\n");
+					default://Reset of simul
+						nb_queues = message[1];
+					    load = intToDoubleLoad(message,4);
+						p = intToDouble(message,8);
+						mu = intToDouble(message,16);
+						init_simul(message[1],message[2],message[3],load,p,mu);
+						if(lower_bound)
+							free(lower_bound);
+						assert(lower_bound = malloc(sizeof(int)*nb_queues));
+						if(upper_bound)
+							free(upper_bound);
+						assert(upper_bound = malloc(sizeof(int)*nb_queues));
+						reply_size = sizeof(int)*(nb_queues*2+1);
+						if(reply)
+							free(reply);
+						assert(reply = malloc(reply_size));
 						break;
 				}
 			}
 			//else
 		}
     }//while
-    printf("Time spent in calulations = %f \n",tps_c);
-    printf("Time spent in emissions = %f \n",tps_e);
-    printf("Time spent in receptions+wait = %f \n",tps_r);
-    free(m.x0);
-	free(reply);
-    free(m.y0);
+    void free_random_sequences(int** tab,int nb_inter);
+
+    if(lower_bound)
+		free(lower_bound);
+	if(upper_bound)
+		free(upper_bound);
+    simulation_mem_free();
     free(message);
-    free(sequence);
+    if(reply)
+    	free(reply);
+     if(trajectory)
+    	free(trajectory);
 
     close(master_socket);
     return 0;

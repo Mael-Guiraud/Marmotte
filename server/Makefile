@@ -5,8 +5,8 @@ all: clean run
 run: compil
 	 ./prog
 
-compil: calcul.o alea.o simuls.o
-	gcc -o prog calcul.o alea.o simuls.o -lm
+compil: calcul.o alea.o simuls.o operations.o
+	gcc -o prog calcul.o alea.o simuls.o operations.o -lm
 
 calcul.o: calcul.c simuls.o alea.o
 	gcc $(CFLAGS) calcul.c
@@ -14,7 +14,10 @@ calcul.o: calcul.c simuls.o alea.o
 alea.o: alea.c
 	gcc $(CFLAGS) alea.c
 
-simuls.o: simuls.c const.h
+operations.o: operations.c
+	gcc $(CFLAGS) operations.c
+
+simuls.o: simuls.c 
 	gcc $(CFLAGS) simuls.c
 
 clean:

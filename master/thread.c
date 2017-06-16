@@ -160,21 +160,21 @@ int* create_sockets()
 
     for(int i=0;i<NB_MACHINES;i++)
     {
-		printf("Connection %d/%d\n", i+1, NB_MACHINES+1);
+		printf("Connection %d/%d\n", i+1, NB_MACHINES);
 		// Creation of the socket for the servers
 		if ( (servers_id[i] = socket(AF_INET , SOCK_STREAM , 0))== -1)
 	        printf("Could not create socket");
 
 		///////// Sockets options /////////
 		//Allow the socket to be re-used after being closed
-	    if (setsockopt(servers_id[i], SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
+	    if (setsockopt(servers_id[i], SOL_SOCKET, SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(SO_REUSEADDR) failed");
 
 	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(TCP_NODELAY) failed");
 
-	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-	        perror("setsockopt(TCP_QUICKACK) failed");
+	    /*if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+	        perror("setsockopt(TCP_QUICKACK) failed");*/
 
 		//Connection to all servers
 		if(connect(servers_id[i],(struct sockaddr *) &master, sizeof(struct sockaddr)) == -1)

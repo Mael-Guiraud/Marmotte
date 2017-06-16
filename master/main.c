@@ -39,25 +39,68 @@ int main(int argc , char *argv[])
 
     srand(time(NULL));
     //creating sockets
-	printf("Création des sockets...\n");
+	printf("Sockets Opening...\n");
     if(!(servers_id = create_sockets()))
     {
         printf("Erreur while creating sockets\n");
         exit(1);
     }
-	printf("Sockets créés...\n");
+	printf("Sockets Opened...\n");
 
 	fd_set readfds;
-	int message[3];
+	int message[24];
+	int taille_message = sizeof(message);
+
 	for(int i=0; i<NB_MACHINES; i++)
 	{
 		int fd_max = initialize_set(&readfds, servers_id);
-		printf("i : %d\n", i);
-		message[0] = 0;	//We send a seed
+
+
+		message[0] = 2;
+		message[1] = 2;
+		message[2] = 0;
+		message[3] = 100;
+		//load is splitted in X.XX
+		message[4] = 1;
+		message[5] = 0;
+		message[6] = 0;
+		message[7] = 0;
+
+		//rho is splitted in XXX.XXXX
+		message[8] = 0;
+		message[9] = 0;
+		message[10] = 0;
+		message[11] = 0;
+		message[12] = 7;
+		message[13] = 5;
+		message[14] = 0;
+		message[15] = 0;
+
+		//mu is splitted in XXX.XXXX
+		message[16] = 3;
+		message[17] = 0;
+		message[18] = 0;
+		message[19] = 0;
+		message[20] = 0;
+		message[21] = 0;
+		message[22] = 0;
+		message[23] = 0;
+
+		printf("Envoie de message...de taille %d \n",taille_message);
+		if( send(servers_id[i], message, taille_message, 0) < 0 )
+		{
+		    perror("send()");
+		    return(-1);
+		}
+		printf("Message envoyé!\n");
+
+
+		message[0] = 0;
+		message[1] = 5;	//We send a seed
 		//message[0] = 1;	message[1] = 20; message[2] = 99; //We send new bounds
 		//message[0] = 2;	//We ask for a new configuration
 
-		int taille_message = sizeof(message);
+	
 		printf("Envoie de message...\n");
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
@@ -66,12 +109,64 @@ int main(int argc , char *argv[])
 		}
 		printf("Message envoyé!\n");
 
-		printf("En attente d'une réponse du server\n");
-		if (message[0] == 1)
+		message[0] = 1;
+		message[1] = 0;
+		message[2]= 10;
+		message[3] = time(NULL); 
+		for(int i=0;i< NB_QUEUES ;i++)
 		{
-			recv(servers_id[i], message, taille_message, 0);
-			printf("Réponse : 0 [%d], 1 [%d], 2 [%d],\n", message[0], message[1], message[2]);
+			message[4+i] = 0;
 		}
+		for(int i=0;i< NB_QUEUES ;i++)
+		{
+			message[4+NB_QUEUES+i] = 100;
+		}
+
+		printf("Envoie de message...\n");
+		if( send(servers_id[i], message, taille_message, 0) < 0 )
+		{
+		    perror("send()");
+		    return(-1);
+		}
+		printf("Message envoyé!\n");
+		printf("En attente d'une réponse du server\n");
+		int taille_reponse = sizeof(int)*(2*NB_QUEUES+1);
+
+		recv(servers_id[i], message, taille_reponse, 0);
+
+		for(int i=0;i<2*NB_QUEUES+1;i++)printf("%d ",message[i]);
+			printf("\n");
+
+
+
+		message[0] = 1;
+		message[1] = 0;
+		message[2]= 10;
+		message[3] = time(NULL); 
+		for(int i=0;i< NB_QUEUES ;i++)
+		{
+			message[4+i] = 50;
+		}
+		for(int i=0;i< NB_QUEUES ;i++)
+		{
+			message[4+NB_QUEUES+i] = 50;
+		}
+
+		printf("Envoie de message...\n");
+		if( send(servers_id[i], message, taille_message, 0) < 0 )
+		{
+		    perror("send()");
+		    return(-1);
+		}
+		printf("Message envoyé!\n");
+		printf("En attente d'une réponse du server\n");
+		taille_reponse = sizeof(int)*(10*NB_QUEUES+1);
+		int buffer[200];
+		recv(servers_id[i], buffer, taille_reponse, 0);
+
+		for(int i=0;i<10*NB_QUEUES+1;i++)printf("%d ",buffer[i]);
+			printf("\n");
+		
 	}
 
     free(servers_id);
