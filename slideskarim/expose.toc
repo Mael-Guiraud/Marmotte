@@ -1,0 +1,11 @@
+\select@language {french}
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Pr\'esentation du laboratoire}{4}{0}{2}
+\beamer@subsectionintoc {2}{1}{Activit\'es du laboratoire}{5}{0}{2}
+\beamer@subsectionintoc {2}{2}{Structure du laboratoire}{6}{0}{2}
+\beamer@subsectionintoc {2}{3}{L'\'equipe de travail}{7}{0}{2}
+\beamer@sectionintoc {3}{Pr\'esentation du travail accompli}{8}{0}{3}
+\beamer@subsectionintoc {3}{1}{Les composants du r\'eseau}{10}{0}{3}
+\beamer@subsectionintoc {3}{2}{Interface Graphique}{14}{0}{3}
+\beamer@subsectionintoc {3}{3}{Simulateur Statistique}{15}{0}{3}
+\beamer@sectionintoc {4}{Conclusion}{18}{0}{4}
