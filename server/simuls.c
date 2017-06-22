@@ -15,7 +15,7 @@ int SizeDistrib;
 
 int Min ;
 int Max ;
-double * Distrib = NULL;
+double* Distrib = NULL;
 double* arrival = NULL;
 double* service=NULL;
 double* departure = NULL;
@@ -53,7 +53,6 @@ void simulation_mem_free()
         free(departure);
         departure = NULL;
     }
-    
 }
 void cpy_state(int* s1, int* s2)
 {
@@ -72,13 +71,12 @@ void InitDistribution(double load, double p, double mu)
     /*double p= 0.75;
     double mu = 300.0;*/
 
-   
-    service[0] = p*( mu);  
+    service[0] = p*( mu);
     departure[0]= (1-p)*(  mu);
     arrival[0] = mu*load;
     for(i=1;i<nb_queues;i++)
     {
-        service[i] = p*( mu);  
+        service[i] = p*( mu);
         departure[i]= (1-p)*(  mu);
         arrival[i] = mu*load;
         for(j=i-1;j>=0;j--)
@@ -89,9 +87,9 @@ void InitDistribution(double load, double p, double mu)
         service[i ] = 20.0*(i+1);
         departure[i]= 5.0;*/
      }
-    
+
     total = 0.0;
-    
+
     for(i=0;i<nb_queues;i++)
     {    total+=arrival[i]+service[i]+departure[i];
     }
@@ -103,7 +101,7 @@ void InitDistribution(double load, double p, double mu)
     }
     total = 0.0;
     for(i=0;i<nb_queues;i++)
-    {    
+    {
         total+=Distrib[i]+ Distrib[i+nb_queues]+Distrib[i+2*nb_queues];
     }
 }

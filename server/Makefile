@@ -3,7 +3,10 @@ CFLAGS = -c -Wall -g -O3
 all: clean run
 
 run: compil
-	 ./prog
+	  ./prog
+	  
+debug: compil
+	valgrind ./prog
 
 compil: calcul.o alea.o simuls.o operations.o
 	gcc -o prog calcul.o alea.o simuls.o operations.o -lm
@@ -17,7 +20,7 @@ alea.o: alea.c
 operations.o: operations.c
 	gcc $(CFLAGS) operations.c
 
-simuls.o: simuls.c 
+simuls.o: simuls.c
 	gcc $(CFLAGS) simuls.c
 
 clean:

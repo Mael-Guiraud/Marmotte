@@ -77,8 +77,8 @@ int main(int argc , char *argv[])
    /* if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_QUICKACK) failed");*/
 
-          
-   
+
+
     socket_type.sin_family = AF_INET;
      socket_type.sin_addr.s_addr = INADDR_ANY;
     socket_type.sin_port = htons( 8888 );
@@ -96,7 +96,7 @@ int main(int argc , char *argv[])
         return(-1);
     }
 
-  
+
     while(1)
     {
 
@@ -164,7 +164,7 @@ int main(int argc , char *argv[])
 						if(!coupling(&message[4],&message[nb_queues+4]))
 		    	        {
 		    	          	reply[0]=message[1];
-		                    
+
 	        			  for(int i=0;i<message[2];i++)
 	        				{
 	        			  		F(&message[4],Un[i]);
@@ -172,13 +172,13 @@ int main(int argc , char *argv[])
 	        				}
 	        	        	cpy_state(&message[4],&reply[1]);
 	        	        	cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
-	      
+
 	        		       if( send(master_socket ,reply, reply_size  , 0) < 0)
 	        		        {
 	        		            puts("Send (reply) failed");
 	        		            break;
 	        		        }
-		    	        }        
+		    	        }
 		    	        else
 		    	        {
 		    	        	trajectory_size = sizeof(int)*(message[2]*nb_queues+1);
@@ -191,11 +191,11 @@ int main(int argc , char *argv[])
 		    				{
 
 		    					F(&message[4],Un[i]);
-		    					
+
 		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
 		    			  		printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
 		    				}
-		    		
+
 		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)
 		    		        {
 		    		            puts("Send (trajectory) failed");

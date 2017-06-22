@@ -12,26 +12,6 @@
 #include "operations.h"
 #include "simulation.h"
 
-int initialize_set(fd_set *set, int *servers_sockets)
-{
-	FD_ZERO(set);
-	int max_sd = 0;
-	for ( int i = 0 ; i < NB_MACHINES ; i++)
-	{
-		//socket descriptor
-		int sd = servers_sockets[i];
-
-		//if valid socket descriptor then add to read list
-		if(sd > 0)
-			FD_SET( sd , set);
-
-		//highest file descriptor number, need it for the select function
-		if(sd > max_sd)
-			max_sd = sd;
-	}
-	return max_sd;
-}
-
 int main(int argc , char *argv[])
 {
 
@@ -47,14 +27,11 @@ int main(int argc , char *argv[])
     }
 	printf("Sockets Opened...\n");
 
-	fd_set readfds;
 	int message[24];
 	int taille_message = sizeof(message);
 
 	for(int i=0; i<NB_MACHINES; i++)
 	{
-		int fd_max = initialize_set(&readfds, servers_id);
-
 
 		message[0] = 2;
 		message[1] = 2;
@@ -100,7 +77,7 @@ int main(int argc , char *argv[])
 		//message[0] = 1;	message[1] = 20; message[2] = 99; //We send new bounds
 		//message[0] = 2;	//We ask for a new configuration
 
-	
+
 		printf("Envoie de message...\n");
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
@@ -113,7 +90,7 @@ int main(int argc , char *argv[])
 		message[0] = 1;
 		message[1] = 0;
 		message[2]= 10;
-		message[3] = time(NULL); 
+		message[3] = time(NULL);
 		for(int i=0;i< NB_QUEUES ;i++)
 		{
 			message[4+i] = 0;
@@ -143,7 +120,7 @@ int main(int argc , char *argv[])
 		message[0] = 1;
 		message[1] = 0;
 		message[2]= 10;
-		message[3] = time(NULL); 
+		message[3] = time(NULL);
 		for(int i=0;i< NB_QUEUES ;i++)
 		{
 			message[4+i] = 50;
@@ -169,7 +146,7 @@ int main(int argc , char *argv[])
 			printf("\n");
 
 
-		
+
 	}
 
     free(servers_id);
