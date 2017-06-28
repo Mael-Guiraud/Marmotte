@@ -101,7 +101,13 @@ int main(int argc , char *argv[])
 	printf("Send new bounds...\n");
 	message[0] = 1;		//BOUNDS
 	message[2] = interval_size;
-	for(int i=0; i<NB_MACHINES; i++)
+		for (int j=0; j<NB_QUEUES; j++)
+			{
+
+				bounds[0].x0[j] = 0;
+				bounds[0].y0[j] = 0;
+			}
+	/*for(int i=1; i<NB_MACHINES; i++)
 	{
 		if (i == 0)
 		{
@@ -127,7 +133,23 @@ int main(int argc , char *argv[])
 		    perror("send()");
 		    return(-1);
 		}
-	}
+	}*/
+
+
+		what_do_i_read[0] = BOUNDS;
+		message[1] = 1;
+		message[3] = seeds[1];
+
+		cpy_state(bounds[1].x0, &message[4]);
+		cpy_state(bounds[1].y0, &message[4+NB_QUEUES]);
+
+		if( send(servers_id[0], message, taille_message, 0) < 0 )
+		{
+		    perror("sssend()");
+		    return(-1);
+		}
+
+
 	for(int i=0; i<nb_inter; i++)
 		interval_state[i] = UPDATED;
 
