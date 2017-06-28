@@ -121,6 +121,7 @@ int main(int argc , char *argv[])
 		cpy_state(bounds[i].x0, &message[4]);
 		cpy_state(bounds[i].y0, &message[4+NB_QUEUES]);
 
+
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -140,7 +141,8 @@ int main(int argc , char *argv[])
 
 	int cpt = 0;
 	fd_set readfds;
-	while (1)
+	int nb_finished =0;
+	while (nb_finished < nb_inter)
 	{
 		printf("debut while\n");
 		max_sd = initialize_set(&readfds, NB_MACHINES, servers_id);
@@ -155,31 +157,40 @@ int main(int argc , char *argv[])
 			//Here we will respond to one server
 			while(1)
 			{
-				//RECEPTION
+				//RECEPTION`
+
+					printf("Avant reception : \n");
+					affiche_bounds(bounds, nb_inter);
 				if ( FD_ISSET(servers_id[cpt], &readfds) )
 				{
 
 					if (what_do_i_read[cpt] == BOUNDS)
 					{
-						if (recv(servers_id[cpt], buffer_bounds, size_bounds_buffer, 0) < 0)
+						if (recv(servers_id[cpt], buffer_bounds,sizeof(int)* size_bounds_buffer, 0) < 0)
 						{
 							printf("Reception error\n");
 							return(-1);
 						}
+						printf("reception bounds\n");
+						for(int l=0;l<size_bounds_buffer;l++)printf("%d ",buffer_bounds[l]);printf("\n");
 						current_interval = buffer_bounds[0];
 					}
 
 					else	//We expect a trajectory
 					{
-						if (recv(servers_id[cpt], buffer_trajectory, size_trajectory_buffer, 0) < 0)
+						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, 0) < 0)
 						{
 							printf("Reception error\n");
 							return(-1);
 						}
+						printf("reception traj\n");
+						for(int l=0;l<size_trajectory_buffer;l++)printf("%d ",buffer_trajectory[l]);printf("\n");
 						current_interval = buffer_trajectory[0];
+						nb_finished++;	
 					}
+					printf("Interval recu = %d\n",current_interval);
 
-					if (current_interval+1 < nb_inter )
+					if (current_interval < nb_inter -1)
 					{
 						if (what_do_i_read[cpt] == BOUNDS)
 						{
@@ -195,31 +206,33 @@ int main(int argc , char *argv[])
 						}
 						interval_state[current_interval+1] = UPDATED;
 					}
-
+					printf("Après : \n");
+					affiche_bounds(bounds, nb_inter);
 					//GIVE A NEW INTERVAL TO THE SERVER
 					new_interval = sniffer_interval();
-
+					if (new_interval == -1)break;
 					message[0] = 1;		//BOUNDS
 					message[1] = new_interval;
-					message[2] = taille_message;
+					message[2] = interval_size;
 					message[3] = seeds[new_interval];
 
+					
 					cpy_state(bounds[new_interval].x0,&message[4]);
 					cpy_state(bounds[new_interval].y0,&message[4+NB_QUEUES]);
-
 					if ( coupling(bounds[new_interval].x0, bounds[new_interval].y0) )
-						what_do_i_read[cpt] = TRAJECTORY;
+						what_do_i_read[cpt] = TRAJECTORY;				
 					else
 						what_do_i_read[cpt] = BOUNDS;
 
 					printf("Send new interval...\n");
+
 					if( send(servers_id[cpt], message, taille_message, 0) < 0 )
 					{
 					    perror("send()");
 					    return(-1);
 					}
-
-					interval_state[new_interval] = SENT;
+					
+						interval_state[new_interval] = SENT;
 
 					cpt = 0;
 					break;
