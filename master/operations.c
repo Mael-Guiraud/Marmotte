@@ -88,7 +88,7 @@ int sniffer_interval()
 		{
             if (interval_state[i] == UPDATED) return i;
             end = (end && interval_state[i] == FINISHED); // end is set to 0 if some element is not finished
-			printf("i : %d\n", i);
+			
         }
         if(end && interval_state[i] == UPDATED){ return i;} //deal with the last interval only at the end
     }
@@ -137,4 +137,28 @@ void initDpeartureBounds(int *borne_min, int *borne_max, int max)
 		borne_min[i] = random_value;
 		borne_max[i] = random_value;
 	}
+}
+
+void affiche_bounds(Bounds* bounds, int nb_interval)
+{
+    for(int i=0;i<nb_interval;i++)
+    {
+        printf("[(");
+        for(int j=0;j<NB_QUEUES;j++)
+        {
+            printf("%d ",bounds[i].x0[j]);
+        }
+        printf(")-(");
+        for(int j=0;j<NB_QUEUES;j++)
+        {
+            printf("%d ",bounds[i].y0[j]);
+        }
+        printf(")]");
+    }
+    printf("\n");
+        
+
+
+
+
 }

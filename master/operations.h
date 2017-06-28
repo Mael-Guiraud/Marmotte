@@ -14,3 +14,5 @@ int sniffer_interval();
 int better(int *s1,int*s2,int*s3,int*s4);
 struct Bounds *initBounds(int nb_interval, int min, int max);
 void initDpeartureBounds(int *borne_min, int *borne_max, int max);
+
+void affiche_bounds(struct Bounds* bounds, int nb_interval);
