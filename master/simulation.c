@@ -89,6 +89,7 @@ return_values simul(int * servers_id)
     {
         assert(final_result[i]=malloc(sizeof(int)*NB_QUEUES));
     }
+	printf("simul : %d\n", nb_inter);
     assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
     assert(message = malloc(message_bytes_size));
 

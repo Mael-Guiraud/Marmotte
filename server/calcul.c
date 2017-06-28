@@ -38,7 +38,7 @@ int main(int argc , char *argv[])
 	//Messages Buffers
 	int message_size = sizeof(int)*(BORNE_NB*2 + 4);
 	int * message;
-	assert(message=malloc(message_size));
+	assert(message = (int *)malloc(message_size));
 	int reply_size;
 	int * reply = NULL;
 	int trajectory_size;
@@ -80,7 +80,7 @@ int main(int argc , char *argv[])
 
 
     socket_type.sin_family = AF_INET;
-     socket_type.sin_addr.s_addr = INADDR_ANY;
+    socket_type.sin_addr.s_addr = INADDR_ANY;
     socket_type.sin_port = htons( 8888 );
 
 
@@ -96,14 +96,15 @@ int main(int argc , char *argv[])
         return(-1);
     }
 
-
+	struct timeval tv;
+   	tv.tv_usec = 0;
+	tv.tv_sec = 1;
     while(1)
     {
-
-
 		int fd_max = initialize_set(&readfds, server_socket, master_socket);
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
+		printf("select\n");
         if (select( fd_max + 1 , &readfds , NULL , NULL , NULL) < 0)
         {
             printf("Select Failed");
@@ -136,11 +137,13 @@ int main(int argc , char *argv[])
 				switch (message[0])
 				{
 					case 0: //New seed
-						nb_inter=message[5];
+						printf("Seed message\n");
+						nb_inter=message[1];
 						free_random_sequences(seeds,nb_inter);
 						seeds = init_random_sequences(nb_inter);
 						break;
 					case 1: //BOUNDS
+						printf("Bounds message\n");
 						if(!lower_bound || !upper_bound || !reply)
 						{
 							printf("Error, The simulation is not initialised\n");
@@ -184,7 +187,7 @@ int main(int argc , char *argv[])
 		    	        	trajectory_size = sizeof(int)*(message[2]*nb_queues+1);
 		    	        	printf("On crée une trajectoire de taille %d\n",trajectory_size);
 		    	        	if(!trajectory)
-		    	        		assert(trajectory = malloc(trajectory_size));
+		    	        		assert(trajectory = (int *)malloc(trajectory_size));
 
 		    	        	trajectory[0]=message[1];
 		    	        	for(int i=0;i<message[2];i++)
@@ -205,6 +208,7 @@ int main(int argc , char *argv[])
 
 						break;
 					default://Reset of simul
+						printf("Configuration message\n");
 						nb_queues = message[1];
 					    load = intToDoubleLoad(message,4);
 						p = intToDouble(message,8);
@@ -212,19 +216,21 @@ int main(int argc , char *argv[])
 						init_simul(message[1],message[2],message[3],load,p,mu);
 						if(lower_bound)
 							free(lower_bound);
-						assert(lower_bound = malloc(sizeof(int)*nb_queues));
+						assert(lower_bound = (int *) malloc(sizeof(int)*nb_queues));
 						if(upper_bound)
 							free(upper_bound);
-						assert(upper_bound = malloc(sizeof(int)*nb_queues));
+						assert(upper_bound = (int *) malloc(sizeof(int)*nb_queues));
 						reply_size = sizeof(int)*(nb_queues*2+1);
 						if(reply)
 							free(reply);
-						assert(reply = malloc(reply_size));
+						assert(reply = (int *) malloc(reply_size));
 						break;
 				}
 			}
 			//else
 		}
+		else
+			printf("select vide\n");
     }//while
     void free_random_sequences(int** tab,int nb_inter);
 

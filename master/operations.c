@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 
 //Return 1 if s1 and s2 are the same, 0 otherwise
 int coupling(int* s1, int* s2)
 {
     return(!memcmp(s1,s2,sizeof(int)*NB_QUEUES));
-
 }
 
 //Copy s1 in s2
@@ -41,7 +41,7 @@ void initStateRand(int* s)
 //Wait for one machine to be available, and returns its number
 int sniffer_machine()
 {
-    int i; 
+    int i;
     while(1){
         for( i = 0; i< NB_MACHINES; i++){
             if(what_do_i_read[i]==PAUSE) return i;
@@ -68,28 +68,32 @@ void free_res()
 
 void alloc_res()
 {
-    assert(res = malloc(sizeof(Bounds)*(nb_inter) )); 
+    assert(res = (Bounds*) malloc(sizeof(Bounds)*(nb_inter) ));
     for(int i = 0;i<nb_inter;i++)
     {
-        assert(res[i].x0 = malloc(sizeof(int)*NB_QUEUES));
-        assert(res[i].y0 = malloc(sizeof(int)*NB_QUEUES));
+        assert(res[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(res[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
     }
 }
 
 //Wait for an interval to be updated, and returns its number
 int sniffer_interval()
 {
-    int i; 
+    int i;
     int end = 0;
-    while(!end){
+    while(!end)
+	{
         end = 1;
-        for( i = 0; i < nb_inter-1; i++){  
+        for( i = 0; i < nb_inter-1; i++)
+		{
             if (interval_state[i] == UPDATED) return i;
-            end = (end && interval_state[i]==FINISHED); // end is set to 0 if some element is not finished
+            end = (end && interval_state[i] == FINISHED); // end is set to 0 if some element is not finished
+			printf("i : %d\n", i);
         }
-        if(end && interval_state[i]== UPDATED){ return i;} //deal with the last interval only at the end
+        if(end && interval_state[i] == UPDATED){ return i;} //deal with the last interval only at the end
     }
-    return -1;   
+	//printf("fin sniffer_interval\n");
+    return -1;
 }
 
 int better(int *s1,int*s2,int*s3,int*s4) //(s1,s2) couple borne inf borne sup comparé à (s3,s4) couple born inf borne sup
@@ -105,4 +109,29 @@ int better(int *s1,int*s2,int*s3,int*s4) //(s1,s2) couple borne inf borne sup co
         return s2[i] > s4[i] ? -1 : 1;
     }//l'ordre est inverse car on compare les bornes sup cette fois
     return 0;
+}
+
+Bounds *initBounds(int nb_interval, int min, int max)
+{
+	Bounds *bounds;
+	assert(bounds = (Bounds *) malloc(sizeof(Bounds)*(nb_interval) ));
+    for(int i = 0;i<nb_interval;i++)
+    {
+        assert(bounds[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(bounds[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+		for (int j=0; j<NB_QUEUES; j++)
+		{
+			bounds[i].x0[j] = min;
+			bounds[i].y0[j] = max;
+		}
+    }
+	return bounds;
+}
+
+void initDpeartureBounds(Bounds *bounds, int max)
+{
+	srand(time(NULL));
+	int random_value = rand() % max;
+	*(bounds[0].x0) = random_value;
+	*(bounds[0].y0) = random_value;
 }

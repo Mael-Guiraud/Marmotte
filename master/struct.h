@@ -1,7 +1,8 @@
 #include "../const.h"
 
 //A structure for the two bounds "inf" and "sup"
-typedef struct bounds{
+typedef struct bounds
+{
     int* x0;
     int* y0;
 } Bounds;

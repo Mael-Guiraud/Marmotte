@@ -7,9 +7,30 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
-
 #include "operations.h"
 #include "struct.h"
+#include "thread.h"
+
+//initialize a set for the select function
+int initialize_set(fd_set *set, int nb_servers, int *servers_id)
+{
+	FD_ZERO(set);
+	int max_sd = 0;
+	for ( int i = 0 ; i < nb_servers ; i++)
+	{
+		//socket descriptor
+		int sd = servers_id[i];
+
+		//if valid socket descriptor then add to read list
+		if(sd > 0)
+			FD_SET( sd , set);
+
+		//highest file descriptor number, need it for the select function
+		if(sd > max_sd)
+			max_sd = sd;
+	}
+	return max_sd;
+}
 
 //wait for all threads to be closed
 void wait_all_threads_close()
@@ -138,7 +159,8 @@ void *server_listener(void *arg)
     return 0;
 }
 
-int* create_sockets()
+//Create all the socket and connect them to their respective servers.
+int* create_and_connect_sockets()
 {
     struct sockaddr_in master;
     struct sockaddr_in* client_addr;
@@ -152,8 +174,8 @@ int* create_sockets()
     else
         master.sin_addr.s_addr = inet_addr("192.168.90.107");
 
-    assert(client_addr = malloc(sizeof(struct sockaddr_in)*NB_MACHINES));
-    assert(servers_id= malloc(sizeof(int)*NB_MACHINES));
+    assert(client_addr = (struct sockaddr_in*) malloc(sizeof(struct sockaddr_in)*NB_MACHINES));
+    assert(servers_id = (int *) malloc(sizeof(int)*NB_MACHINES));
 
     /**/
 
@@ -164,6 +186,7 @@ int* create_sockets()
 		// Creation of the socket for the servers
 		if ( (servers_id[i] = socket(AF_INET , SOCK_STREAM , 0))== -1)
 	        printf("Could not create socket");
+		what_do_i_read[i] = PAUSE;
 
 		///////// Sockets options /////////
 		//Allow the socket to be re-used after being closed
