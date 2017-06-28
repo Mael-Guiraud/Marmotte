@@ -106,12 +106,7 @@ int main(int argc , char *argv[])
 		if (i == 0)
 		{
 			what_do_i_read[i] = TRAJECTORY;
-			//initDpeartureBounds(bounds, max);
-			for (int j=0; j<NB_QUEUES; j++)
-			{
-				bounds[i].x0[j] = 0;
-				bounds[i].y0[j] = 0;
-			}
+			initDpeartureBounds(bounds[i].x0, bounds[i].y0, max);
 		}
 		else
 			what_do_i_read[i] = BOUNDS;

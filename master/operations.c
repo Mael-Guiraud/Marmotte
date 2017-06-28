@@ -128,10 +128,13 @@ Bounds *initBounds(int nb_interval, int min, int max)
 	return bounds;
 }
 
-void initDpeartureBounds(Bounds *bounds, int max)
+void initDpeartureBounds(int *borne_min, int *borne_max, int max)
 {
 	srand(time(NULL));
 	int random_value = rand() % max;
-	*(bounds[0].x0) = random_value;
-	*(bounds[0].y0) = random_value;
+	for (int i=0; i<NB_QUEUES; i++)
+	{
+		borne_min[i] = random_value;
+		borne_max[i] = random_value;
+	}
 }
