@@ -204,15 +204,16 @@ int main(int argc , char *argv[])
 		    	        		assert(trajectory = (int *)malloc(trajectory_size));
 
 		    	        	trajectory[0]=message[1];
+		    	        	printf("trajectoire [0] = %d\n",trajectory[0]);
 		    	        	for(int i=0;i<message[2];i++)
 		    				{
 
 		    					F(&message[4],Un[i]);
 
 		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
-		    			  		//printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
+		    			  		printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
 		    				}
-
+		    					printf("TAILLE TRAJ = %d\n",trajectory_size);
 		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)
 		    		        {
 		    		            puts("Send (trajectory) failed");

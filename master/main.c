@@ -25,13 +25,13 @@ int main(int argc , char *argv[])
     }
 	printf("Sockets created and connected...\n\n");
 
-	//int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
-	//int * message = malloc(taille_message);
+	int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
+	int * message = malloc(taille_message);
 
-	int message[24];
-	int taille_message = sizeof(message);
+	//int message[24];
+	//int taille_message = sizeof(message);
 	nb_inter = 20;
-	int interval_size = 20;
+	int interval_size = 20000;
 	int seeds[nb_inter];
 	int min = 0;
 	int max = 100;
@@ -145,10 +145,10 @@ int main(int argc , char *argv[])
 	int max_sd, new_interval, current_interval;
 	int size_bounds_buffer = (NB_QUEUES * 2) + 1;
 	int buffer_bounds[size_bounds_buffer];
-	//int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
-	//int * buffer_trajectory = (int *)malloc(sizeof(int)*size_bounds_buffer);
-int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
- 	int buffer_trajectory[size_trajectory_buffer];
+	int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
+	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
+	//int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;	
+ 	//int buffer_trajectory[size_trajectory_buffer];
 	int cpt = 0;
 	fd_set readfds;
 	int nb_finished =0;
@@ -168,13 +168,13 @@ int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 			{
 				//RECEPTION`
 
-				printf("socjet[%d] = %d\n",cpt,servers_id[cpt]);
+
 				if ( FD_ISSET(servers_id[cpt], &readfds) )
 				{
-					printf("socjet[%d] = %d\n",cpt,servers_id[cpt]);
+
 					if (what_do_i_read[cpt] == BOUNDS)
 					{
-						if (recv(servers_id[cpt], buffer_bounds,sizeof(int)* size_bounds_buffer, 0) < 0)
+						if (recv(servers_id[cpt], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
 						{
 							printf("Reception error bounds\n");
 							return(-1);
@@ -186,13 +186,14 @@ int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 
 					else	//We expect a trajectory
 					{
-						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, 0) < 0)
+						printf("TAILLE TRAJ = %d\n",sizeof(int)*size_trajectory_buffer);
+						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 						{
 							printf("Reception error traj\n");
 							return(-1);
 						}
 						printf("reception traj\n");
-						//for(int l=0;l<size_trajectory_buffer;l++)printf("%d ",buffer_trajectory[l]);printf("\n");
+						for(int l=0;l<size_trajectory_buffer;l++)printf("%d ",buffer_trajectory[l]);printf("\n");
 						current_interval = buffer_trajectory[0];
 						nb_finished++;
 					}
@@ -218,7 +219,7 @@ int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 					//GIVE A NEW INTERVAL TO THE SERVER
 					new_interval = sniffer_interval();
 
-					printf("Sniffer interval = %d\n",new_interval);
+					printf("Sniffer interval = %d \n",new_interval);
 					if (new_interval == -1)
 						{
 							cpt=0;
@@ -237,7 +238,7 @@ int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 					else
 						what_do_i_read[cpt] = BOUNDS;
 
-					printf("Send new interval... on socket %d (%d)\n",servers_id[cpt],cpt);
+			
 					//for(int l=0;l<taille_message/sizeof(int);l++)printf("%d ",message[l]);printf("\n");
 						
 					if( send(servers_id[cpt], message, taille_message, 0) < 0 )
@@ -254,8 +255,10 @@ int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 				cpt++;
 			}
 		}
+		printf("NB FINI = %d\n",nb_finished);
 	}
-	
+	free(buffer_trajectory);
+	free(message);
     free(servers_id);
 
     return 0;
