@@ -1,4 +1,4 @@
-CFLAGS = -c -Wall -g -O3
+CFLAGS = -std=c99 -c -Wall -g -O3
 
 all: clean run
 

@@ -12,7 +12,7 @@ all: maitre
 	./maitre
 
 debug: maitre
-	valgrind ./maitre
+	valgrind -v ./maitre
 
 maitre: main.o operations.o socket.o
 	$(CC) -o maitre main.o operations.o socket.o -lpthread

@@ -30,6 +30,7 @@ char** read_servers_adresses()
 	printf("Lus = \n");
 	for(int i=0;i<NB_MACHINES;i++)printf("[%s]",adds[i]);
 		printf("\n");
+	return adds;
 
 }
 void free_adds(char** adds)

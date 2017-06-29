@@ -61,6 +61,8 @@ int main(int argc , char *argv[])
 	//Random sequence
 	int* Un;
 
+	int old_traj_size =0;
+
 	//create server socket
     if( (server_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
     {
@@ -96,9 +98,7 @@ int main(int argc , char *argv[])
         return(-1);
     }
 
-	struct timeval tv;
-   	tv.tv_usec = 0;
-	tv.tv_sec = 1;
+	
     while(1)
     {
 		int fd_max = initialize_set(&readfds, server_socket, master_socket);
@@ -125,6 +125,7 @@ int main(int argc , char *argv[])
 		else if (FD_ISSET(master_socket, &readfds) )
 		{
 			//The master ended the connection
+			printf("ON RECOIT UN TRUC DE TAILLE %d\n",message_size);
 			if( recv(master_socket, message, message_size, 0) <= 0)
             {
 				puts("Connection Closed by MASTER");
@@ -163,7 +164,7 @@ int main(int argc , char *argv[])
 						// message[2] = inter size
 						// message[3] = seed
 						Un = gives_un(seeds, message[2],message[1],message[3]);
-						printf("[%d %d] [%d %d]\n",message[4],message[5],message[6],message[7]);
+						printf("%d [%d %d] [%d %d]\n",message[1], message[4],message[5],message[6],message[7]);
 						if(!coupling(&message[4],&message[nb_queues+4]))
 		    	        {
 		    	          	reply[0]=message[1];
@@ -175,7 +176,7 @@ int main(int argc , char *argv[])
 	        				}
 	        	        	cpy_state(&message[4],&reply[1]);
 	        	        	cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
-
+	        	        	printf("On réponds  %d [%d %d] [%d %d]\n",reply[1], reply[2],reply[3],reply[4],reply[5]);
 	        		       if( send(master_socket ,reply, reply_size  , 0) < 0)
 	        		        {
 	        		            puts("Send (reply) failed");
@@ -185,6 +186,19 @@ int main(int argc , char *argv[])
 		    	        else
 		    	        {
 		    	        	trajectory_size = sizeof(int)*(message[2]*nb_queues+1);
+		    	        	if(old_traj_size != 0)
+		    	        	{
+		    	        		if(old_traj_size != trajectory_size)
+		    	        		{
+		    	        			free(trajectory);
+		    	        			trajectory = NULL;
+		    	        			old_traj_size = trajectory_size;
+		    	        		}
+		    	        	}
+		    	        	else
+		    	        	{
+		    	        		old_traj_size = trajectory_size;
+		    	        	}
 		    	        	printf("On crée une trajectoire de taille %d\n",trajectory_size);
 		    	        	if(!trajectory)
 		    	        		assert(trajectory = (int *)malloc(trajectory_size));
@@ -196,7 +210,7 @@ int main(int argc , char *argv[])
 		    					F(&message[4],Un[i]);
 
 		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
-		    			  		printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
+		    			  		//printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
 		    				}
 
 		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)

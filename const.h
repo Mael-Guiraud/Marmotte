@@ -6,7 +6,7 @@
 
 /////////////////FOR MASTER/////////////////////
 //Number of servers connected ot the master
-#define NB_MACHINES 1
+#define NB_MACHINES 2
 
 
 //The parameters of the simulation loop
@@ -28,3 +28,5 @@
 ////////////////////For servers///////////////////////
 
 #define EXEC_TYPE 1// 0 = 127.0.0.1 / 1=192.168.90.178
+
+#define MAX_QUEUES 10
