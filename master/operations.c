@@ -55,25 +55,32 @@ void write_result_file(FILE * f,int inter_size,double rounds,double intervals,do
     printf("Average : Rounds = %f; Intervals calculated = %f; Time =  %f \n",rounds,intervals,time);
 }
 
-void free_res()
+void free_bounds(Bounds *bounds)
 {
 
     for(int i = 0;i<nb_inter;i++)
     {
-        free(res[i].x0);
-        free(res[i].y0);
+        free(bounds[i].x0);
+        free(bounds[i].y0);
     }
-    free(res);
+    free(bounds);
 }
 
-void alloc_res()
+Bounds *initBounds(int nb_interval, int min, int max)
 {
-    assert(res = (Bounds*) malloc(sizeof(Bounds)*(nb_inter) ));
-    for(int i = 0;i<nb_inter;i++)
+	Bounds *bounds;
+	assert(bounds = (Bounds *) malloc(sizeof(Bounds)*(nb_interval) ));
+    for(int i = 0;i<nb_interval;i++)
     {
-        assert(res[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
-        assert(res[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(bounds[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(bounds[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+		for (int j=0; j<NB_QUEUES; j++)
+		{
+			bounds[i].x0[j] = min;
+			bounds[i].y0[j] = max;
+		}
     }
+	return bounds;
 }
 
 //Wait for an interval to be updated, and returns its number
@@ -88,7 +95,7 @@ int sniffer_interval()
 		{
             if (interval_state[i] == UPDATED) return i;
             end = (end && interval_state[i] == FINISHED); // end is set to 0 if some element is not finished
-			
+
         }
         if(end && interval_state[i] == UPDATED){ return i;} //deal with the last interval only at the end
     }
@@ -109,23 +116,6 @@ int better(int *s1,int*s2,int*s3,int*s4) //(s1,s2) couple borne inf borne sup co
         return s2[i] > s4[i] ? -1 : 1;
     }//l'ordre est inverse car on compare les bornes sup cette fois
     return 0;
-}
-
-Bounds *initBounds(int nb_interval, int min, int max)
-{
-	Bounds *bounds;
-	assert(bounds = (Bounds *) malloc(sizeof(Bounds)*(nb_interval) ));
-    for(int i = 0;i<nb_interval;i++)
-    {
-        assert(bounds[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
-        assert(bounds[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
-		for (int j=0; j<NB_QUEUES; j++)
-		{
-			bounds[i].x0[j] = min;
-			bounds[i].y0[j] = max;
-		}
-    }
-	return bounds;
 }
 
 void initDpeartureBounds(int *borne_min, int *borne_max, int max)
@@ -156,7 +146,7 @@ void affiche_bounds(Bounds* bounds, int nb_interval)
         printf(")]");
     }
     printf("\n");
-        
+
 
 
 

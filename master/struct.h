@@ -46,4 +46,3 @@ int nb_inter;
 int quit_threads;
 int interval_size;
 int** final_result;
-Bounds * res;

@@ -15,20 +15,17 @@ all: maitre
 debug: maitre
 	valgrind ./maitre
 
-maitre: main.o operations.o simulation.o thread.o
-	$(CC) -o maitre main.o operations.o thread.o simulation.o -lpthread
+maitre: main.o operations.o socket.o
+	$(CC) -o maitre main.o operations.o socket.o -lpthread
 
-main.o: main.c simulation.o
+main.o: main.c
 	$(CC) $(CFLAGS) main.c
 
 operations.o: operations.c operations.h struct.h ../const.h
 	$(CC) $(CFLAGS) operations.c
 
-simulation.o: simulation.c thread.o
-	$(CC) $(CFLAGS) simulation.c
-
-thread.o: thread.c operations.o
-	$(CC) $(CFLAGS) thread.c
+socket.o: socket.c operations.o
+	$(CC) $(CFLAGS) socket.c
 
 clean:
 	rm -f *.o

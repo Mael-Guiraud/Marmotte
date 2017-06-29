@@ -203,7 +203,7 @@ int main(int argc , char *argv[])
 						printf("reception traj\n");
 						for(int l=0;l<size_trajectory_buffer;l++)printf("%d ",buffer_trajectory[l]);printf("\n");
 						current_interval = buffer_trajectory[0];
-						nb_finished++;	
+						nb_finished++;
 					}
 					printf("Interval recu = %d\n",current_interval);
 
@@ -233,11 +233,11 @@ int main(int argc , char *argv[])
 					message[2] = interval_size;
 					message[3] = seeds[new_interval];
 
-					
+
 					cpy_state(bounds[new_interval].x0,&message[4]);
 					cpy_state(bounds[new_interval].y0,&message[4+NB_QUEUES]);
 					if ( coupling(bounds[new_interval].x0, bounds[new_interval].y0) )
-						what_do_i_read[cpt] = TRAJECTORY;				
+						what_do_i_read[cpt] = TRAJECTORY;
 					else
 						what_do_i_read[cpt] = BOUNDS;
 
@@ -248,7 +248,7 @@ int main(int argc , char *argv[])
 					    perror("send()");
 					    return(-1);
 					}
-					
+
 						interval_state[new_interval] = SENT;
 
 					cpt = 0;
