@@ -8,3 +8,5 @@ do
 	ping -c 1 192.168.90.$X &
 
 done
+
+arp -a | grep b8:27:eb

@@ -10,37 +10,34 @@
 #include "socket.h"
 
 //return the number of ip red in the IP adress file
-int read_servers_adresses(char ** ip_adresses)
+char** read_servers_adresses()
 {
-	FILE *file = fopen ( "../addressescalcul", "r" );
-	char ip_adress[15];	//maximum number of character for an IP adress
-	int i = 0;
-	if ( file != NULL )
-	{
-		while ( fgets ( ip_adress, sizeof(ip_adress), file ) != NULL ) /* read a line */
-		{
-			if (i+1 > NB_MACHINES)
-			{
-				perror ( "Error while opening the file with the servers IPs adresses.\n Number of servers doesn't match with the numer of IP in the file" );
-				fclose ( file );
-				return -1;
-			}
-			else
-			{
-				ip_adresses[i] = ip_adress;
-				i++;
-			}
-		}
-		fclose ( file );
-	}
-	else
-	{
-		perror ( "Error while opening the file with the servers IPs adresses" );
-		return -1;
-	}
-	return i;
-}
+	FILE * f =fopen ("../addressescalcul","r");
 
+	char** adds= (char **)malloc(sizeof(char*)*NB_MACHINES);
+	char trash[4];
+	for(int i=0;i<NB_MACHINES;i++)
+	{
+		adds[i] = (char*)malloc(sizeof(char)*16);
+		if(!fgets(adds[i],15,f)) 
+		{
+			printf("Not enough addresses in file\n");
+			exit(27);
+		}
+		fgets(trash,4,f);
+	}
+
+	printf("Lus = \n");
+	for(int i=0;i<NB_MACHINES;i++)printf("[%s]",adds[i]);
+		printf("\n");
+
+}
+void free_adds(char** adds)
+{
+	for(int i=0;i<NB_MACHINES;i++)
+		free(adds[i]);
+	free(adds);
+}
 //initialize a set for the select function
 int initialize_set(fd_set *set, int nb_servers, int *servers_id)
 {
@@ -65,21 +62,16 @@ int initialize_set(fd_set *set, int nb_servers, int *servers_id)
 //Create all the socket and connect them to their respective servers.
 int* create_and_connect_sockets()
 {
-    struct sockaddr_in master;
-    struct sockaddr_in* client_addr;
+    struct sockaddr_in server;
+
     int * servers_id; //Socket id from all servers
 
-    master.sin_family = AF_INET; //IPV4 add
-    master.sin_port = htons( 8888 ); //port number
+    server.sin_family = AF_INET; //IPV4 add
+    server.sin_port = htons( 8888 ); //port number
 
-	if(EXEC_TYPE == 0)
-        master.sin_addr.s_addr = inet_addr("127.0.0.1");
-    else
-    {
-		master.sin_addr.s_addr = inet_addr("192.168.90.107");
-	}
+	char ** addresses = read_servers_adresses();
+	int machine_connect = 0;
 
-    assert(client_addr = (struct sockaddr_in*) malloc(sizeof(struct sockaddr_in)*NB_MACHINES));
     assert(servers_id = (int *) malloc(sizeof(int)*NB_MACHINES));
 
     /**/
@@ -103,15 +95,16 @@ int* create_and_connect_sockets()
 
 	    /*if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(TCP_QUICKACK) failed");*/
-
+	    server.sin_addr.s_addr = inet_addr(addresses[machine_connect]);
+	    machine_connect++;
 		//Connection to all servers
-		if(connect(servers_id[i],(struct sockaddr *) &master, sizeof(struct sockaddr)) == -1)
+		if(connect(servers_id[i],(struct sockaddr *) &server, sizeof(struct sockaddr)) == -1)
         {
             perror("Connection failed");
             return NULL;
         }
     }
-    free(client_addr);
+    free_adds(addresses);
 
     return servers_id;
 }
