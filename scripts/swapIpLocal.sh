@@ -1,2 +1,4 @@
-sudo ifconfig enp2s0 169.254.10.15/16
-ifconfig enp2s0
+	for j in `ls ../server/`;
+	do
+		scp ../server/$j merelas@192.168.1.41:/home/merelas
+	done

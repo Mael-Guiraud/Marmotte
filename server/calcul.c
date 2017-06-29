@@ -22,7 +22,10 @@ typedef struct message{
 	int * x0;
 	int * y0;
 } Message;
-
+double time_diff(struct timeval tv1, struct timeval tv2)
+{
+    return (((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+}
 
 int main(int argc , char *argv[])
 {
@@ -62,6 +65,14 @@ int main(int argc , char *argv[])
 	int* Un;
 
 	int old_traj_size =0;
+
+	struct timeval tv1, tv2;
+	double time_sending_traj=0.0;
+	double time_sending_bounds=0.0;
+	double time_recv=0.0;
+	double time_computing=0.0;
+	double time_select=0.0;
+
 
 	//create server socket
     if( (server_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
@@ -104,17 +115,18 @@ int main(int argc , char *argv[])
 		int fd_max = initialize_set(&readfds, server_socket, master_socket);
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
-		printf("select\n");
+		gettimeofday (&tv1, NULL);
         if (select( fd_max + 1 , &readfds , NULL , NULL , NULL) < 0)
         {
             printf("Select Failed");
 			return(-1);
         }
-
+		gettimeofday (&tv2, NULL);
+	    time_select += time_diff(tv1,tv2);
 		//If something happened on the server socket , then its an incoming connection
         if (FD_ISSET(server_socket, &readfds))
         {
-			printf("Demande de connexion du maitre\n");
+	
             if ((master_socket = accept(server_socket, (struct sockaddr *)&socket_type, (socklen_t*)&taille_socket_type))<0)
 			{
                 perror("Accept Failed");
@@ -125,26 +137,28 @@ int main(int argc , char *argv[])
 		else if (FD_ISSET(master_socket, &readfds) )
 		{
 			//The master ended the connection
-			printf("ON RECOIT UN TRUC DE TAILLE %d\n",message_size);
+			gettimeofday (&tv1, NULL);
 			if( recv(master_socket, message, message_size, 0) <= 0)
             {
 				puts("Connection Closed by MASTER");
 				master_socket = 0;
 			}
+			gettimeofday (&tv2, NULL);
+	    	time_recv += time_diff(tv1,tv2);
 			//We received a message
 			else
 			{
-				printf("\n");
+				
 				switch (message[0])
 				{
 					case 0: //New seed
-						printf("Seed message\n");
+						
 						nb_inter=message[1];
 						free_random_sequences(seeds,nb_inter);
 						seeds = init_random_sequences(nb_inter);
 						break;
 					case 1: //BOUNDS
-						printf("Bounds message\n");
+					
 						if(!lower_bound || !upper_bound || !reply)
 						{
 							printf("Error, The simulation is not initialised\n");
@@ -168,20 +182,23 @@ int main(int argc , char *argv[])
 						if(!coupling(&message[4],&message[nb_queues+4]))
 		    	        {
 		    	          	reply[0]=message[1];
-
+		    	          	gettimeofday (&tv1, NULL);
 	        			  for(int i=0;i<message[2];i++)
 	        				{
 	        			  		F(&message[4],Un[i]);
 	        			  		F(&message[nb_queues+4],Un[i]);
 	        				}
+	        				gettimeofday (&tv2, NULL);
+	    					time_computing += time_diff(tv1,tv2);
 	        	        	cpy_state(&message[4],&reply[1]);
 	        	        	cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
-	        	        	printf("On réponds  %d [%d %d] [%d %d]\n",reply[1], reply[2],reply[3],reply[4],reply[5]);
 	        		       if( send(master_socket ,reply, reply_size  , 0) < 0)
 	        		        {
 	        		            puts("Send (reply) failed");
 	        		            break;
 	        		        }
+	        		        gettimeofday (&tv1, NULL);
+	    					time_sending_bounds += time_diff(tv2,tv1);
 		    	        }
 		    	        else
 		    	        {
@@ -199,26 +216,28 @@ int main(int argc , char *argv[])
 		    	        	{
 		    	        		old_traj_size = trajectory_size;
 		    	        	}
-		    	        	printf("On crée une trajectoire de taille %d\n",trajectory_size);
+		    	        
 		    	        	if(!trajectory)
 		    	        		assert(trajectory = (int *)malloc(trajectory_size));
 
 		    	        	trajectory[0]=message[1];
-		    	        	printf("trajectoire [0] = %d\n",trajectory[0]);
+		    	        	gettimeofday (&tv1, NULL);
 		    	        	for(int i=0;i<message[2];i++)
 		    				{
 
 		    					F(&message[4],Un[i]);
 
 		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
-		    			  		printf("%d %d %d %d \n",message[4],message[5],trajectory[1+i*nb_queues],trajectory[1+i*nb_queues+1]);
 		    				}
-		    					printf("TAILLE TRAJ = %d\n",trajectory_size);
+		    				gettimeofday (&tv2, NULL);
+		    				time_computing  += time_diff(tv1,tv2);
 		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)
 		    		        {
 		    		            puts("Send (trajectory) failed");
 		    		            break;
 		    		        }
+		    		           gettimeofday (&tv1, NULL);
+	    					time_sending_traj += time_diff(tv2,tv1);
 		    			}
 
 						break;
@@ -245,7 +264,7 @@ int main(int argc , char *argv[])
 			//else
 		}
 		else
-			printf("select vide\n");
+			printf("Empty select\n");
     }//while
     void free_random_sequences(int** tab,int nb_inter);
 

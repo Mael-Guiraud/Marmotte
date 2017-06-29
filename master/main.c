@@ -17,13 +17,12 @@ int main(int argc , char *argv[])
     srand(time(NULL));
 
     //creating sockets
-	printf("Sockets creation...\n");
     if(! (servers_id = create_and_connect_sockets()) )
     {
         printf("Erreur while creating sockets\n");
         exit(1);
     }
-	printf("Sockets created and connected...\n\n");
+	
 
 	int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
 	int * message = malloc(taille_message);
@@ -76,10 +75,9 @@ int main(int argc , char *argv[])
 	message[23] = 0;
 
 
-	printf("Send new configuration...\n");
 	for(int i=0; i<NB_MACHINES; i++)
 	{
-		printf("Send config... on socket %d (%d)\n",servers_id[i],i);
+		
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -91,10 +89,9 @@ int main(int argc , char *argv[])
 	message[0] = 0;
 	message[1] = nb_inter;
 
-	printf("Send new seed...\n");
+
 	for(int i=0; i<NB_MACHINES; i++)
 	{
-		printf("Send seed... on socket %d (%d)\n",servers_id[i],i);
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -102,7 +99,6 @@ int main(int argc , char *argv[])
 		}
 	}
 
-	printf("Send new bounds...\n");
 	message[0] = 1;		//BOUNDS
 	message[2] = interval_size;
 
@@ -125,11 +121,7 @@ int main(int argc , char *argv[])
 
 		cpy_state(bounds[i].lb, &message[4]);
 		cpy_state(bounds[i].ub, &message[4+NB_QUEUES]);
-
-		printf("Sendboudnes... on socket %d (%d)\n",servers_id[i],i);
-		printf("Envoide de taille %d \n",taille_message);
-		for(int l=0;l<taille_message/sizeof(int);l++)printf("%d ",message[l]);printf("\n");
-						
+		
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -138,9 +130,6 @@ int main(int argc , char *argv[])
 		interval_state[i] = SENT;
 	}
 
-
-
-	printf("End of initialization\n");
 
 	int max_sd, new_interval, current_interval;
 	int size_bounds_buffer = (NB_QUEUES * 2) + 1;
@@ -155,7 +144,7 @@ int main(int argc , char *argv[])
 	while (nb_finished < nb_inter)
 	{
 		max_sd = initialize_set(&readfds, NB_MACHINES, servers_id);
-		printf("select\n");
+	
 		if (select( max_sd + 1 , &readfds , NULL , NULL , NULL) < 0)
 		{
 			printf("select error");
@@ -176,28 +165,24 @@ int main(int argc , char *argv[])
 					{
 						if (recv(servers_id[cpt], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
 						{
-							printf("Reception error bounds\n");
+							printf("Reception error (bounds)\n");
 							return(-1);
 						}
-						printf("reception bounds\n");
 						//for(int l=0;l<size_bounds_buffer;l++)printf("%d ",buffer_bounds[l]);printf("\n");
 						current_interval = buffer_bounds[0];
 					}
 
 					else	//We expect a trajectory
 					{
-						printf("TAILLE TRAJ = %d\n",sizeof(int)*size_trajectory_buffer);
+						
 						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 						{
-							printf("Reception error traj\n");
+							printf("Reception error (trajectory)\n");
 							return(-1);
 						}
-						printf("reception traj\n");
-						for(int l=0;l<size_trajectory_buffer;l++)printf("%d ",buffer_trajectory[l]);printf("\n");
 						current_interval = buffer_trajectory[0];
 						nb_finished++;
 					}
-					printf("Interval recu = %d\n",current_interval);
 
 					if (current_interval < nb_inter -1)
 					{
@@ -219,7 +204,6 @@ int main(int argc , char *argv[])
 					//GIVE A NEW INTERVAL TO THE SERVER
 					new_interval = sniffer_interval();
 
-					printf("Sniffer interval = %d \n",new_interval);
 					if (new_interval == -1)
 						{
 							cpt=0;
@@ -238,9 +222,7 @@ int main(int argc , char *argv[])
 					else
 						what_do_i_read[cpt] = BOUNDS;
 
-			
-					//for(int l=0;l<taille_message/sizeof(int);l++)printf("%d ",message[l]);printf("\n");
-						
+
 					if( send(servers_id[cpt], message, taille_message, 0) < 0 )
 					{
 					    perror("send()");
@@ -255,7 +237,7 @@ int main(int argc , char *argv[])
 				cpt++;
 			}
 		}
-		printf("NB FINI = %d\n",nb_finished);
+		
 	}
 	free(buffer_trajectory);
 	free(message);
