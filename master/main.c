@@ -8,9 +8,8 @@
 #include <sys/socket.h>
 
 #include "struct.h"
-#include "thread.h"
+#include "socket.h"
 #include "operations.h"
-#include "simulation.h"
 
 int main(int argc , char *argv[])
 {
@@ -150,7 +149,7 @@ int main(int argc , char *argv[])
 
 	printf("End of initialization\n");
 
-	int max_sd, new_interval, current_interval, last_value_trajectory;
+	int max_sd, new_interval, current_interval;
 	int size_bounds_buffer = (NB_QUEUES * 2) + 1;
 	int buffer_bounds[size_bounds_buffer];
 	int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;

@@ -4,7 +4,7 @@ all: clean run
 
 run: compil
 	  ./prog
-	  
+
 debug: compil
 	valgrind ./prog
 
@@ -25,4 +25,5 @@ simuls.o: simuls.c
 
 clean:
 	rm -f *.o
+	rm -f *.gch
 	rm -f prog

@@ -6,7 +6,6 @@ else
 endif
 
 
-
 CFLAGS = -c -g -std=c99 -Wall -O2
 
 all: maitre
@@ -29,4 +28,5 @@ socket.o: socket.c operations.o
 
 clean:
 	rm -f *.o
+	rm -f *.gch
 	rm -f main
