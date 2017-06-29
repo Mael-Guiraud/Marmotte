@@ -27,7 +27,7 @@ int main(int argc , char *argv[])
 
 	//int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
 	//int * message = malloc(taille_message);
-	//int message[ (NB_QUEUES * 2) + 4 ];
+
 	int message[24];
 	int taille_message = sizeof(message);
 	nb_inter = 20;
@@ -145,9 +145,10 @@ int main(int argc , char *argv[])
 	int max_sd, new_interval, current_interval;
 	int size_bounds_buffer = (NB_QUEUES * 2) + 1;
 	int buffer_bounds[size_bounds_buffer];
-	int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
-	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_bounds_buffer);
-
+	//int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
+	//int * buffer_trajectory = (int *)malloc(sizeof(int)*size_bounds_buffer);
+int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
+ 	int buffer_trajectory[size_trajectory_buffer];
 	int cpt = 0;
 	fd_set readfds;
 	int nb_finished =0;
@@ -254,8 +255,7 @@ int main(int argc , char *argv[])
 			}
 		}
 	}
-	free(buffer_trajectory);
-
+	
     free(servers_id);
 
     return 0;
