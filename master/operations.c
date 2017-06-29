@@ -60,8 +60,8 @@ void free_bounds(Bounds *bounds)
 
     for(int i = 0;i<nb_inter;i++)
     {
-        free(bounds[i].x0);
-        free(bounds[i].y0);
+        free(bounds[i].lb);
+        free(bounds[i].ub);
     }
     free(bounds);
 }
@@ -72,12 +72,12 @@ Bounds *initBounds(int nb_interval, int min, int max)
 	assert(bounds = (Bounds *) malloc(sizeof(Bounds)*(nb_interval) ));
     for(int i = 0;i<nb_interval;i++)
     {
-        assert(bounds[i].x0 = (int *) malloc(sizeof(int)*NB_QUEUES));
-        assert(bounds[i].y0 = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(bounds[i].lb = (int *) malloc(sizeof(int)*NB_QUEUES));
+        assert(bounds[i].ub = (int *) malloc(sizeof(int)*NB_QUEUES));
 		for (int j=0; j<NB_QUEUES; j++)
 		{
-			bounds[i].x0[j] = min;
-			bounds[i].y0[j] = max;
+			bounds[i].lb[j] = min;
+			bounds[i].ub[j] = max;
 		}
     }
 	return bounds;
@@ -136,12 +136,12 @@ void affiche_bounds(Bounds* bounds, int nb_interval)
         printf("[(");
         for(int j=0;j<NB_QUEUES;j++)
         {
-            printf("%d ",bounds[i].x0[j]);
+            printf("%d ",bounds[i].lb[j]);
         }
         printf(")-(");
         for(int j=0;j<NB_QUEUES;j++)
         {
-            printf("%d ",bounds[i].y0[j]);
+            printf("%d ",bounds[i].ub[j]);
         }
         printf(")]");
     }

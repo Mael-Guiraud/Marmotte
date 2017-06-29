@@ -3,8 +3,8 @@
 //A structure for the two bounds "inf" and "sup"
 typedef struct bounds
 {
-    int* x0;
-    int* y0;
+    int* lb;	//lower bound
+    int* ub;	//upper bound
 } Bounds;
 
 //return values of the simulation

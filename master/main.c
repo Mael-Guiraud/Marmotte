@@ -103,23 +103,23 @@ int main(int argc , char *argv[])
 		for (int j=0; j<NB_QUEUES; j++)
 			{
 
-				bounds[0].x0[j] = 0;
-				bounds[0].y0[j] = 0;
+				bounds[0].lb[j] = 0;
+				bounds[0].ub[j] = 0;
 			}
 	/*for(int i=1; i<NB_MACHINES; i++)
 	{
 		if (i == 0)
 		{
 			what_do_i_read[i] = TRAJECTORY;
-			initDpeartureBounds(bounds[i].x0, bounds[i].y0, max);
+			initDpeartureBounds(bounds[i].lb, bounds[i].ub, max);
 		}
 		else
 			what_do_i_read[i] = BOUNDS;
 		message[1] = i;
 		message[3] = seeds[i];
 
-		cpy_state(bounds[i].x0, &message[4]);
-		cpy_state(bounds[i].y0, &message[4+NB_QUEUES]);
+		cpy_state(bounds[i].lb, &message[4]);
+		cpy_state(bounds[i].ub, &message[4+NB_QUEUES]);
 
 
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
@@ -134,8 +134,8 @@ int main(int argc , char *argv[])
 		message[1] = 1;
 		message[3] = seeds[1];
 
-		cpy_state(bounds[1].x0, &message[4]);
-		cpy_state(bounds[1].y0, &message[4+NB_QUEUES]);
+		cpy_state(bounds[1].lb, &message[4]);
+		cpy_state(bounds[1].ub, &message[4+NB_QUEUES]);
 
 		if( send(servers_id[0], message, taille_message, 0) < 0 )
 		{
@@ -210,14 +210,14 @@ int main(int argc , char *argv[])
 					{
 						if (what_do_i_read[cpt] == BOUNDS)
 						{
-							cpy_state(&buffer_bounds[1], bounds[current_interval+1].x0);
-							cpy_state(&buffer_bounds[1+NB_QUEUES], bounds[current_interval+1].y0);
+							cpy_state(&buffer_bounds[1], bounds[current_interval+1].lb);
+							cpy_state(&buffer_bounds[1+NB_QUEUES], bounds[current_interval+1].ub);
 						}
 						else
 						{
 							//recupere derniere valeur
-							cpy_state(&buffer_trajectory[size_trajectory_buffer-NB_QUEUES], bounds[current_interval+1].x0);
-							cpy_state(&buffer_trajectory[size_trajectory_buffer-NB_QUEUES], bounds[current_interval+1].y0);
+							cpy_state(&buffer_trajectory[size_trajectory_buffer-NB_QUEUES], bounds[current_interval+1].lb);
+							cpy_state(&buffer_trajectory[size_trajectory_buffer-NB_QUEUES], bounds[current_interval+1].ub);
 							interval_state[current_interval] = FINISHED;
 						}
 						interval_state[current_interval+1] = UPDATED;
@@ -233,9 +233,9 @@ int main(int argc , char *argv[])
 					message[3] = seeds[new_interval];
 
 
-					cpy_state(bounds[new_interval].x0,&message[4]);
-					cpy_state(bounds[new_interval].y0,&message[4+NB_QUEUES]);
-					if ( coupling(bounds[new_interval].x0, bounds[new_interval].y0) )
+					cpy_state(bounds[new_interval].lb,&message[4]);
+					cpy_state(bounds[new_interval].ub,&message[4+NB_QUEUES]);
+					if ( coupling(bounds[new_interval].lb, bounds[new_interval].ub) )
 						what_do_i_read[cpt] = TRAJECTORY;
 					else
 						what_do_i_read[cpt] = BOUNDS;
