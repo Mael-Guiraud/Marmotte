@@ -9,6 +9,38 @@
 #include "struct.h"
 #include "socket.h"
 
+//return the number of ip red in the IP adress file
+int read_servers_adresses(char ** ip_adresses)
+{
+	FILE *file = fopen ( "../addressescalcul", "r" );
+	char ip_adress[15];	//maximum number of character for an IP adress
+	int i = 0;
+	if ( file != NULL )
+	{
+		while ( fgets ( ip_adress, sizeof(ip_adress), file ) != NULL ) /* read a line */
+		{
+			if (i+1 > NB_MACHINES)
+			{
+				perror ( "Error while opening the file with the servers IPs adresses.\n Number of servers doesn't match with the numer of IP in the file" );
+				fclose ( file );
+				return -1;
+			}
+			else
+			{
+				ip_adresses[i] = ip_adress;
+				i++;
+			}
+		}
+		fclose ( file );
+	}
+	else
+	{
+		perror ( "Error while opening the file with the servers IPs adresses" );
+		return -1;
+	}
+	return i;
+}
+
 //initialize a set for the select function
 int initialize_set(fd_set *set, int nb_servers, int *servers_id)
 {
@@ -43,7 +75,9 @@ int* create_and_connect_sockets()
 	if(EXEC_TYPE == 0)
         master.sin_addr.s_addr = inet_addr("127.0.0.1");
     else
-        master.sin_addr.s_addr = inet_addr("192.168.90.107");
+    {
+		master.sin_addr.s_addr = inet_addr("192.168.90.107");
+	}
 
     assert(client_addr = (struct sockaddr_in*) malloc(sizeof(struct sockaddr_in)*NB_MACHINES));
     assert(servers_id = (int *) malloc(sizeof(int)*NB_MACHINES));
