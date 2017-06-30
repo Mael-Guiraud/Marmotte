@@ -24,13 +24,13 @@ int main(int argc , char *argv[])
     }
 
 
-	int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
-	int * message = malloc(taille_message);
+	int taille_message = sizeof(int) * (4+2*MAX_QUEUES);
+	int * message = (int *) malloc(taille_message);
 
 	//int message[24];
 	//int taille_message = sizeof(message);
-	nb_inter = 20;
-	int interval_size = 20000;
+	nb_inter = 40;
+	int interval_size = 30000;
 	int seeds[nb_inter];
 	int min = 0;
 	int max = 100;
@@ -160,7 +160,6 @@ int main(int argc , char *argv[])
 
 				if ( FD_ISSET(servers_id[cpt], &readfds) )
 				{
-
 					if (what_do_i_read[cpt] == BOUNDS)
 					{
 						if (recv(servers_id[cpt], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
@@ -239,6 +238,7 @@ int main(int argc , char *argv[])
 		}
 
 	}
+	ask_for_time_display(servers_id);
 	free_bounds(bounds);
 	destroy_sockets(servers_id);
 	free( (void *) interval_state);
