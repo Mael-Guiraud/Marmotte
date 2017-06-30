@@ -59,12 +59,13 @@ int main(int argc , char *argv[])
 
 	//Global datas
 	int nb_inter;
+	int old_nb_inter;
 	int nb_queues = -1;
 
 	//Random sequence
 	int* Un;
 
-	int old_traj_size =0;
+	int old_traj_size = 0;
 
 	struct timeval tv1, tv2;
 	double time_sending_traj=0.0;
@@ -141,6 +142,7 @@ int main(int argc , char *argv[])
 			if( recv(master_socket, message, message_size, 0) <= 0)
             {
 				puts("Connection Closed by MASTER");
+				old_nb_inter = nb_inter;
 				master_socket = 0;
 				gettimeofday (&tv2, NULL);
 		    	time_recv += time_diff(tv1,tv2);
@@ -153,19 +155,17 @@ int main(int argc , char *argv[])
 				switch (message[0])
 				{
 					case 0: //New seed
-
 						nb_inter=message[1];
 						if (nb_inter == 0)
 							printf("\nComputing time : %lf ms\nTime of bounds sending : %lf ms\nTime of trajectory sending : %lf ms\nReceving time : %lf ms\nSelect time : %lf ms\n\n", time_computing, time_sending_bounds, time_sending_traj, time_recv, time_select);
 						else
 						{
-							free_random_sequences(seeds,nb_inter);
+							free_random_sequences(seeds, old_nb_inter);
 							seeds = init_random_sequences(nb_inter);
+							old_nb_inter = nb_inter;
 						}
-
 						break;
 					case 1: //BOUNDS
-
 						if(!lower_bound || !upper_bound || !reply)
 						{
 							printf("Error, The simulation is not initialised\n");

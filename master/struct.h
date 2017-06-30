@@ -41,8 +41,4 @@ volatile Thread_state thread_activity[NB_MACHINES];
 volatile Interval_state * interval_state;
 volatile Message_kind what_do_i_read[NB_MACHINES];
 
-
-int nb_inter;
-int quit_threads;
-int interval_size;
 int** final_result;

@@ -29,8 +29,8 @@ int main(int argc , char *argv[])
 
 	//int message[24];
 	//int taille_message = sizeof(message);
-	nb_inter = 40;
-	int interval_size = 30000;
+	int nb_inter = 20;
+	int interval_size = 20000;
 	int seeds[nb_inter];
 	int min = 0;
 	int max = 100;
@@ -157,7 +157,6 @@ int main(int argc , char *argv[])
 			{
 				//RECEPTION`
 
-
 				if ( FD_ISSET(servers_id[cpt], &readfds) )
 				{
 					if (what_do_i_read[cpt] == BOUNDS)
@@ -201,7 +200,7 @@ int main(int argc , char *argv[])
 							interval_state[current_interval+1] = UPDATED;
 					}
 					//GIVE A NEW INTERVAL TO THE SERVER
-					new_interval = sniffer_interval();
+					new_interval = sniffer_interval(nb_inter);
 
 					if (new_interval == -1)
 						{
@@ -239,7 +238,7 @@ int main(int argc , char *argv[])
 
 	}
 	ask_for_time_display(servers_id);
-	free_bounds(bounds);
+	free_bounds(bounds, nb_inter);
 	destroy_sockets(servers_id);
 	free( (void *) interval_state);
 	free(buffer_trajectory);

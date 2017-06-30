@@ -57,5 +57,3 @@ void init (unsigned int *A,int seed)
    for (i = 1; i < JMAX; i++)
       A[i] = (663608941 * A[i - 1]) & MASK32;
 }
-
-

@@ -44,7 +44,7 @@ void write_result_file(FILE * f,int inter_size,double rounds,double intervals,do
     printf("Average : Rounds = %f; Intervals calculated = %f; Time =  %f \n",rounds,intervals,time);
 }
 
-void free_bounds(Bounds *bounds)
+void free_bounds(Bounds *bounds, int nb_inter)
 {
 
     for(int i = 0;i<nb_inter;i++)
@@ -73,7 +73,7 @@ Bounds *initBounds(int nb_interval, int min, int max)
 }
 
 //Wait for an interval to be updated, and returns its number
-int sniffer_interval()
+int sniffer_interval(int nb_inter)
 {
     int i;
     int end = 1;
