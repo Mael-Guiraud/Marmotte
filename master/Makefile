@@ -12,7 +12,7 @@ all: maitre
 	./maitre
 
 debug: maitre
-	valgrind -v ./maitre
+	valgrind --leak-check=full --show-reachable=yes --track-fds=yes --track-origins=yes ./maitre
 
 maitre: main.o operations.o socket.o
 	$(CC) -o maitre main.o operations.o socket.o -lpthread

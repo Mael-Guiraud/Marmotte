@@ -22,7 +22,7 @@ int main(int argc , char *argv[])
         printf("Erreur while creating sockets\n");
         exit(1);
     }
-	
+
 
 	int taille_message =sizeof(int) * (4+2*MAX_QUEUES);
 	int * message = malloc(taille_message);
@@ -77,7 +77,7 @@ int main(int argc , char *argv[])
 
 	for(int i=0; i<NB_MACHINES; i++)
 	{
-		
+
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -121,7 +121,7 @@ int main(int argc , char *argv[])
 
 		cpy_state(bounds[i].lb, &message[4]);
 		cpy_state(bounds[i].ub, &message[4+NB_QUEUES]);
-		
+
 		if( send(servers_id[i], message, taille_message, 0) < 0 )
 		{
 		    perror("send()");
@@ -136,7 +136,7 @@ int main(int argc , char *argv[])
 	int buffer_bounds[size_bounds_buffer];
 	int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
 	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
-	//int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;	
+	//int size_trajectory_buffer = (NB_QUEUES * interval_size) + 1;;
  	//int buffer_trajectory[size_trajectory_buffer];
 	int cpt = 0;
 	fd_set readfds;
@@ -144,7 +144,7 @@ int main(int argc , char *argv[])
 	while (nb_finished < nb_inter)
 	{
 		max_sd = initialize_set(&readfds, NB_MACHINES, servers_id);
-	
+
 		if (select( max_sd + 1 , &readfds , NULL , NULL , NULL) < 0)
 		{
 			printf("select error");
@@ -174,7 +174,7 @@ int main(int argc , char *argv[])
 
 					else	//We expect a trajectory
 					{
-						
+
 						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 						{
 							printf("Reception error (trajectory)\n");
@@ -199,7 +199,7 @@ int main(int argc , char *argv[])
 							interval_state[current_interval] = FINISHED;
 						}
 						if(interval_state[current_interval+1] != FINISHED)
-							interval_state[current_interval+1] = UPDATED;	
+							interval_state[current_interval+1] = UPDATED;
 					}
 					//GIVE A NEW INTERVAL TO THE SERVER
 					new_interval = sniffer_interval();
@@ -237,8 +237,11 @@ int main(int argc , char *argv[])
 				cpt++;
 			}
 		}
-		
+
 	}
+	free_bounds(bounds);
+	destroy_sockets(servers_id);
+	free( (void *) interval_state);
 	free(buffer_trajectory);
 	free(message);
     free(servers_id);

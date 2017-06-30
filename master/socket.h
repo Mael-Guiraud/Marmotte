@@ -2,3 +2,4 @@
 
 int initialize_set(fd_set *set, int nb_servers, int *servers_id);
 int* create_and_connect_sockets();
+void destroy_sockets(int * sockets);
