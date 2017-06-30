@@ -6,7 +6,7 @@ run: compil
 	  ./prog
 
 debug: compil
-	valgrind ./prog
+	valgrind --leak-check=full --show-reachable=yes --track-fds=yes --track-origins=yes ./prog
 
 compil: calcul.o alea.o simuls.o operations.o
 	gcc -o prog calcul.o alea.o simuls.o operations.o -lm

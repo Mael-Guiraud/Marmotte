@@ -120,15 +120,15 @@ void destroy_sockets(int * sockets)
 
 void ask_for_time_display(int *servers_id)
 {
-	int message_size = sizeof(int) * (4+2*MAX_QUEUES);
-	int *message = (int *) malloc(message_size);
+	int *message = (int *) calloc((4+2*MAX_QUEUES), sizeof(int));
 	message[0] = 0;
 	message[1] = 0;
 	for(int i=0; i<NB_MACHINES; i++)
 	{
-		if( send(servers_id[i], message, message_size, 0) < 0 )
+		if( send(servers_id[i], message, (4+2*MAX_QUEUES) * sizeof(int), 0) < 0 )
 		{
 			perror("send() asko for diaplay time");
 		}
 	}
+	free(message);
 }

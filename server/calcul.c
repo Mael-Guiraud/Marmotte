@@ -273,7 +273,7 @@ int main(int argc , char *argv[])
 		else
 			printf("Empty select\n");
     }//while
-    void free_random_sequences(int** tab,int nb_inter);
+    free_random_sequences(seeds, old_nb_inter);
 
     if(lower_bound)
 		free(lower_bound);
