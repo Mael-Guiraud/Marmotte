@@ -95,8 +95,8 @@ int* create_and_connect_sockets()
 	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(TCP_NODELAY) failed");
 
-	    /*if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-	        perror("setsockopt(TCP_QUICKACK) failed");*/
+	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+	        perror("setsockopt(TCP_QUICKACK) failed");
 	    server.sin_addr.s_addr = inet_addr(addresses[machine_connect]);
 	    machine_connect++;
 		//Connection to all servers

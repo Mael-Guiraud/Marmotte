@@ -29,8 +29,13 @@ int main(int argc , char *argv[])
 
 	//int message[24];
 	//int taille_message = sizeof(message);
-	int nb_inter = 20;
-	int interval_size = 20000;
+	int nb_inter = 1;
+	if (nb_inter < NB_MACHINES)
+	{
+		perror("Nb interval < Nb machines\n");
+		exit(28);
+	}
+	int interval_size = 3000000;
 	int seeds[nb_inter];
 	int min = 0;
 	int max = 100;

@@ -88,8 +88,8 @@ int main(int argc , char *argv[])
     if (setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_NODELAY) failed");
 
-   /* if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-        perror("setsockopt(TCP_QUICKACK) failed");*/
+   if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_QUICKACK) failed");
 
 
 
