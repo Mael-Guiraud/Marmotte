@@ -99,9 +99,7 @@ int main(int argc , char *argv[])
 	}
 
 	//Send new seeds
-	message[0] = 0;
-	message[1] = nb_inter;
-
+	build_seed_message(message, nb_inter);
 
 	for(int i=0; i<NB_MACHINES; i++)
 	{
@@ -185,7 +183,6 @@ int main(int argc , char *argv[])
 
 					else	//We expect a trajectory
 					{
-
 						if (recv(servers_id[cpt], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 						{
 							printf("Reception error (trajectory)\n");
@@ -216,18 +213,12 @@ int main(int argc , char *argv[])
 					new_interval = sniffer_interval(nb_inter);
 
 					if (new_interval == -1)
-						{
-							cpt=0;
-							break;
-						}
-					message[0] = 1;		//BOUNDS
-					message[1] = new_interval;
-					message[2] = interval_size;
-					message[3] = seeds[new_interval];
+					{
+						cpt=0;
+						break;
+					}
+					build_bounds_message(message, bounds, new_interval, interval_size, seeds[new_interval]);
 
-
-					cpy_state(bounds[new_interval].lb,&message[4]);
-					cpy_state(bounds[new_interval].ub,&message[4+NB_QUEUES]);
 					if ( coupling(bounds[new_interval].lb, bounds[new_interval].ub) )
 						what_do_i_read[cpt] = TRAJECTORY;
 					else

@@ -146,6 +146,7 @@ int main(int argc , char *argv[])
 				master_socket = 0;
 				gettimeofday (&tv2, NULL);
 		    	time_recv += time_diff(tv1,tv2);
+				break;
 			}
 			//We received a message
 			else
@@ -184,6 +185,8 @@ int main(int argc , char *argv[])
 						// message[1] = inter id
 						// message[2] = inter size
 						// message[3] = seed
+						if (Un)
+							free(Un);
 						Un = gives_un(seeds, message[2],message[1],message[3]);
 						printf("%d [%d %d] [%d %d]\n",message[1], message[4],message[5],message[6],message[7]);
 						if(!coupling(&message[4],&message[nb_queues+4]))
@@ -285,7 +288,9 @@ int main(int argc , char *argv[])
     	free(reply);
      if(trajectory)
     	free(trajectory);
-
+	if (Un)
+		free(Un);
     close(master_socket);
+	close(server_socket);
     return 0;
 }
