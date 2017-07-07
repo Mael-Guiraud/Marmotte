@@ -139,18 +139,20 @@ int main(int argc , char *argv[])
 		{
 			//The master ended the connection
 			gettimeofday (&tv1, NULL);
-			if( recv(master_socket, message, message_size, 0) <= 0)
+			if( recv(master_socket, message, message_size, MSG_WAITALL) <= 0)
             {
 				puts("Connection Closed by MASTER");
 				old_nb_inter = nb_inter;
 				master_socket = 0;
 				gettimeofday (&tv2, NULL);
 		    	time_recv += time_diff(tv1,tv2);
-				break;
+				
 			}
+
 			//We received a message
 			else
 			{
+				for(int l=0;l<message_size/sizeof(int);l++)printf("%d ",message[l]);printf("FIN \n");
 				gettimeofday (&tv2, NULL);
 		    	time_recv += time_diff(tv1,tv2);
 				switch (message[0])
@@ -185,8 +187,6 @@ int main(int argc , char *argv[])
 						// message[1] = inter id
 						// message[2] = inter size
 						// message[3] = seed
-						if (Un)
-							free(Un);
 						Un = gives_un(seeds, message[2],message[1],message[3]);
 						printf("%d [%d %d] [%d %d]\n",message[1], message[4],message[5],message[6],message[7]);
 						if(!coupling(&message[4],&message[nb_queues+4]))
@@ -288,8 +288,6 @@ int main(int argc , char *argv[])
     	free(reply);
      if(trajectory)
     	free(trajectory);
-	if (Un)
-		free(Un);
     close(master_socket);
 	close(server_socket);
     return 0;

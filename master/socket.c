@@ -12,13 +12,13 @@
 #include "operations.h"
 
 //return the number of ip red in the IP adress file
-char** read_servers_adresses()
+char** read_servers_adresses(int nb_machines)
 {
 	FILE * f =fopen ("../addressescalcul","r");
 
-	char** adds= (char **)malloc(sizeof(char*)*NB_MACHINES);
+	char** adds= (char **)malloc(sizeof(char*)*nb_machines);
 	char trash[4];
-	for(int i=0;i<NB_MACHINES;i++)
+	for(int i=0;i<nb_machines;i++)
 	{
 		adds[i] = (char*)malloc(sizeof(char)*16);
 		if(!fgets(adds[i],15,f))
@@ -29,18 +29,13 @@ char** read_servers_adresses()
 		fgets(trash,4,f);
 	}
 	fclose(f);
-	printf("Lus = \n");
-	for(int i=0;i<NB_MACHINES;i++)printf("[%s]",adds[i]);
+	printf("Connection to -> ");
+	for(int i=0;i<nb_machines;i++)printf("%d:[%s]",i,adds[i]);
 		printf("\n");
 	return adds;
 
 }
-void free_adds(char** adds)
-{
-	for(int i=0;i<NB_MACHINES;i++)
-		free(adds[i]);
-	free(adds);
-}
+
 //initialize a set for the select function
 int initialize_set(fd_set *set, int nb_servers, int *servers_id)
 {
@@ -62,8 +57,14 @@ int initialize_set(fd_set *set, int nb_servers, int *servers_id)
 	return max_sd;
 }
 
+void free_adds(char** adds, int nb_machines)
+{
+	for(int i=0;i<nb_machines;i++)
+		free(adds[i]);
+	free(adds);
+}
 //Create all the socket and connect them to their respective servers.
-int* create_and_connect_sockets()
+int* create_and_connect_sockets(int nb_machines)
 {
     struct sockaddr_in server;
 
@@ -72,21 +73,20 @@ int* create_and_connect_sockets()
     server.sin_family = AF_INET; //IPV4 add
     server.sin_port = htons( 8888 ); //port number
 
-	char ** addresses = read_servers_adresses();
+	char ** addresses = read_servers_adresses(nb_machines);
 	int machine_connect = 0;
 
-    assert(servers_id = (int *) malloc(sizeof(int)*NB_MACHINES));
+    assert(servers_id = (int *) malloc(sizeof(int)*nb_machines));
 
     /**/
 
 
-    for(int i=0;i<NB_MACHINES;i++)
+    for(int i=0;i<nb_machines;i++)
     {
-		printf("Connection %d/%d\n", i+1, NB_MACHINES);
+		printf("Connection %d/%d\n", i+1, nb_machines);
 		// Creation of the socket for the servers
 		if ( (servers_id[i] = socket(AF_INET , SOCK_STREAM , 0))== -1)
 	        printf("Could not create socket");
-		what_do_i_read[i] = PAUSE;
 
 		///////// Sockets options /////////
 		//Allow the socket to be re-used after being closed
@@ -96,8 +96,8 @@ int* create_and_connect_sockets()
 	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(TCP_NODELAY) failed");
 
-	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-	        perror("setsockopt(TCP_QUICKACK) failed");
+	    //if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+	      //  perror("setsockopt(TCP_QUICKACK) failed");
 	    server.sin_addr.s_addr = inet_addr(addresses[machine_connect]);
 	    machine_connect++;
 		//Connection to all servers
@@ -107,21 +107,21 @@ int* create_and_connect_sockets()
             return NULL;
         }
     }
-    free_adds(addresses);
+    free_adds(addresses,nb_machines);
 
     return servers_id;
 }
 
 //create a bounds message
-void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed)
+void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
 {
 	message[0] = 1;		//BOUNDS
 	message[1] = interval;
 	message[2] = interval_size;
 	message[3] = seed;
 
-	cpy_state(bounds[interval].lb,&message[4]);
-	cpy_state(bounds[interval].ub,&message[4+NB_QUEUES]);
+	cpy_state(bounds[interval].lb,&message[4],nb_queues);
+	cpy_state(bounds[interval].ub,&message[4+nb_queues],nb_queues);
 }
 
 void build_seed_message(int *message, int nb_interval)
@@ -131,23 +131,44 @@ void build_seed_message(int *message, int nb_interval)
 }
 
 //Destroy all the socket used by the servers
-void destroy_sockets(int * sockets)
+void destroy_sockets(int * sockets, int nb_machines)
 {
-	for (int i=0; i<NB_MACHINES; i++)
+	for (int i=0; i<nb_machines; i++)
 		close(sockets[i]);
 }
 
-void ask_for_time_display(int *servers_id)
+void ask_for_time_display(int *message,int message_size,int *servers_id, int nb_machines)
 {
-	int *message = (int *) calloc((4+2*MAX_QUEUES), sizeof(int));
 	message[0] = 0;
 	message[1] = 0;
-	for(int i=0; i<NB_MACHINES; i++)
+	for(int i=0; i<nb_machines; i++)
 	{
-		if( send(servers_id[i], message, (4+2*MAX_QUEUES) * sizeof(int), 0) < 0 )
+		if( send(servers_id[i], message, message_size, 0) < 0 )
 		{
 			perror("send() asko for diaplay time");
 		}
 	}
-	free(message);
+}
+
+
+void send_config(int * message,int message_size, int * servers_id, int nb_machines, int min, int max, float load, float rho, float mu)
+{	
+	message[0] = 2;
+	message[1] = 2;
+	message[2] = min;
+	message[3] = max;
+	floatTointLoad(load, &message[4]);// The load must be <= 1 and only have 2 decimals
+	floatToint(rho, &message[8]);// must be <= 999, and only have 4 decimals
+	floatToint(mu, &message[16]);// must be <= 999, and only have 4 decimals
+
+	//Send to all machines
+	for(int i=0; i<nb_machines; i++)
+	{
+		if( send(servers_id[i], message, message_size, 0) < 0 )
+		{
+		    perror("send()");
+		    exit(78);
+		}
+	}
+
 }

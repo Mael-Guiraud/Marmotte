@@ -104,6 +104,7 @@ void InitDistribution(double load, double p, double mu)
     {
         total+=Distrib[i]+ Distrib[i+nb_queues]+Distrib[i+2*nb_queues];
     }
+    for(i = 0 ;i<3*nb_queues;i++)printf("%f ",Distrib[i]);printf("\n");
 }
 void init_simul(int nb_q, int min, int max,double load, double p, double mu)
 {
