@@ -144,7 +144,42 @@ void affiche_bounds(Bounds* bounds, int nb_interval)
     printf("\n");
 
 
-
-
-
 }
+
+void floatToint(float f, int * tab)
+{
+    char array[10];
+    sprintf(array,"%f",f);
+    for(int i=0;i<3;i++)
+    {
+        tab[i] = array[i] - '0';
+    }
+    tab[3]=-1;
+     for(int i=4;i<8;i++)
+    {
+        tab[i] = array[i] - '0';
+    }
+}
+
+void floatTointLoad(float f, int * tab)
+{
+    char array[10];
+    sprintf(array,"%f",f);
+
+    tab[0] = array[0] - '0';
+    tab[1]=-1;
+    for(int i=2;i<4;i++)
+    {
+        tab[i] = array[i] - '0';
+    }
+}
+
+
+
+
+
+
+
+
+
+

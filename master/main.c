@@ -42,11 +42,18 @@ int main(int argc , char *argv[])
 	for (int i=0; i<nb_inter; i++)
 		seeds[i] = rand();
 
+	
+
 	//Send new configuration
 	message[0] = 2;
 	message[1] = 2;
 	message[2] = min;
 	message[3] = max;
+
+	 floatTointLoad(1.0, &message[4]);
+	 floatToint(0.75, &message[8]);
+	 floatToint(300.0, &message[16]);
+	/*
 	// -1 = comma : ','
 	//load is splitted in X.XX
 	message[4] = 1;
@@ -73,7 +80,8 @@ int main(int argc , char *argv[])
 	message[21] = 0;
 	message[22] = 0;
 	message[23] = 0;
-
+	*/
+	for(int i=0;i<taille_message/sizeof(int);i++)printf("%d ",message[i]);printf("\n");
 
 	for(int i=0; i<NB_MACHINES; i++)
 	{
