@@ -9,6 +9,7 @@
 
 #include "struct.h"
 #include "socket.h"
+#include "operations.h"
 
 //return the number of ip red in the IP adress file
 char** read_servers_adresses()
@@ -109,6 +110,24 @@ int* create_and_connect_sockets()
     free_adds(addresses);
 
     return servers_id;
+}
+
+//create a bounds message
+void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed)
+{
+	message[0] = 1;		//BOUNDS
+	message[1] = interval;
+	message[2] = interval_size;
+	message[3] = seed;
+
+	cpy_state(bounds[interval].lb,&message[4]);
+	cpy_state(bounds[interval].ub,&message[4+NB_QUEUES]);
+}
+
+void build_seed_message(int *message, int nb_interval)
+{
+	message[0] = 0;
+	message[1] = nb_interval;
 }
 
 //Destroy all the socket used by the servers
