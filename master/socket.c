@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 //socket libs
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -19,14 +20,14 @@ char** read_servers_adresses()
 	for(int i=0;i<NB_MACHINES;i++)
 	{
 		adds[i] = (char*)malloc(sizeof(char)*16);
-		if(!fgets(adds[i],15,f)) 
+		if(!fgets(adds[i],15,f))
 		{
 			printf("Not enough addresses in file\n");
 			exit(27);
 		}
 		fgets(trash,4,f);
 	}
-
+	fclose(f);
 	printf("Lus = \n");
 	for(int i=0;i<NB_MACHINES;i++)printf("[%s]",adds[i]);
 		printf("\n");
@@ -94,8 +95,8 @@ int* create_and_connect_sockets()
 	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
 	        perror("setsockopt(TCP_NODELAY) failed");
 
-	    /*if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-	        perror("setsockopt(TCP_QUICKACK) failed");*/
+	    if (setsockopt(servers_id[i], IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+	        perror("setsockopt(TCP_QUICKACK) failed");
 	    server.sin_addr.s_addr = inet_addr(addresses[machine_connect]);
 	    machine_connect++;
 		//Connection to all servers
@@ -108,4 +109,26 @@ int* create_and_connect_sockets()
     free_adds(addresses);
 
     return servers_id;
+}
+
+//Destroy all the socket used by the servers
+void destroy_sockets(int * sockets)
+{
+	for (int i=0; i<NB_MACHINES; i++)
+		close(sockets[i]);
+}
+
+void ask_for_time_display(int *servers_id)
+{
+	int *message = (int *) calloc((4+2*MAX_QUEUES), sizeof(int));
+	message[0] = 0;
+	message[1] = 0;
+	for(int i=0; i<NB_MACHINES; i++)
+	{
+		if( send(servers_id[i], message, (4+2*MAX_QUEUES) * sizeof(int), 0) < 0 )
+		{
+			perror("send() asko for diaplay time");
+		}
+	}
+	free(message);
 }

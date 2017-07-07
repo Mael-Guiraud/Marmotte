@@ -63,7 +63,8 @@ int** init_random_sequences(int nb_inter)
 	assert(tab = (int **) calloc(nb_inter,sizeof(int*)));
 	return tab;
 }
-void free_random_sequences(int** tab,int nb_inter)
+
+void free_random_sequences(int** tab, int nb_inter)
 {
 	if(tab)
 	{

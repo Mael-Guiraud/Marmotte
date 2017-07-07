@@ -59,12 +59,13 @@ int main(int argc , char *argv[])
 
 	//Global datas
 	int nb_inter;
+	int old_nb_inter;
 	int nb_queues = -1;
 
 	//Random sequence
 	int* Un;
 
-	int old_traj_size =0;
+	int old_traj_size = 0;
 
 	struct timeval tv1, tv2;
 	double time_sending_traj=0.0;
@@ -87,8 +88,8 @@ int main(int argc , char *argv[])
     if (setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, &(int){ 1 }, sizeof(int)) < 0)
         perror("setsockopt(TCP_NODELAY) failed");
 
-   /* if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
-        perror("setsockopt(TCP_QUICKACK) failed");*/
+   if (setsockopt(server_socket, IPPROTO_TCP, TCP_QUICKACK, &(int){ 1 }, sizeof(int)) < 0)
+        perror("setsockopt(TCP_QUICKACK) failed");
 
 
 
@@ -109,7 +110,7 @@ int main(int argc , char *argv[])
         return(-1);
     }
 
-	
+
     while(1)
     {
 		int fd_max = initialize_set(&readfds, server_socket, master_socket);
@@ -126,7 +127,7 @@ int main(int argc , char *argv[])
 		//If something happened on the server socket , then its an incoming connection
         if (FD_ISSET(server_socket, &readfds))
         {
-	
+
             if ((master_socket = accept(server_socket, (struct sockaddr *)&socket_type, (socklen_t*)&taille_socket_type))<0)
 			{
                 perror("Accept Failed");
@@ -141,24 +142,30 @@ int main(int argc , char *argv[])
 			if( recv(master_socket, message, message_size, 0) <= 0)
             {
 				puts("Connection Closed by MASTER");
+				old_nb_inter = nb_inter;
 				master_socket = 0;
+				gettimeofday (&tv2, NULL);
+		    	time_recv += time_diff(tv1,tv2);
 			}
-			gettimeofday (&tv2, NULL);
-	    	time_recv += time_diff(tv1,tv2);
 			//We received a message
 			else
 			{
-				
+				gettimeofday (&tv2, NULL);
+		    	time_recv += time_diff(tv1,tv2);
 				switch (message[0])
 				{
 					case 0: //New seed
-						
 						nb_inter=message[1];
-						free_random_sequences(seeds,nb_inter);
-						seeds = init_random_sequences(nb_inter);
+						if (nb_inter == 0)
+							printf("\nComputing time : %lf ms\nTime of bounds sending : %lf ms\nTime of trajectory sending : %lf ms\nReceving time : %lf ms\nSelect time : %lf ms\n\n", time_computing, time_sending_bounds, time_sending_traj, time_recv, time_select);
+						else
+						{
+							free_random_sequences(seeds, old_nb_inter);
+							seeds = init_random_sequences(nb_inter);
+							old_nb_inter = nb_inter;
+						}
 						break;
 					case 1: //BOUNDS
-					
 						if(!lower_bound || !upper_bound || !reply)
 						{
 							printf("Error, The simulation is not initialised\n");
@@ -183,7 +190,7 @@ int main(int argc , char *argv[])
 		    	        {
 		    	          	reply[0]=message[1];
 		    	          	gettimeofday (&tv1, NULL);
-	        			  for(int i=0;i<message[2];i++)
+	        			  	for(int i=0;i<message[2];i++)
 	        				{
 	        			  		F(&message[4],Un[i]);
 	        			  		F(&message[nb_queues+4],Un[i]);
@@ -216,7 +223,7 @@ int main(int argc , char *argv[])
 		    	        	{
 		    	        		old_traj_size = trajectory_size;
 		    	        	}
-		    	        
+
 		    	        	if(!trajectory)
 		    	        		assert(trajectory = (int *)malloc(trajectory_size));
 
@@ -266,7 +273,7 @@ int main(int argc , char *argv[])
 		else
 			printf("Empty select\n");
     }//while
-    void free_random_sequences(int** tab,int nb_inter);
+    free_random_sequences(seeds, old_nb_inter);
 
     if(lower_bound)
 		free(lower_bound);

@@ -38,24 +38,13 @@ void initStateRand(int* s)
     for(int i=0;i<NB_QUEUES;i++)s[i]=rand()%101;
 }
 
-//Wait for one machine to be available, and returns its number
-int sniffer_machine()
-{
-    int i;
-    while(1){
-        for( i = 0; i< NB_MACHINES; i++){
-            if(what_do_i_read[i]==PAUSE) return i;
-        }
-    }
-}
-
 void write_result_file(FILE * f,int inter_size,double rounds,double intervals,double time)
 {
     fprintf(f,"%d %f %f %f \n",inter_size,rounds,intervals,time);
     printf("Average : Rounds = %f; Intervals calculated = %f; Time =  %f \n",rounds,intervals,time);
 }
 
-void free_bounds(Bounds *bounds)
+void free_bounds(Bounds *bounds, int nb_inter)
 {
 
     for(int i = 0;i<nb_inter;i++)
@@ -84,7 +73,7 @@ Bounds *initBounds(int nb_interval, int min, int max)
 }
 
 //Wait for an interval to be updated, and returns its number
-int sniffer_interval()
+int sniffer_interval(int nb_inter)
 {
     int i;
     int end = 1;
@@ -116,7 +105,7 @@ int better(int *s1,int*s2,int*s3,int*s4) //(s1,s2) couple borne inf borne sup co
 
 void initDpeartureBounds(int *borne_min, int *borne_max, int max)
 {
-	
+
 	int random_value = rand() % max;
 	for (int i=0; i<NB_QUEUES; i++)
 	{

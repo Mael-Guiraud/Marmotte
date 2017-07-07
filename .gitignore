@@ -4,5 +4,5 @@
 *.data
 *.o
 prog
-master/maitre
+maitre
 *.ps
