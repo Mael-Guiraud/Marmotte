@@ -14,8 +14,8 @@
 
 
 #define MAX_QUEUES 10
-#define NB_MACHINES 2
-#define NB_QUEUES 2
+#define NB_MACHINES 3
+#define NB_QUEUES 10
 
 
 
@@ -48,7 +48,7 @@ int main(int argc , char *argv[])
 
 
 	//Send the simulation config to the servers
-	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.0,0.75,300.0);
+	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.0,0.75,300.0,nb_queues);
 	
 
 
@@ -57,7 +57,7 @@ int main(int argc , char *argv[])
 	
 	AlgoTwoBounds(servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
 
-
+	send_exit( message, message_size,  servers_id,  nb_machines);
 	free(message);
 	destroy_sockets(servers_id,nb_machines);
     free(servers_id);

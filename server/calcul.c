@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
+#include <string.h>
 //socket libs
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -55,15 +56,15 @@ int main(int argc , char *argv[])
 	int * upper_bound = NULL;
 
 	//seeds
-	int ** seeds =NULL;
+	double ** seeds =NULL;
 
 	//Global datas
 	int nb_inter;
-	int old_nb_inter;
+	int old_nb_inter=0;
 	int nb_queues = -1;
 
 	//Random sequence
-	int* Un;
+	double* Un;
 
 	int old_traj_size = 0;
 
@@ -73,6 +74,8 @@ int main(int argc , char *argv[])
 	double time_recv=0.0;
 	double time_computing=0.0;
 	double time_select=0.0;
+
+	float f[3]; // to receive the configuration parameters
 
 
 	//create server socket
@@ -152,9 +155,8 @@ int main(int argc , char *argv[])
 			//We received a message
 			else
 			{
-				for(int l=0;l<message_size/sizeof(int);l++)printf("%d ",message[l]);printf("FIN \n");
-				gettimeofday (&tv2, NULL);
-		    	time_recv += time_diff(tv1,tv2);
+				//for(int l=0;l<message_size/sizeof(int);l++)printf("%d ",message[l]);printf("FIN \n");
+				
 				switch (message[0])
 				{
 					case 0: //New seed
@@ -188,7 +190,9 @@ int main(int argc , char *argv[])
 						// message[2] = inter size
 						// message[3] = seed
 						Un = gives_un(seeds, message[2],message[1],message[3]);
-						printf("%d [%d %d] [%d %d]\n",message[1], message[4],message[5],message[6],message[7]);
+						gettimeofday (&tv2, NULL);
+		    			time_recv += time_diff(tv1,tv2);
+						
 						if(!coupling(&message[4],&message[nb_queues+4]))
 		    	        {
 		    	          	reply[0]=message[1];
@@ -251,12 +255,30 @@ int main(int argc , char *argv[])
 		    			}
 
 						break;
+						case 3:
+						    free_random_sequences(seeds, old_nb_inter);
+
+						    if(lower_bound)
+								free(lower_bound);
+							if(upper_bound)
+								free(upper_bound);
+						    simulation_mem_free();
+						    free(message);
+						    if(reply)
+						    	free(reply);
+						     if(trajectory)
+						    	free(trajectory);
+						    close(master_socket);
+							close(server_socket);
+							return 0;
+						break;
 					default://Reset of simul
 						printf("Configuration message\n");
 						nb_queues = message[1];
-					    load = intToDoubleLoad(message,4);
-						p = intToDouble(message,8);
-						mu = intToDouble(message,16);
+						memcpy(f,&message[4],sizeof(f));
+						load = f[0];
+						p = f[1];
+						mu = f[2];
 						init_simul(message[1],message[2],message[3],load,p,mu);
 						if(lower_bound)
 							free(lower_bound);

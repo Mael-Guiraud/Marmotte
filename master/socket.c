@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <unistd.h>
+#include <string.h>
 //socket libs
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -151,17 +152,38 @@ void ask_for_time_display(int *message,int message_size,int *servers_id, int nb_
 }
 
 
-void send_config(int * message,int message_size, int * servers_id, int nb_machines, int min, int max, float load, float rho, float mu)
+void send_config(int * message,int message_size, int * servers_id, int nb_machines, int min, int max, float load, float p, float mu, int nb_queues)
 {	
 	message[0] = 2;
-	message[1] = 2;
+	message[1] = nb_queues;
 	message[2] = min;
 	message[3] = max;
-	floatTointLoad(load, &message[4]);// The load must be <= 1 and only have 2 decimals
-	floatToint(rho, &message[8]);// must be <= 999, and only have 4 decimals
-	floatToint(mu, &message[16]);// must be <= 999, and only have 4 decimals
+	float f[3];
+	f[0] = load;
+	f[1] = p;
+	f[2] = mu;
+	memcpy(&message[4],f,sizeof(f));
+	//floatTointLoad(load, &message[4]);// The load must be <= 1 and only have 2 decimals
+	//floatToint(p, &message[8]);// must be <= 999, and only have 4 decimals
+	//floatToint(mu, &message[16]);// must be <= 999, and only have 4 decimals
 
 	//Send to all machines
+	for(int i=0; i<nb_machines; i++)
+	{
+		if( send(servers_id[i], message, message_size, 0) < 0 )
+		{
+		    perror("send()");
+		    exit(78);
+		}
+	}
+
+}
+
+
+void send_exit(int * message,int message_size, int * servers_id, int nb_machines)
+{	
+	message[0] = 3;
+
 	for(int i=0; i<nb_machines; i++)
 	{
 		if( send(servers_id[i], message, message_size, 0) < 0 )

@@ -70,6 +70,7 @@ void InitDistribution(double load, double p, double mu)
     double total;
     /*double p= 0.75;
     double mu = 300.0;*/
+    printf("load %f p %f mu %f\n",load,p,mu);
 
     service[0] = p*( mu);
     departure[0]= (1-p)*(  mu);
@@ -79,10 +80,12 @@ void InitDistribution(double load, double p, double mu)
         service[i] = p*( mu);
         departure[i]= (1-p)*(  mu);
         arrival[i] = mu*load;
-        for(j=i-1;j>=0;j--)
-        {
-            arrival[i]-= (arrival[j]*pow(p,(double)(i-j)));
-        }
+        printf("i=%d \n",i);
+    
+        //arrival[i]-= (arrival[j]*pow(p,(double)(i-j)));
+        arrival[i]-= arrival[0]*p;
+
+        
         /*     arrival[i ] = 10.0;
         service[i ] = 20.0*(i+1);
         departure[i]= 5.0;*/
@@ -104,7 +107,8 @@ void InitDistribution(double load, double p, double mu)
     {
         total+=Distrib[i]+ Distrib[i+nb_queues]+Distrib[i+2*nb_queues];
     }
-    for(i = 0 ;i<3*nb_queues;i++)printf("%f ",Distrib[i]);printf("\n");
+    for(int i=0;i<3*nb_queues;i++)printf("%f ",Distrib[i]);printf("\n");
+   
 }
 void init_simul(int nb_q, int min, int max,double load, double p, double mu)
 {
@@ -129,7 +133,7 @@ int Inverse(double U)
     sum =0.0;
     for (i=0; i<SizeDistrib;i++){
         sum+=Distrib[i];
-        if (sum>=U) {j=i; break;}
+        if (sum>=U) {return i;}
     }
     return(j);
 }
@@ -157,6 +161,7 @@ void Equation(int* NewS,int indexevt)
 void F (int * OldS,double U )
 { int indexevt;
     indexevt = Inverse(U);
+
     Equation(OldS,indexevt);
 
 }
