@@ -28,7 +28,7 @@ int main(int argc , char *argv[])
     
     //Min & MAX clients in a queue
     int min = 0;
-	int max = 100;
+	int max = 1000;
 
 
 	//Init seed of alea
@@ -48,16 +48,16 @@ int main(int argc , char *argv[])
 
 
 	//Send the simulation config to the servers
-	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.0,0.75,300.0,nb_queues);
+	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.1,0.75,300.0,nb_queues);
 	
 
 
 	int nb_inter = 20;
-	int interval_size = 20000;
+	int interval_size = 2000;
 	
 	AlgoTwoBounds(servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
 
-	send_exit( message, message_size,  servers_id,  nb_machines);
+	//send_exit( message, message_size,  servers_id,  nb_machines);
 	free(message);
 	destroy_sockets(servers_id,nb_machines);
     free(servers_id);

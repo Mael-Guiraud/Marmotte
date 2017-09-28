@@ -158,6 +158,7 @@ int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,i
 							//Copy last value of the trajectory in the bounds of the next interval
 							cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].lb,nb_queues);
 							cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
+							for(int a=0;a<10;a++){printf("%d ",buffer_trajectory[size_trajectory_buffer-nb_queues+a]);}printf("\n");
 							interval_state[current_interval] = FINISHED;
 						}
 						//We update the next interval only if it's not finished yet

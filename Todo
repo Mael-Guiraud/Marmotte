@@ -1,0 +1,21 @@
+Les etats ne sont pas tous comparables :
+Si un vecteur X et un vecteur Y le sont (ils sont partis tous les deux de 0)
+alors, si X < Y, xi < yi, pour tout i.
+
+S : service de la file P*mu
+D: Depart définitif (1-P)*mu
+
+ARRIVE 0 = Lambda 0 = mu
+ARRIVE i = lambda i + (S/(S+D))*ARRIVEi-1
+vu que pour tout i arrive = mu
+lambda i = mu - (S/(S+D))*ARRIVEi-1
+
+
+
+Donner les intervalles i* m/n (m= nb inter, n = nb machines) tranches, plutot que 0-n
+---> du coup faire attention a comment on attribue les tranches aux machines
+
+
+Courbes : distribution des couplages
+temps de simuls /(taille inter ?)
+comparer avec sequentiel btw

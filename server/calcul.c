@@ -161,7 +161,7 @@ int main(int argc , char *argv[])
 				{
 					case 0: //New seed
 						nb_inter=message[1];
-						if (nb_inter == 0)
+						if (nb_inter == 0)//!!!!!!!!!!!!!Remmetre les temps a 0 !!!!!!!!!!!!!
 							printf("\nComputing time : %lf ms\nTime of bounds sending : %lf ms\nTime of trajectory sending : %lf ms\nReceving time : %lf ms\nSelect time : %lf ms\n\n", time_computing, time_sending_bounds, time_sending_traj, time_recv, time_select);
 						else
 						{

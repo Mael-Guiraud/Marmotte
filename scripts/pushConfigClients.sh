@@ -8,12 +8,9 @@
 #done
 
 
-
-
 for i in `cat ../addressescalcul`;
 do
 	echo "envoi a $i$"
-	scp ../const.h pi@$i:/home/pi
 	for j in `ls ../server/`;
 	do
 		scp ../server/$j pi@$i:/home/pi

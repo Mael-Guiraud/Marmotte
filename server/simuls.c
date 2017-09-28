@@ -66,7 +66,7 @@ void cpy_state(int* s1, int* s2)
 
 void InitDistribution(double load, double p, double mu)
 {
-    int i,j;
+    int i;
     double total;
     /*double p= 0.75;
     double mu = 300.0;*/
@@ -79,11 +79,11 @@ void InitDistribution(double load, double p, double mu)
     {
         service[i] = p*( mu);
         departure[i]= (1-p)*(  mu);
-        arrival[i] = mu*load;
-        printf("i=%d \n",i);
+        arrival[i] = arrival[0]*(1-p);
+     
     
         //arrival[i]-= (arrival[j]*pow(p,(double)(i-j)));
-        arrival[i]-= arrival[0]*p;
+  
 
         
         /*     arrival[i ] = 10.0;
