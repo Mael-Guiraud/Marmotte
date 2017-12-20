@@ -16,6 +16,12 @@
 
 #define BORNE_NB 10
 
+//Kind of messages recieved by the server
+typedef enum MESSAGE_HEAD{
+    REINIT_SEED, INTERVAL,NEW_SIMUL, QUIT, SEND_MEASURES
+} Message_head;
+
+
 
 typedef struct message{
 	int Un_id;
@@ -156,15 +162,15 @@ int main(int argc , char *argv[])
 			{
 				//for(int l=0;l<message_size/sizeof(int);l++)printf("%d ",message[l]);printf("FIN \n");
 				
-				switch (message[0])
+				switch ((Message_head)message[0])
 				{
-					case 0: //New seed
+					case REINIT_SEED: //New seed
 						nb_inter=message[1];
 						free_random_sequences(seeds, old_nb_inter);
 						seeds = init_random_sequences(nb_inter);
 						old_nb_inter = nb_inter;
 						break;
-					case 1: //BOUNDS
+					case INTERVAL: //BOUNDS
 						if(!reply)
 						{
 							printf("Error, The simulation is not initialised\n");
@@ -200,7 +206,6 @@ int main(int argc , char *argv[])
 	        		            puts("Send (reply) failed");
 	        		            break;
 	        		        }
-	        		        printf("Sending [%d ----] \n",reply[0]);
 	        		        gettimeofday (&tv1, NULL);
 	    					time_sending_bounds += time_diff(tv2,tv1);
 		    	        }
@@ -245,39 +250,39 @@ int main(int argc , char *argv[])
 		    			}
 
 						break;
-						case 3:
-						    free_random_sequences(seeds, old_nb_inter);
+					case QUIT:
+					    free_random_sequences(seeds, old_nb_inter);
 
-				
-						    simulation_mem_free();
-						    free(message);
-						    if(reply)
-						    	free(reply);
-						     if(trajectory)
-						    	free(trajectory);
-						    close(master_socket);
-							close(server_socket);
-							return 0;
+			
+					    simulation_mem_free();
+					    free(message);
+					    if(reply)
+					    	free(reply);
+					     if(trajectory)
+					    	free(trajectory);
+					    close(master_socket);
+						close(server_socket);
+						return 0;
 						break;
-						case 4:
-							times[0] = time_sending_traj;
-							times[1] = time_sending_bounds;
-							times[2] = time_recv;
-							times[3] = time_computing;
-							times[4] = time_select;
-							if( send(master_socket ,times, sizeof(times)  , 0) < 0)
-	        		        {
-	        		            puts("Send (times) failed");
-	        		            break;
-	        		        }
+					case SEND_MEASURES:
+						times[0] = time_sending_traj;
+						times[1] = time_sending_bounds;
+						times[2] = time_recv;
+						times[3] = time_computing;
+						times[4] = time_select;
+						if( send(master_socket ,times, sizeof(times)  , 0) < 0)
+        		        {
+        		            puts("Send (times) failed");
+        		            break;
+        		        }
 
-							time_sending_traj=0.0;
-							time_sending_bounds=0.0;
-							time_recv=0.0;
-							time_computing=0.0;
-							time_select=0.0;
+						time_sending_traj=0.0;
+						time_sending_bounds=0.0;
+						time_recv=0.0;
+						time_computing=0.0;
+						time_select=0.0;
 						break;
-					default://Reset of simul
+					case NEW_SIMUL://Reset of simul
 						printf("Configuration message\n");
 						nb_queues = message[1];
 						memcpy(f,&message[4],sizeof(f));
@@ -289,6 +294,8 @@ int main(int argc , char *argv[])
 						if(reply)
 							free(reply);
 						assert(reply = (int *) malloc(reply_size));
+						break;
+					default:
 						break;
 				}
 			}

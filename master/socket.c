@@ -121,8 +121,7 @@ int* create_and_connect_sockets(int nb_machines)
 //create a bounds message
 void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
 {
-	printf("Creating [%d %d %d %d ....]\n",1,interval,interval_size,seed);
-	message[0] = 1;		//BOUNDS
+	message[0] = (int)INTERVAL;		//BOUNDS
 	message[1] = interval;
 	message[2] = interval_size;
 	message[3] = seed;
@@ -133,7 +132,7 @@ void build_bounds_message(int *message, Bounds *bounds, int interval, int interv
 
 void build_seed_message(int *message, int nb_interval)
 {
-	message[0] = 0;
+	message[0] = (int)REINIT_SEED;
 	message[1] = nb_interval;
 }
 
@@ -146,7 +145,7 @@ void destroy_sockets(int * sockets, int nb_machines)
 
 void ask_for_time_display(double** times,int *message,int message_size,int *servers_id, int nb_machines,int nb_measures)
 {
-	message[0] = 4;
+	message[0] = (int)SEND_MEASURES;
 	for(int i=0; i<nb_machines; i++)
 	{
 		if( send(servers_id[i], message, message_size, 0) < 0 )
@@ -163,7 +162,7 @@ void ask_for_time_display(double** times,int *message,int message_size,int *serv
 
 void send_config(int * message,int message_size, int * servers_id, int nb_machines, int min, int max, float load, float p, float mu, int nb_queues)
 {	
-	message[0] = 2;
+	message[0] = (int)NEW_SIMUL;
 	message[1] = nb_queues;
 	message[2] = min;
 	message[3] = max;
@@ -172,9 +171,6 @@ void send_config(int * message,int message_size, int * servers_id, int nb_machin
 	f[1] = p;
 	f[2] = mu;
 	memcpy(&message[4],f,sizeof(f));
-	//floatTointLoad(load, &message[4]);// The load must be <= 1 and only have 2 decimals
-	//floatToint(p, &message[8]);// must be <= 999, and only have 4 decimals
-	//floatToint(mu, &message[16]);// must be <= 999, and only have 4 decimals
 
 	//Send to all machines
 	for(int i=0; i<nb_machines; i++)
@@ -191,7 +187,7 @@ void send_config(int * message,int message_size, int * servers_id, int nb_machin
 
 void send_exit(int * message,int message_size, int * servers_id, int nb_machines)
 {	
-	message[0] = 3;
+	message[0] = (int)QUIT;
 
 	for(int i=0; i<nb_machines; i++)
 	{
@@ -202,4 +198,24 @@ void send_exit(int * message,int message_size, int * servers_id, int nb_machines
 		}
 	}
 
+}
+
+
+void send_reinit_seeds(int * message,int* servers_id, int * seeds,int message_size, int nb_machines, int nb_inter)
+{
+
+	//Send the singal to reinit seeds to all the servers
+	build_seed_message(message, nb_inter);
+	for(int i=0; i<nb_machines; i++)
+	{
+		if( send(servers_id[i], message, message_size, 0) < 0 )
+		{
+		  	perror("send()");
+		    exit(78);
+		}
+	}
+
+	//Generate seeds for all intervals
+	for (int i=0; i<nb_inter; i++)
+		seeds[i] = rand();
 }

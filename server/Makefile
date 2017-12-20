@@ -1,6 +1,6 @@
 CFLAGS = -std=c99 -c -Wall -g -O3
 
-all: clean run
+all: run
 
 run: compil
 	  ./prog

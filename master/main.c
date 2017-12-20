@@ -17,9 +17,13 @@
 
 #define MAX_QUEUES 10
 #define NB_MACHINES 3
-#define NB_QUEUES 2
+#define NB_QUEUES 3
 
 
+double time_diff(struct timeval tv1, struct timeval tv2)
+{
+    return (((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
+}
 
 int main(int argc , char *argv[])
 {
@@ -55,13 +59,19 @@ int main(int argc , char *argv[])
 	
 
 	//Parameters of the simulation
-	int nb_inter = 5;
+	int nb_inter;
+	int simulation_length = 15000;
 	int interval_size;
+
 
 	//Var for the simulation
 	int nb_simuls = 10;
 	int max_calculated = 0;
 	long long average = 0;
+	struct timeval tv1, tv2;
+	double time_computing = 0.0;
+	double max_time = 0.0;
+
 	//To store the measures of the servers
 	int nb_measures = 5;
 	double **times;
@@ -82,30 +92,41 @@ int main(int argc , char *argv[])
 	ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
 
 	//interval measures parameters
-	int begin = 1000;
-	int end = 15000;
-	int step=1000;
+	int begin =4;
+	int end = 20;
+	int step=1;
 
-	for(interval_size = begin;interval_size <= end;interval_size= interval_size + step)
+	for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
 	{
+		average =0;
+		time_computing = 0.0;
 		for(int i=0;i<nb_simuls;i++)
-		{
-			printf("NEW_SIMUL interval size = %d\n",interval_size);
+		{	
+			interval_size = simulation_length/nb_inter;
+			gettimeofday (&tv1, NULL);
 			average += AlgoTwoBounds(servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			gettimeofday (&tv2, NULL);
+		    time_computing += time_diff(tv1,tv2);	
 			ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
 
 		}
-		fprintf(f_result,"%d %d\n",interval_size,(int)(average/nb_simuls));
+		fprintf(f_result,"%d %d %f\n",nb_inter,(int)(average/nb_simuls),time_computing/nb_simuls);
 		if(max_calculated < average / nb_simuls)
 		{
 			max_calculated = average / nb_simuls;
 		}
-
+		if(max_time < time_computing / nb_simuls)
+		{
+			max_time = time_computing / nb_simuls;
+		}
+		fprintf(stdout,"\r [%5d/%5d]",nb_inter,end);fflush(stdout);
+		
 	}
-	print_gnuplot("inters.pdf",begin,end,0,max_calculated);
+	printf("\n");
+	print_gnuplot("../results/inters.pdf",begin,end,0,max_calculated,0,(int)(max_time+1));
 
 
-	send_exit( message, message_size,  servers_id,  nb_machines);
+	//send_exit( message, message_size,  servers_id,  nb_machines);
 
 	for(int i=0;i<nb_machines;i++)
 	{
