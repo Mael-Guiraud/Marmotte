@@ -50,15 +50,10 @@ Bounds *initBounds(int nb_interval, int min, int max, int nb_queues)
 int sniffer_interval(Interval_state * interval_state,int nb_inter)
 {
     int i;
-    int end = 1;
-    for(  i = 0; i < nb_inter-1; i++)
+    for(  i = 0; i < nb_inter; i++)
 	{
-        if(interval_state[i] != FINISHED) end = 0;
         if (interval_state[i] == UPDATED)  return i;
-
     }
-    if(end && (interval_state[i] == UPDATED)){return i;}
-
     return -1;
 }
 

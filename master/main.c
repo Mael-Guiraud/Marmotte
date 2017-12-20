@@ -55,7 +55,7 @@ int main(int argc , char *argv[])
 	
 
 	//Parameters of the simulation
-	int nb_inter = 20;
+	int nb_inter = 5;
 	int interval_size;
 
 	//Var for the simulation
