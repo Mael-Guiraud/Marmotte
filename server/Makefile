@@ -5,11 +5,11 @@ all: clean run
 run: compil
 	  ./prog
 
-debug: compil
+debug: clean compil
 	valgrind --leak-check=full --show-reachable=yes --track-fds=yes --track-origins=yes ./prog
 
 compil: calcul.o alea.o simuls.o operations.o
-	gcc -o prog calcul.o alea.o simuls.o operations.o -lm
+	gcc -o prog calcul.o alea.o simuls.o operations.o -lm -g
 
 calcul.o: calcul.c simuls.o alea.o
 	gcc $(CFLAGS) calcul.c

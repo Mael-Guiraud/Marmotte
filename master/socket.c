@@ -18,16 +18,21 @@ char** read_servers_adresses(int nb_machines)
 	FILE * f =fopen ("../addressescalcul","r");
 
 	char** adds= (char **)malloc(sizeof(char*)*nb_machines);
-	char trash[4];
+	char trash;
 	for(int i=0;i<nb_machines;i++)
 	{
 		adds[i] = (char*)malloc(sizeof(char)*16);
-		if(!fgets(adds[i],15,f))
+		if(!fgets(adds[i],14,f))
 		{
 			printf("Not enough addresses in file\n");
 			exit(27);
 		}
-		fgets(trash,4,f);
+		trash = fgetc(f);
+		while(trash != '\n')
+		{
+			printf("%c\n",trash);
+			trash = fgetc(f);
+		}
 	}
 	fclose(f);
 	printf("Connection to -> ");
@@ -116,6 +121,7 @@ int* create_and_connect_sockets(int nb_machines)
 //create a bounds message
 void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
 {
+	printf("Creating [%d %d %d %d ....]\n",1,interval,interval_size,seed);
 	message[0] = 1;		//BOUNDS
 	message[1] = interval;
 	message[2] = interval_size;
@@ -138,15 +144,18 @@ void destroy_sockets(int * sockets, int nb_machines)
 		close(sockets[i]);
 }
 
-void ask_for_time_display(int *message,int message_size,int *servers_id, int nb_machines)
+void ask_for_time_display(double** times,int *message,int message_size,int *servers_id, int nb_machines,int nb_measures)
 {
-	message[0] = 0;
-	message[1] = 0;
+	message[0] = 4;
 	for(int i=0; i<nb_machines; i++)
 	{
 		if( send(servers_id[i], message, message_size, 0) < 0 )
 		{
-			perror("send() asko for diaplay time");
+			perror("send() ask for diaplay time");
+		}
+		if (recv(servers_id[i], times[i], sizeof(double)*nb_measures, MSG_WAITALL) < 0)
+		{
+			printf("Reception error (bounds)\n");
 		}
 	}
 }

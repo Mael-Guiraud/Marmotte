@@ -57,7 +57,7 @@ int sniffer_interval(Interval_state * interval_state,int nb_inter)
         if (interval_state[i] == UPDATED)  return i;
 
     }
-    if(end && interval_state[i] == UPDATED) return i;
+    if(end && (interval_state[i] == UPDATED)){return i;}
 
     return -1;
 }

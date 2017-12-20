@@ -107,7 +107,7 @@ void InitDistribution(double charge)
      et enfin de service
      pour aller a la file suivante . Ca pourrait être mis dans un
      fichier de parametre pour eviter de recompiler */
-   
+   printf("%f %f %f\n",charge,p,mu);
     service[0] = p*( mu);  
     departure[0]= (1-p)*(  mu);
     arrival[0] = mu*charge;
@@ -141,6 +141,7 @@ void InitDistribution(double charge)
     {    
         total+=Distrib[i]+ Distrib[i+NComponent]+Distrib[i+2*NComponent];
     }
+    for(int i=0;i<3*NComponent;i++)printf("%f ",Distrib[i]);printf("\n");
     printf("%f\n",total);
 }
 
@@ -238,7 +239,7 @@ int main(){
    
     int i,j;
     double k;
-    int nb_simuls = 10000000;
+    int nb_simuls = 1000;
     int temps_couplage_max = 50000;
     int diviseur = 10;
     int taille_tab = temps_couplage_max/diviseur;
@@ -246,7 +247,7 @@ int main(){
     FILE * f; 
     char nom[64];
     long long int nb_couplage =0;
-    for(k=0.1;k<1.6;k+=0.1)
+    for(k=1.1;k<1.6;k+=0.1)
     {
         InitDistribution(k);
         for(i=0;i<taille_tab;i++)

@@ -2,6 +2,8 @@ Les etats ne sont pas tous comparables :
 Si un vecteur X et un vecteur Y le sont (ils sont partis tous les deux de 0)
 alors, si X < Y, xi < yi, pour tout i.
 
+
+
 S : service de la file P*mu
 D: Depart définitif (1-P)*mu
 

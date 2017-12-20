@@ -159,11 +159,10 @@ void Equation(int* NewS,int indexevt)
 }
 
 void F (int * OldS,double U )
-{ int indexevt;
+{ 
+    int indexevt;
     indexevt = Inverse(U);
-
     Equation(OldS,indexevt);
-
 }
 
 
