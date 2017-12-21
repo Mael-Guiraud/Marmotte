@@ -6,7 +6,7 @@ int coupling(int* s1, int* s2, int nb_queues);
 void cpy_state(int * s1, int* s2, int nb_queues);
 void free_bounds(Bounds *bounds, int nb_inter);
 Bounds *initBounds(int nb_interval, int min, int max, int nb_queues);
-int sniffer_interval(Interval_state * interval_state,int nb_inter);
+int sniffer_interval(Interval_state * interval_state,int nb_inter, int begin);
 int better(int *s1,int*s2,int*s3,int*s4, int nb_queues); 
 void initDpeartureBounds(int *borne_min, int *borne_max, int max, int nb_queues);
 void affiche_bounds(Bounds* bounds, int nb_interval, int nb_queues);

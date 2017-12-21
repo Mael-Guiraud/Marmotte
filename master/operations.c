@@ -47,12 +47,13 @@ Bounds *initBounds(int nb_interval, int min, int max, int nb_queues)
 }
 
 //Wait for an interval to be updated, and returns its number
-int sniffer_interval(Interval_state * interval_state,int nb_inter)
+int sniffer_interval(Interval_state * interval_state,int nb_inter,int begin)
 {
     int i;
-    for(  i = 0; i < nb_inter; i++)
+    for(  i = begin; i < begin+nb_inter; i++)
 	{
-        if (interval_state[i] == UPDATED)  return i;
+
+        if (interval_state[i%nb_inter] == UPDATED)  return (i%nb_inter);
     }
     return -1;
 }

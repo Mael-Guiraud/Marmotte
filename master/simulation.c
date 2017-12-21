@@ -13,9 +13,109 @@
 #include "socket.h"
 #include "operations.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
-int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,int interval_size,int nb_machines,int nb_queues,int min,int max)
+void recv_mess(int * servers_id, int nb_machines)
+{
+	// For Select Function
+	int max_sd;
+	fd_set readfds;
+	int current_machine = 0;
+
+	//Buffer for reception of bounds
+	int size_bounds_buffer = (nb_queues * 2) + 1;
+	int buffer_bounds[size_bounds_buffer];
+
+	//Buffer for the trajectory
+	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
+	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
+
+
+	max_sd = initialize_set(&readfds, nb_machines, servers_id);
+
+	//Wait from a reply of a server, and put the server id in the set (may have several servs)
+	if (select( max_sd + 1 , &readfds , NULL , NULL , NULL) < 0)
+	{
+		printf("select error");
+		return (-1);
+	}
+	current_machine = 0;
+	while(!FD_ISSET(servers_id[current_machine], &readfds))
+	{
+		current_machine ++;
+	}
+	if (what_do_i_read[current_machine] == BOUNDS)
+	{
+		if (recv(servers_id[current_machine], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
+		{
+			printf("Reception error (bounds)\n");
+			return(-1);
+		}
+		if(DEBUG)printf("Bounds recv for inter %d\n",buffer_bounds[0]);
+		current_interval = buffer_bounds[0];
+	}
+
+	else	//We expect a trajectory
+	{
+		if (recv(servers_id[current_machine], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
+		{
+			printf("Reception error (trajectory)\n");
+			return(-1);
+		}
+		if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
+		current_interval = buffer_trajectory[0];
+		
+	}
+}
+
+int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter, int interval_size, int nb_machines,int nb_queues,int min,int max)
+{
+
+
+	//Seeds of the intervals
+	int seeds[nb_inter];
+
+	
+
+	//For the treatment
+	int new_interval, current_interval;
+
+	int nb_finished =0;
+	int nb_calculated=0;
+	int next_macro_inter =0;
+	int macro_inter;
+
+	//Buffer for reception of bounds
+	int size_bounds_buffer = (nb_queues * 2) + 1;
+	int buffer_bounds[size_bounds_buffer];
+
+	//Buffer for the trajectory
+	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
+	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
+
+	//Remember what kind of message we expect from a server
+	Message_kind what_do_i_read[nb_machines];
+
+	//allocate the intervals state table
+	Interval_state * interval_state;
+	assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
+		
+	if (nb_inter < nb_machines)
+	{
+		nb_machines = nb_inter;
+	}
+
+
+
+	send_reinit_seeds(message,servers_id, seeds, message_size, nb_machines, nb_inter);	
+
+	//Init the bounds to min/max and a some random coupled bounds for the first interval
+	Bounds *bounds = (Bounds *) initBounds(nb_inter, min, max,nb_queues);
+	initDpeartureBounds(bounds[0].lb, bounds[0].ub, max,nb_queues);
+
+
+}
+int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_inter,int interval_size,int nb_machines,int nb_queues,int min,int max)
 {
 
 
@@ -31,6 +131,8 @@ int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,i
 	int current_machine = 0;
 	int nb_finished =0;
 	int nb_calculated=0;
+	int next_macro_inter =0;
+	int macro_inter;
 
 	//Buffer for reception of bounds
 	int size_bounds_buffer = (nb_queues * 2) + 1;
@@ -67,19 +169,35 @@ int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,i
 		interval_state[i] = UPDATED;
 	interval_state[nb_inter-1] = SENT;
 
-
 	// We send an interval to each machine at the beginning
 	for(int i=0; i<nb_machines; i++)
 	{
-		if (coupling(bounds[i].lb, bounds[i].ub,nb_queues))
+		if(m== GROUPED)
 		{
-			what_do_i_read[i] = TRAJECTORY;
+			if (coupling(bounds[i].lb, bounds[i].ub,nb_queues))
+			{
+				what_do_i_read[i] = TRAJECTORY;
+			}
+			else
+				what_do_i_read[i] = BOUNDS;
+			interval_state[i] = SENT;
+			build_bounds_message(message, bounds, i, interval_size, seeds[i],nb_queues);
 		}
 		else
-			what_do_i_read[i] = BOUNDS;
+		{
+			macro_inter = i * (nb_inter/nb_machines);
+			if (coupling(bounds[macro_inter].lb, bounds[macro_inter].ub,nb_queues))
+			{
+				what_do_i_read[i] = TRAJECTORY;
+			}
+			else
+				what_do_i_read[i] = BOUNDS;
+			interval_state[macro_inter] = SENT;
+			build_bounds_message(message, bounds, macro_inter, interval_size, seeds[macro_inter],nb_queues);
+		}
 
 
-		build_bounds_message(message, bounds, i, interval_size, seeds[i],nb_queues);
+		
 
 		if( send(servers_id[i], message, message_size, 0) < 0 )
 		{
@@ -87,8 +205,9 @@ int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,i
 		    return(-1);
 		}
 		nb_calculated++;
-		interval_state[i] = SENT;
+		
 	}
+
 
 
 	
@@ -224,7 +343,17 @@ int AlgoTwoBounds(int * servers_id,int * message,int message_size,int nb_inter,i
 				for(int i=0;i<nb_inter;i++){printf("%2d ",interval_state[i]);}printf("\n");
 			}
 			//Search for an updated interval
-			new_interval = sniffer_interval(interval_state,nb_inter);
+			if(m == GROUPED)
+			{
+				new_interval = sniffer_interval(interval_state,nb_inter,0);
+			}
+			else
+			{
+				printf("[%d] \n",next_macro_inter*(nb_inter/nb_machines));
+				new_interval = sniffer_interval(interval_state,nb_inter,next_macro_inter*(nb_inter/nb_machines));
+				next_macro_inter = (next_macro_inter+1)%nb_machines;
+				printf("%d %d\n",new_interval,next_macro_inter);
+			}
 			if(DEBUG)printf("New interval = %d \n",new_interval);
 			//If there is no updated intervals (end of the simulation), the server doesnt work anymore
 			if (new_interval == -1)

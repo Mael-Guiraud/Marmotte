@@ -1,8 +1,6 @@
 #ifndef STRUCTS
 #define STRUCTS
  
-// Contenu du .h
- 
 
 //A structure for the two bounds "inf" and "sup"
 typedef struct bounds
@@ -26,5 +24,8 @@ typedef enum MESSAGE_HEAD{
     REINIT_SEED, INTERVAL,NEW_SIMUL, QUIT, SEND_MEASURES
 } Message_head;
 
+typedef enum mode{
+	GROUPED, SPLIT
+} Mode;
 #endif
 
