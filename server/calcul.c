@@ -16,6 +16,12 @@
 
 #define BORNE_NB 10
 
+//Kind of messages recieved by the server
+typedef enum MESSAGE_HEAD{
+    REINIT_SEED, INTERVAL,NEW_SIMUL, QUIT, SEND_MEASURES
+} Message_head;
+
+
 
 typedef struct message{
 	int Un_id;
@@ -52,8 +58,6 @@ int main(int argc , char *argv[])
 
 	//Datas for the simulations
 	double load,p,mu;
-	int * lower_bound = NULL;
-	int * upper_bound = NULL;
 
 	//seeds
 	double ** seeds =NULL;
@@ -74,6 +78,7 @@ int main(int argc , char *argv[])
 	double time_recv=0.0;
 	double time_computing=0.0;
 	double time_select=0.0;
+	double times[5];//For the sending
 
 	float f[3]; // to receive the configuration parameters
 
@@ -157,21 +162,16 @@ int main(int argc , char *argv[])
 			{
 				//for(int l=0;l<message_size/sizeof(int);l++)printf("%d ",message[l]);printf("FIN \n");
 				
-				switch (message[0])
+				switch ((Message_head)message[0])
 				{
-					case 0: //New seed
+					case REINIT_SEED: //New seed
 						nb_inter=message[1];
-						if (nb_inter == 0)//!!!!!!!!!!!!!Remmetre les temps a 0 !!!!!!!!!!!!!
-							printf("\nComputing time : %lf ms\nTime of bounds sending : %lf ms\nTime of trajectory sending : %lf ms\nReceving time : %lf ms\nSelect time : %lf ms\n\n", time_computing, time_sending_bounds, time_sending_traj, time_recv, time_select);
-						else
-						{
-							free_random_sequences(seeds, old_nb_inter);
-							seeds = init_random_sequences(nb_inter);
-							old_nb_inter = nb_inter;
-						}
+						free_random_sequences(seeds, old_nb_inter);
+						seeds = init_random_sequences(nb_inter);
+						old_nb_inter = nb_inter;
 						break;
-					case 1: //BOUNDS
-						if(!lower_bound || !upper_bound || !reply)
+					case INTERVAL: //BOUNDS
+						if(!reply)
 						{
 							printf("Error, The simulation is not initialised\n");
 							exit(13);
@@ -180,11 +180,6 @@ int main(int argc , char *argv[])
 						{
 							printf("Error, the seeds aren't initialised\n");
 							exit(14);
-						}
-						for(int i=0;i<nb_queues;i++)
-						{
-							lower_bound[i] = message[i+4];
-							upper_bound[i] = message[i+4+nb_queues];
 						}
 						// message[1] = inter id
 						// message[2] = inter size
@@ -255,24 +250,39 @@ int main(int argc , char *argv[])
 		    			}
 
 						break;
-						case 3:
-						    free_random_sequences(seeds, old_nb_inter);
+					case QUIT:
+					    free_random_sequences(seeds, old_nb_inter);
 
-						    if(lower_bound)
-								free(lower_bound);
-							if(upper_bound)
-								free(upper_bound);
-						    simulation_mem_free();
-						    free(message);
-						    if(reply)
-						    	free(reply);
-						     if(trajectory)
-						    	free(trajectory);
-						    close(master_socket);
-							close(server_socket);
-							return 0;
+			
+					    simulation_mem_free();
+					    free(message);
+					    if(reply)
+					    	free(reply);
+					     if(trajectory)
+					    	free(trajectory);
+					    close(master_socket);
+						close(server_socket);
+						return 0;
 						break;
-					default://Reset of simul
+					case SEND_MEASURES:
+						times[0] = time_sending_traj;
+						times[1] = time_sending_bounds;
+						times[2] = time_recv;
+						times[3] = time_computing;
+						times[4] = time_select;
+						if( send(master_socket ,times, sizeof(times)  , 0) < 0)
+        		        {
+        		            puts("Send (times) failed");
+        		            break;
+        		        }
+
+						time_sending_traj=0.0;
+						time_sending_bounds=0.0;
+						time_recv=0.0;
+						time_computing=0.0;
+						time_select=0.0;
+						break;
+					case NEW_SIMUL://Reset of simul
 						printf("Configuration message\n");
 						nb_queues = message[1];
 						memcpy(f,&message[4],sizeof(f));
@@ -280,16 +290,12 @@ int main(int argc , char *argv[])
 						p = f[1];
 						mu = f[2];
 						init_simul(message[1],message[2],message[3],load,p,mu);
-						if(lower_bound)
-							free(lower_bound);
-						assert(lower_bound = (int *) malloc(sizeof(int)*nb_queues));
-						if(upper_bound)
-							free(upper_bound);
-						assert(upper_bound = (int *) malloc(sizeof(int)*nb_queues));
 						reply_size = sizeof(int)*(nb_queues*2+1);
 						if(reply)
 							free(reply);
 						assert(reply = (int *) malloc(reply_size));
+						break;
+					default:
 						break;
 				}
 			}
@@ -300,10 +306,6 @@ int main(int argc , char *argv[])
     }//while
     free_random_sequences(seeds, old_nb_inter);
 
-    if(lower_bound)
-		free(lower_bound);
-	if(upper_bound)
-		free(upper_bound);
     simulation_mem_free();
     free(message);
     if(reply)

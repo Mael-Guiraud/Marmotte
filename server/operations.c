@@ -47,7 +47,7 @@ double * gives_un(double ** seeds, int inter_size,int inter_id,int seed)
 {
 	if(seeds[inter_id])return seeds[inter_id];
 
-	printf("Graine non trouvée pour %d , calucl ...\n",inter_id);
+	//printf("Graine non trouvée pour %d , calcul ...\n",inter_id);
 	assert(seeds[inter_id] = (double *)(malloc(sizeof(double)*inter_size)));
 	init(B,seed);
 	InitWELLRNG512a(B);

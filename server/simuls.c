@@ -57,11 +57,7 @@ void simulation_mem_free()
 }
 void cpy_state(int* s1, int* s2)
 {
-	int i;
-	for(i=0;i<nb_queues;i++)
-	{
-		s2[i] = s1[i];
-	}
+	memcpy(s2,s1,sizeof(int)*nb_queues);
 }
 
 
@@ -139,9 +135,11 @@ int Inverse(double U)
     return(j);
 }
 
-void Equation(int* NewS,int indexevt)
-{
-    /* effet des evenements dans le reseau, indexevt entre 0 et nb_queues-1 */
+void F (int * NewS,double U )
+{ 
+    int indexevt = Inverse(U);
+   
+       /* effet des evenements dans le reseau, indexevt entre 0 et nb_queues-1 */
     if (indexevt<nb_queues) {
         if (NewS[indexevt]<Max) {NewS[indexevt]++;} /*  arrivee */
     }
@@ -159,14 +157,6 @@ void Equation(int* NewS,int indexevt)
     }
 }
 
-void F (int * OldS,double U )
-{ int indexevt;
-    indexevt = Inverse(U);
-
-    Equation(OldS,indexevt);
-
-}
-
 
 void initEtat(int * e)
 {
@@ -176,7 +166,6 @@ void initEtat(int * e)
 //Return 1 if s1 and s2 are the same, 0 otherwise
 int coupling(int* s1, int* s2)
 {
-    int i=0;
-    while(i<nb_queues && s1[i]==s2[i])i++;
-    return (i==nb_queues);
+    return(!memcmp(s1,s2,sizeof(int)*nb_queues));
+
 }

@@ -20,4 +20,11 @@ typedef enum interval_state{
 typedef enum message_kind{
     PAUSE, BOUNDS, TRAJECTORY
 } Message_kind;
+
+//Kind of messages sent by the master
+typedef enum MESSAGE_HEAD{
+    REINIT_SEED, INTERVAL,NEW_SIMUL, QUIT, SEND_MEASURES
+} Message_head;
+
 #endif
+

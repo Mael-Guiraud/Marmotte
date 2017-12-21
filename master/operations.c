@@ -50,15 +50,10 @@ Bounds *initBounds(int nb_interval, int min, int max, int nb_queues)
 int sniffer_interval(Interval_state * interval_state,int nb_inter)
 {
     int i;
-    int end = 1;
-    for(  i = 0; i < nb_inter-1; i++)
+    for(  i = 0; i < nb_inter; i++)
 	{
-        if(interval_state[i] != FINISHED) end = 0;
         if (interval_state[i] == UPDATED)  return i;
-
     }
-    if(end && interval_state[i] == UPDATED) return i;
-
     return -1;
 }
 
@@ -108,45 +103,6 @@ void affiche_bounds(Bounds* bounds, int nb_interval, int nb_queues)
 
 
 }
-
-void floatToint(float f, int * tab)
-{
-
-    char array[32];
-    sprintf(array,"%f",f);
-
-    if(f<10) sprintf(array,"00%s",array);
-    else
-        if(f<100) sprintf(array,"0%s",array);
-
-    for(int i=0;i<3;i++)
-    {
-        tab[i] = array[i] - '0';
-    }
-    tab[3]=-1;
-     for(int i=4;i<8;i++)
-    {
-        tab[i] = array[i] - '0';
-    }
-
-}
-
-void floatTointLoad(float f, int * tab)
-{
-      
-    char array[10];
-    sprintf(array,"%f",f);
-
-    tab[0] = array[0] - '0';
-    tab[1]=-1;
-    for(int i=2;i<4;i++)
-    {
-        tab[i] = array[i] - '0';
-    }
-
-}
-
-
 
 
 
