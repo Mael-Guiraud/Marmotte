@@ -31,6 +31,7 @@ void simulation_mem_init(int nb_q, int min, int max)
     service = (double*)malloc(sizeof(double)*nb_queues);
     departure = (double*)malloc(sizeof(double)*nb_queues);
 }
+
 void simulation_mem_free()
 {
     if(Distrib)
