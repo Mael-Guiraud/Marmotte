@@ -27,5 +27,9 @@ typedef enum MESSAGE_HEAD{
 typedef enum mode{
 	GROUPED, SPLIT
 } Mode;
+
+typedef enum algo{
+	ONE_BOUND, TWO_BOUNDS
+}Algo;
 #endif
 

@@ -14,21 +14,15 @@
 #include "operations.h"
 
 #define DEBUG 1
-
-void recv_mess(int * servers_id, int nb_machines)
+/*
+void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * buffer_bounds, int * buffer_trajectory,Bounds * bounds)
 {
 	// For Select Function
 	int max_sd;
 	fd_set readfds;
 	int current_machine = 0;
+	int current_interval;
 
-	//Buffer for reception of bounds
-	int size_bounds_buffer = (nb_queues * 2) + 1;
-	int buffer_bounds[size_bounds_buffer];
-
-	//Buffer for the trajectory
-	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
-	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
 
 
 	max_sd = initialize_set(&readfds, nb_machines, servers_id);
@@ -53,6 +47,8 @@ void recv_mess(int * servers_id, int nb_machines)
 		}
 		if(DEBUG)printf("Bounds recv for inter %d\n",buffer_bounds[0]);
 		current_interval = buffer_bounds[0];
+		cpy_state(&buffer_bounds[1], bounds[current_interval+1].ub,nb_queues);
+		
 	}
 
 	else	//We expect a trajectory
@@ -64,8 +60,10 @@ void recv_mess(int * servers_id, int nb_machines)
 		}
 		if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
 		current_interval = buffer_trajectory[0];
+		cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
 		
 	}
+
 }
 
 int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter, int interval_size, int nb_machines,int nb_queues,int min,int max)
@@ -86,7 +84,7 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 	int macro_inter;
 
 	//Buffer for reception of bounds
-	int size_bounds_buffer = (nb_queues * 2) + 1;
+	int size_bounds_buffer = (nb_queues ) + 1;
 	int buffer_bounds[size_bounds_buffer];
 
 	//Buffer for the trajectory
@@ -115,6 +113,7 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 
 
 }
+*/
 int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_inter,int interval_size,int nb_machines,int nb_queues,int min,int max)
 {
 
@@ -156,7 +155,7 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 
 
 
-	send_reinit_seeds(message,servers_id, seeds, message_size, nb_machines, nb_inter);	
+	send_reinit_seeds(message,servers_id, seeds, message_size, nb_machines, nb_inter,TWO_BOUNDS);	
 
 	//Init the bounds to min/max and a some random coupled bounds for the first interval
 	Bounds *bounds = (Bounds *) initBounds(nb_inter, min, max,nb_queues);

@@ -130,10 +130,11 @@ void build_bounds_message(int *message, Bounds *bounds, int interval, int interv
 	cpy_state(bounds[interval].ub,&message[4+nb_queues],nb_queues);
 }
 
-void build_seed_message(int *message, int nb_interval)
+void build_seed_message(int *message, int nb_interval, Algo a)
 {
 	message[0] = (int)REINIT_SEED;
 	message[1] = nb_interval;
+	message[2] = (int)a;
 }
 
 //Destroy all the socket used by the servers
@@ -201,11 +202,11 @@ void send_exit(int * message,int message_size, int * servers_id, int nb_machines
 }
 
 
-void send_reinit_seeds(int * message,int* servers_id, int * seeds,int message_size, int nb_machines, int nb_inter)
+void send_reinit_seeds(int * message,int* servers_id, int * seeds,int message_size, int nb_machines, int nb_inter, Algo a)
 {
 
 	//Send the singal to reinit seeds to all the servers
-	build_seed_message(message, nb_inter);
+	build_seed_message(message, nb_inter,a);
 	for(int i=0; i<nb_machines; i++)
 	{
 		if( send(servers_id[i], message, message_size, 0) < 0 )

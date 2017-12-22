@@ -29,6 +29,10 @@ typedef struct message{
 	int * x0;
 	int * y0;
 } Message;
+
+typedef enum algo{
+	ONE_BOUND, TWO_BOUNDS
+}Algo;
 double time_diff(struct timeval tv1, struct timeval tv2)
 {
     return (((double)tv2.tv_sec*(double)1000 +(double)tv2.tv_usec/(double)1000) - ((double)tv1.tv_sec*(double)1000 + (double)tv1.tv_usec/(double)1000));
@@ -66,6 +70,7 @@ int main(int argc , char *argv[])
 	int nb_inter;
 	int old_nb_inter=0;
 	int nb_queues = -1;
+	Algo a; // curent algo used by the master
 
 	//Random sequence
 	double* Un;
@@ -169,6 +174,7 @@ int main(int argc , char *argv[])
 						free_random_sequences(seeds, old_nb_inter);
 						seeds = init_random_sequences(nb_inter);
 						old_nb_inter = nb_inter;
+						a = (Algo)message[2];
 						break;
 					case INTERVAL: //BOUNDS
 						if(!reply)
@@ -192,15 +198,28 @@ int main(int argc , char *argv[])
 		    	        {
 		    	          	reply[0]=message[1];
 		    	          	gettimeofday (&tv1, NULL);
-	        			  	for(int i=0;i<message[2];i++)
-	        				{
-	        			  		F(&message[4],Un[i]);
-	        			  		F(&message[nb_queues+4],Un[i]);
-	        				}
+		    	          	if(a == TWO_BOUNDS)
+		    	          	{
+			    	          	for(int i=0;i<message[2];i++)
+		        				{
+		        			  		F(&message[4],Un[i]);
+		        			  		F(&message[nb_queues+4],Un[i]);
+		        				}
+		        			}
+		        			else
+		        			{
+		        				for(int i=0;i<message[2];i++)
+		        				{
+		        			  		F(&message[4],Un[i]);
+		        				}
+		        			}
 	        				gettimeofday (&tv2, NULL);
 	    					time_computing += time_diff(tv1,tv2);
 	        	        	cpy_state(&message[4],&reply[1]);
-	        	        	cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
+	        	        	if(a == TWO_BOUNDS)
+	        	        	{
+	        	        		cpy_state(&message[nb_queues+4],&reply[nb_queues+1]);
+	        	        	}
 	        		       if( send(master_socket ,reply, reply_size  , 0) < 0)
 	        		        {
 	        		            puts("Send (reply) failed");
