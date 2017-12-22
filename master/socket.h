@@ -9,3 +9,5 @@ void build_seed_message(int *message, int nb_interval, Algo a);
 void send_config(int * message,int message_size, int * servers_id, int nb_machines, int min, int max, float load, float p, float mu, int nb_queues);
 void send_exit(int * message,int message_size, int * servers_id, int nb_machines);
 void send_reinit_seeds(int * message,int* servers_id, int * seeds,int message_size, int nb_machines, int nb_inter,Algo a);
+void build_bound_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues);
+void build_bound_traj_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues);

@@ -49,8 +49,7 @@ Bounds *initBounds(int nb_interval, int min, int max, int nb_queues)
 //Wait for an interval to be updated, and returns its number
 int sniffer_interval(Interval_state * interval_state,int nb_inter,int begin)
 {
-    int i;
-    for(  i = begin; i < begin+nb_inter; i++)
+    for(int  i = begin; i < begin+nb_inter; i++)
 	{
 
         if (interval_state[i%nb_inter] == UPDATED)  return (i%nb_inter);
@@ -104,10 +103,25 @@ void affiche_bounds(Bounds* bounds, int nb_interval, int nb_queues)
 
 
 }
+int snifer_machine(Message_kind * what_do_i_read, int nb_machines)
+{
+    for(int  i = 0; i < nb_machines; i++)
+    {
+        if (what_do_i_read[i] == PAUSE)  return (i);
+    }
+    return -1;
+}
 
 
-
-
+int updated(int * bound, int nb_queues)
+{
+    for(int i=0;i<nb_queues;i++)
+    {
+        if(bound[i] != -1)
+            return 0;
+    }
+    return 1;
+}
 
 
 

@@ -12,3 +12,5 @@ void initDpeartureBounds(int *borne_min, int *borne_max, int max, int nb_queues)
 void affiche_bounds(Bounds* bounds, int nb_interval, int nb_queues);
 void floatToint(float f, int * tab);
 void floatTointLoad(float f, int * tab);
+int snifer_machine(Message_kind * what_do_i_read, int nb_machines);
+int updated(int * bound, int nb_queues);

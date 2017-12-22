@@ -104,7 +104,8 @@ int main(int argc , char *argv[])
 		{	
 			interval_size = simulation_length/nb_inter;
 			gettimeofday (&tv1, NULL);
-			average += AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			//average += AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			AlgoOneBound(servers_id, message,  message_size, nb_inter,  interval_size,  nb_machines, nb_queues, min, max);
 			gettimeofday (&tv2, NULL);
 		    time_computing += time_diff(tv1,tv2);	
 			ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 #include <assert.h>
@@ -13,9 +14,9 @@
 #include "socket.h"
 #include "operations.h"
 
-#define DEBUG 1
-/*
-void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * buffer_bounds, int * buffer_trajectory,Bounds * bounds)
+#define DEBUG 0
+
+int recv_mess(int * servers_id, int nb_machines,int nb_queues, int interval_size, Message_kind * what_do_i_read, Bounds * bounds, int * nb_finished)
 {
 	// For Select Function
 	int max_sd;
@@ -24,6 +25,7 @@ void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * bu
 	int current_interval;
 
 
+	
 
 	max_sd = initialize_set(&readfds, nb_machines, servers_id);
 
@@ -40,6 +42,11 @@ void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * bu
 	}
 	if (what_do_i_read[current_machine] == BOUNDS)
 	{
+
+		//Buffer for reception of bounds
+		int size_bounds_buffer = (nb_queues *2) + 1;
+		int buffer_bounds[size_bounds_buffer];
+
 		if (recv(servers_id[current_machine], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
 		{
 			printf("Reception error (bounds)\n");
@@ -53,6 +60,9 @@ void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * bu
 
 	else	//We expect a trajectory
 	{
+		//Buffer for the trajectory
+		int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
+		int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
 		if (recv(servers_id[current_machine], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 		{
 			printf("Reception error (trajectory)\n");
@@ -61,8 +71,9 @@ void recv_mess(int * servers_id, int nb_machines, int * what_do_i_read, int * bu
 		if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
 		current_interval = buffer_trajectory[0];
 		cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
-		
+		*nb_finished = *nb_finished +1;
 	}
+	return current_machine;
 
 }
 
@@ -76,20 +87,10 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 	
 
 	//For the treatment
-	int new_interval, current_interval;
-
 	int nb_finished =0;
 	int nb_calculated=0;
-	int next_macro_inter =0;
-	int macro_inter;
+	int current_machine;
 
-	//Buffer for reception of bounds
-	int size_bounds_buffer = (nb_queues ) + 1;
-	int buffer_bounds[size_bounds_buffer];
-
-	//Buffer for the trajectory
-	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
-	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
 
 	//Remember what kind of message we expect from a server
 	Message_kind what_do_i_read[nb_machines];
@@ -105,15 +106,103 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 
 
 
-	send_reinit_seeds(message,servers_id, seeds, message_size, nb_machines, nb_inter);	
+	send_reinit_seeds(message,servers_id, seeds, message_size, nb_machines, nb_inter,ONE_BOUND);	
 
-	//Init the bounds to min/max and a some random coupled bounds for the first interval
-	Bounds *bounds = (Bounds *) initBounds(nb_inter, min, max,nb_queues);
+	//Init the bounds to min -1 and a some random coupled bounds for the first interval
+	Bounds *bounds = (Bounds *) initBounds(nb_inter, min, -1,nb_queues);
 	initDpeartureBounds(bounds[0].lb, bounds[0].ub, max,nb_queues);
 
 
+
+	//We consider all intervals to UPDATED, (exept the last and the first)
+	interval_state[0] = VALIDATED;
+	for(int i=1; i<nb_inter-1; i++)
+		interval_state[i] = UPDATED;
+	interval_state[nb_inter-1] = SENT;
+
+	//All servers are waiting for a message
+	for(int i=0; i<nb_machines; i++)
+		what_do_i_read[i] = PAUSE;
+
+	while(nb_finished<nb_inter)
+	{
+
+		//Loop for one round
+		for(int current_interval=0;current_interval<nb_inter;current_interval++)
+		{
+			//We search for a free machine, if there is not, we wait from an answer.
+			if( (current_machine = snifer_machine(what_do_i_read, nb_machines)) == -1 )
+			{
+				current_machine = recv_mess(servers_id,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished);
+			}
+
+			
+
+			switch(interval_state[current_interval])
+			{
+				case UPDATED:
+					what_do_i_read[current_machine] = BOUNDS;
+					build_bound_message(message, bounds, current_interval, interval_size, seeds[current_interval],nb_queues);
+				break;
+				case VALIDATED:
+					build_bound_traj_message(message, bounds, current_interval, interval_size, seeds[current_interval],nb_queues);
+					what_do_i_read[current_machine] = TRAJECTORY;
+				break;
+				default:
+				break;
+			}
+			if( (interval_state[current_interval] == UPDATED) || (interval_state[current_interval] == VALIDATED)  )
+			{
+				if( send(servers_id[current_machine], message, message_size, 0) < 0 )
+				{
+				    perror("send()");
+				    return(-1);
+				}
+				nb_calculated++;
+			}
+			interval_state[current_interval] = SENT;
+		}
+
+		//We wait for all machines to finish
+		while(snifer_machine(what_do_i_read,nb_machines) != -1)
+		{
+			recv_mess(servers_id,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished);
+		}
+		//We treat the reception
+		for(int current_interval=0;current_interval<nb_inter;current_interval++)
+		{
+			//If there is a new bound
+			if(updated(bounds[current_interval].ub,nb_queues))
+			{
+				if(coupling(bounds[current_interval].lb, bounds[current_interval].ub,nb_queues))
+				{
+					interval_state[current_interval]=COUPLED;
+				}
+				else
+				{
+					cpy_state(bounds[current_interval].ub,bounds[current_interval].lb,nb_queues);
+					memset(bounds[current_interval].ub,-1,sizeof(int)*nb_queues);
+					interval_state[current_interval]=COUPLED;
+				}
+			}
+		}
+		for(int current_interval=0;current_interval<nb_inter-1;current_interval++)
+		{
+			if( (interval_state[current_interval] == FINISHED) ||  (interval_state[current_interval] == VALIDATED)  )
+			{
+				if(interval_state[current_interval+1] == COUPLED)
+				{
+					interval_state[current_interval+1] = VALIDATED;
+				}
+			}
+		}
+
+	}
+
+	return nb_calculated;
+
 }
-*/
+
 int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_inter,int interval_size,int nb_machines,int nb_queues,int min,int max)
 {
 

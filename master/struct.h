@@ -11,7 +11,7 @@ typedef struct bounds
 
 //States of the intervals
 typedef enum interval_state{
-    SENT, UPDATED,FINISHED, VALIDATED
+    SENT, UPDATED,FINISHED, VALIDATED, COUPLED
 } Interval_state;
 
 //Different kinds of messages sent by the servers

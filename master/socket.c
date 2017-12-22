@@ -118,7 +118,7 @@ int* create_and_connect_sockets(int nb_machines)
     return servers_id;
 }
 
-//create a bounds message
+//create a bounds message (for algo with two bounds)
 void build_bounds_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
 {
 	message[0] = (int)INTERVAL;		//BOUNDS
@@ -128,6 +128,31 @@ void build_bounds_message(int *message, Bounds *bounds, int interval, int interv
 
 	cpy_state(bounds[interval].lb,&message[4],nb_queues);
 	cpy_state(bounds[interval].ub,&message[4+nb_queues],nb_queues);
+}
+
+//create a bound message (for algo with 1 bound)
+void build_bound_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
+{
+	message[0] = (int)INTERVAL;		//BOUNDS
+	message[1] = interval;
+	message[2] = interval_size;
+	message[3] = seed;
+
+	cpy_state(bounds[interval].lb,&message[4],nb_queues);
+	memset(&message[4+nb_queues],-1,sizeof(int)*nb_queues);
+	
+}
+//Create a bound messages that asks from a trajectory (for algo with 1bound)
+void build_bound_traj_message(int *message, Bounds *bounds, int interval, int interval_size, int seed, int nb_queues)
+{
+	message[0] = (int)INTERVAL;		//BOUNDS
+	message[1] = interval;
+	message[2] = interval_size;
+	message[3] = seed;
+
+	cpy_state(bounds[interval].lb,&message[4],nb_queues);
+	cpy_state(bounds[interval].lb,&message[4+nb_queues],nb_queues);
+	
 }
 
 void build_seed_message(int *message, int nb_interval, Algo a)
