@@ -116,8 +116,30 @@ On réaffecte les processeurs sur les parties non encore trouvées
 
 \section{Experiments}
 
+The random process we use in our experiments is the following one. We have a system composed of $m$ finite queues of capacity BUFF\_MAX in tandem. A queue is characterized by its number of client $C_i$.  Every queue $i$ has tree events that can occurs:
+\begin{itemize}
+\item Arrival, $C_i$ is increased by one, if it is not already to BUFF\_MAX.
+\item Service, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
+\item Departure, the client leave the system. The number of client of the queue is decreased by one.
+\end{itemize}
+
+For the queue $i$, every event have a probability denoted by respectively $a_i$, $s_i$ and $d_i$. The last queue has no service, thus $s_m = 0 $. There is thus a total of $3m-1$ different events that can change the system.
+
+The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, following a pseudo random generator.
+
+\begin{figure}
+ \includegraphics[scale=0.75]{figures/tandem.pdf}
+ \caption{A system with 3 queues}
+\end{figure}
 
 \todo{ Precise description of the random process avec un dessin}
+
+Our experimentations are made with the following set-up.
+The program master is running on a MacBook Air, with a processor $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ --without-multilib).
+
+We use up to $7$ servers are running on Raspberry Pi 3 , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$).
+
+All the machines are connected on by a local network through an HP $14$-$10$ $8$G switch.
 
 \todo{Description of the experimental settings: quel système d'exploitation/matériel/compilateur/librairies}
 
