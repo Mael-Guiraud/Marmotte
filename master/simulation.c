@@ -223,160 +223,163 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 		}
 		else
 		{
-			current_machine = 0;
-			while(!FD_ISSET(servers_id[current_machine], &readfds))
+			for(current_machine=0;current_machine<nb_machines;current_machine++)
 			{
-				current_machine ++;
-			}
-			if(DEBUG)printf("Machine %d \n",current_machine);
-			if (what_do_i_read[current_machine] == BOUNDS)
-			{
-				if (recv(servers_id[current_machine], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
-				{
-					printf("Reception error (bounds)\n");
-					return(-1);
-				}
-				if(DEBUG)printf("Bounds recv for inter %d\n",buffer_bounds[0]);
-				current_interval = buffer_bounds[0];
-			}
-
-			else	//We expect a trajectory
-			{
-				if (recv(servers_id[current_machine], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
-				{
-					printf("Reception error (trajectory)\n");
-					return(-1);
-				}
-				if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
-				current_interval = buffer_trajectory[0];
 				
-			}
-
-			if(DEBUG)
-			{
-				printf("Avant \n");
-				for(int i=0;i<nb_inter;i++){printf("%2d ",i);}printf("\n");
-				for(int i=0;i<nb_inter;i++){printf("%2d ",interval_state[i]);}printf("\n");
-			}
-
-			//For all intervals exept the last one
-			if(current_interval < nb_inter -1 ) //ADD THE COND WITH THE ORDER ON THE BOUNDS
-			{
-				if (what_do_i_read[current_machine] == BOUNDS)
+				if(FD_ISSET(servers_id[current_machine], &readfds))
 				{
+					
+					if(DEBUG)printf("Machine %d \n",current_machine);
+					if (what_do_i_read[current_machine] == BOUNDS)
+					{
+						if (recv(servers_id[current_machine], buffer_bounds, sizeof(int)*size_bounds_buffer, MSG_WAITALL) < 0)
+						{
+							printf("Reception error (bounds)\n");
+							return(-1);
+						}
+						if(DEBUG)printf("Bounds recv for inter %d\n",buffer_bounds[0]);
+						current_interval = buffer_bounds[0];
+					}
+
+					else	//We expect a trajectory
+					{
+						if (recv(servers_id[current_machine], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
+						{
+							printf("Reception error (trajectory)\n");
+							return(-1);
+						}
+						if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
+						current_interval = buffer_trajectory[0];
+						
+					}
+
 					if(DEBUG)
 					{
-						for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].lb[i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].ub[i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_bounds[1+i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_bounds[1+nb_queues+i]);}printf("\n");
+						printf("Avant \n");
+						for(int i=0;i<nb_inter;i++){printf("%2d ",i);}printf("\n");
+						for(int i=0;i<nb_inter;i++){printf("%2d ",interval_state[i]);}printf("\n");
 					}
-					//If the new bouds are better we update it
-					if(better(bounds[current_interval+1].lb,bounds[current_interval+1].ub,&buffer_bounds[1],&buffer_bounds[1+nb_queues],nb_queues) ==-1)
-					{	
-						if(DEBUG)printf("The bounds are better ! (b)\n");
-						cpy_state(&buffer_bounds[1], bounds[current_interval+1].lb,nb_queues);
-						cpy_state(&buffer_bounds[1+nb_queues], bounds[current_interval+1].ub,nb_queues);
-						
 
-						//We update the next interval only if it's not finished yet
-						if(interval_state[current_interval+1] != FINISHED)
+					//For all intervals exept the last one
+					if(current_interval < nb_inter -1 ) //ADD THE COND WITH THE ORDER ON THE BOUNDS
+					{
+						if (what_do_i_read[current_machine] == BOUNDS)
 						{
-							//The penultimate intervals updates the last one only if the bounds are coupled
-							if(current_interval < nb_inter -2 ) 
+							if(DEBUG)
 							{
-								interval_state[current_interval+1] = UPDATED;
+								for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].lb[i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].ub[i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_bounds[1+i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_bounds[1+nb_queues+i]);}printf("\n");
 							}
-							else
-							{
-								if(coupling(&buffer_bounds[1],&buffer_bounds[1+nb_queues],nb_queues))
+							//If the new bouds are better we update it
+							if(better(bounds[current_interval+1].lb,bounds[current_interval+1].ub,&buffer_bounds[1],&buffer_bounds[1+nb_queues],nb_queues) ==-1)
+							{	
+								if(DEBUG)printf("The bounds are better ! (b)\n");
+								cpy_state(&buffer_bounds[1], bounds[current_interval+1].lb,nb_queues);
+								cpy_state(&buffer_bounds[1+nb_queues], bounds[current_interval+1].ub,nb_queues);
+								
+
+								//We update the next interval only if it's not finished yet
+								if(interval_state[current_interval+1] != FINISHED)
 								{
-									interval_state[current_interval+1] = UPDATED;
+									//The penultimate intervals updates the last one only if the bounds are coupled
+									if(current_interval < nb_inter -2 ) 
+									{
+										interval_state[current_interval+1] = UPDATED;
+									}
+									else
+									{
+										if(coupling(&buffer_bounds[1],&buffer_bounds[1+nb_queues],nb_queues))
+										{
+											interval_state[current_interval+1] = UPDATED;
+										}
+									}
 								}
+								
 							}
 						}
+						else
+						{
+							if(DEBUG)
+							{
+								for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].lb[i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].ub[i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_trajectory[size_trajectory_buffer-nb_queues+i]);}printf("\n");
+								for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_trajectory[size_trajectory_buffer-nb_queues+i]);}printf("\n");
+							}
+							if(better(bounds[current_interval+1].lb,bounds[current_interval+1].ub,&buffer_trajectory[size_trajectory_buffer-nb_queues],&buffer_trajectory[size_trajectory_buffer-nb_queues],nb_queues) ==-1)
+							{	
+								if(DEBUG)printf("The bounds are better ! (t)\n");
+								//WE CAN DO A TREATMENT (Writting in a file ) OF THE TRAJECTORY HERE
+
+								//Copy last value of the trajectory in the bounds of the next interval
+								cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].lb,nb_queues);
+								cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
+								
+								//printf("%d : \n",buffer_trajectory[0]);for(int a=0;a<10;a++){printf("%d ",buffer_trajectory[size_trajectory_buffer-nb_queues+a]);}printf("\n");
+														
+								//We update the next interval only if it's not finished yet
+								if(interval_state[current_interval+1] != FINISHED)
+									interval_state[current_interval+1] = UPDATED;
+								
+							}
+							interval_state[current_interval] = FINISHED;
+							nb_finished++;
+						}
+						//We dont want to update next bounds if this is the last interval
 						
 					}
-				}
-				else
-				{
+					else
+					{
+						interval_state[current_interval] = FINISHED;
+						nb_finished++;
+					}
+
 					if(DEBUG)
 					{
-						for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].lb[i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",bounds[current_interval+1].ub[i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_trajectory[size_trajectory_buffer-nb_queues+i]);}printf("\n");
-						for(int i=0;i<nb_queues;i++){printf("%2d ",buffer_trajectory[size_trajectory_buffer-nb_queues+i]);}printf("\n");
+						printf("After \n");
+						for(int i=0;i<nb_inter;i++){printf("%2d ",i);}printf("\n");
+						for(int i=0;i<nb_inter;i++){printf("%2d ",interval_state[i]);}printf("\n");
 					}
-					if(better(bounds[current_interval+1].lb,bounds[current_interval+1].ub,&buffer_trajectory[size_trajectory_buffer-nb_queues],&buffer_trajectory[size_trajectory_buffer-nb_queues],nb_queues) ==-1)
-					{	
-						if(DEBUG)printf("The bounds are better ! (t)\n");
-						//WE CAN DO A TREATMENT (Writting in a file ) OF THE TRAJECTORY HERE
-
-						//Copy last value of the trajectory in the bounds of the next interval
-						cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].lb,nb_queues);
-						cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
-						
-						//printf("%d : \n",buffer_trajectory[0]);for(int a=0;a<10;a++){printf("%d ",buffer_trajectory[size_trajectory_buffer-nb_queues+a]);}printf("\n");
-												
-						//We update the next interval only if it's not finished yet
-						if(interval_state[current_interval+1] != FINISHED)
-							interval_state[current_interval+1] = UPDATED;
-						
+					//Search for an updated interval
+					if(m == GROUPED)
+					{
+						new_interval = sniffer_interval(interval_state,nb_inter,0);
 					}
-					interval_state[current_interval] = FINISHED;
-					nb_finished++;
+					else
+					{
+						printf("[%d] \n",next_macro_inter*(nb_inter/nb_machines));
+						new_interval = sniffer_interval(interval_state,nb_inter,next_macro_inter*(nb_inter/nb_machines));
+						next_macro_inter = (next_macro_inter+1)%nb_machines;
+						printf("%d %d\n",new_interval,next_macro_inter);
+					}
+					if(DEBUG)printf("New interval = %d \n",new_interval);
+					//If there is no updated intervals (end of the simulation), the server doesnt work anymore
+					if (new_interval == -1)
+					{
+						what_do_i_read[current_machine] = PAUSE;
+					}
+					else
+					{
+						build_bounds_message(message, bounds, new_interval, interval_size, seeds[new_interval],nb_queues);
+
+						if ( coupling(bounds[new_interval].lb, bounds[new_interval].ub,nb_queues) )
+							what_do_i_read[current_machine] = TRAJECTORY;
+						else
+							what_do_i_read[current_machine] = BOUNDS;
+
+
+						if( send(servers_id[current_machine], message, message_size, 0) < 0 )
+						{
+						    perror("send()");
+						    return(-1);
+						}
+						nb_calculated++;
+
+						interval_state[new_interval] = SENT;
+					}
 				}
-				//We dont want to update next bounds if this is the last interval
-				
-			}
-			else
-			{
-				interval_state[current_interval] = FINISHED;
-				nb_finished++;
-			}
-
-			if(DEBUG)
-			{
-				printf("After \n");
-				for(int i=0;i<nb_inter;i++){printf("%2d ",i);}printf("\n");
-				for(int i=0;i<nb_inter;i++){printf("%2d ",interval_state[i]);}printf("\n");
-			}
-			//Search for an updated interval
-			if(m == GROUPED)
-			{
-				new_interval = sniffer_interval(interval_state,nb_inter,0);
-			}
-			else
-			{
-				printf("[%d] \n",next_macro_inter*(nb_inter/nb_machines));
-				new_interval = sniffer_interval(interval_state,nb_inter,next_macro_inter*(nb_inter/nb_machines));
-				next_macro_inter = (next_macro_inter+1)%nb_machines;
-				printf("%d %d\n",new_interval,next_macro_inter);
-			}
-			if(DEBUG)printf("New interval = %d \n",new_interval);
-			//If there is no updated intervals (end of the simulation), the server doesnt work anymore
-			if (new_interval == -1)
-			{
-				what_do_i_read[current_machine] = PAUSE;
-			}
-			else
-			{
-				build_bounds_message(message, bounds, new_interval, interval_size, seeds[new_interval],nb_queues);
-
-				if ( coupling(bounds[new_interval].lb, bounds[new_interval].ub,nb_queues) )
-					what_do_i_read[current_machine] = TRAJECTORY;
-				else
-					what_do_i_read[current_machine] = BOUNDS;
-
-
-				if( send(servers_id[current_machine], message, message_size, 0) < 0 )
-				{
-				    perror("send()");
-				    return(-1);
-				}
-				nb_calculated++;
-
-				interval_state[new_interval] = SENT;
 			}
 
 		}
