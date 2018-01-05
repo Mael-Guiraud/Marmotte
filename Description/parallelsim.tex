@@ -27,16 +27,15 @@
 Let $\cS$ be a finite set of states and let $f$ be a computable function from $\cS$ to $\cS$. 
 The aim of this short article is to propose practical methods to compute the sequence $(s,f(s),\dots,f^n(s))$ in parallel.
 When it is possible to compute efficiently $f^i(s)$ using only $s$ and $i$, it is easy to compute the sequence
-in parallel by assigning one $f^i(s)$ to each processor. However, for general $f$ we need $f^{i}(s)$ to compute $f^{i+1}(s)$ and there is no simple scheme to parallelize the computation of the sequence. \todo{Is there a link with PPAD ?}
+in parallel by assigning one $f^i(s)$ to each processor. However, for general $f$ we need $f^{i}(s)$ to compute $f^{i+1}(s)$ and there is no simple scheme to parallelize the computation of the sequence. 
 Hence, we consider additional structure on $\cS$ to make the problem tractable. The set $\cS$ is equipped with a partial order 
 $\leq$ and it has a smallest element $\bot$ and a greatest element $ \top$. We assume that $f$ is monotone, that is 
 if $s_1$ and $s_2$ are elements of $\cS$ such that $s_1 \leq s_2$ then $f(s_1) \leq f(s_2)$.
 
-
-\todo{Define a simple model of parallelization + give a name to the problem}
-
 This models a concrete problem: the simulation of a random process. In that setting, the function $f$ which describe the dynamic of the process also depends on the value of some random variable. In a simulation we use a random seed and then a random generator to generate the sequence of values of the random variable from the random seed. Say that the seed is a $m$ bit integers in $[2^m]$, we have a pseudo random generator $R$ which maps $[2^m]$ to $[2^m]$. A state of the system is $(s,y) \in \cS \times [2^m]$ where $s$ describes the state of the random process and $y$ is the current random number. A transition of the random process is given by a function $f$ from $\cS \times [2^m]$ to $\cS$ thus a pair $(s,x)$ is mapped to $(f(s,x),R(x))$ and we want to compute the iterates by this function.
 
+
+To write parallel algorithm, we choose a simple PRAM model --exclusive read and exclusive write-- with shared memory  to neglect synchronization and communication problems. This simplification is reasonnable in a multicore machine, since in our algorithms we use very few concurrent accesses to only limited informations, which can be dealt with atomic operations.  However for the network of Raspberry Pi we use in experiments, we must also investigate the cost of communication.
 
 \section{Method}
 
