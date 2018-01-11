@@ -1,1 +1,1 @@
-void print_gnuplot(char * name,int min_x,int max_x,int min_y, int max_y,int min_y2, int max_y2);
+void print_gnuplot(char * namepdf, char* namegplt,char* title, char* titlex, char* titley,int min_x,int max_x,int min_y, int max_y,int col);

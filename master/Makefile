@@ -12,6 +12,7 @@ all: maitre
 	mkdir -p ../results
 	./maitre
 	gnuplot ../results/inters.gplt
+	gnuplot ../results/time.gplt
 
 debug: maitre
 	valgrind --leak-check=full --show-reachable=yes --track-fds=yes --track-origins=yes ./maitre

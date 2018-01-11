@@ -67,9 +67,11 @@ int main(int argc , char *argv[])
 	//Var for the simulation
 	int nb_simuls = 10;
 	int max_calculated = 0;
-	long long average = 0;
+	long long average1 = 0;
+	long long average2 = 0;
 	struct timeval tv1, tv2;
-	double time_computing = 0.0;
+	double time_computing1 = 0.0;
+	double time_computing2 = 0.0;
 	double max_time = 0.0;
 
 	//To store the measures of the servers
@@ -82,11 +84,28 @@ int main(int argc , char *argv[])
 	}
 
 	//File for the results
-	FILE* f_result = fopen("../results/inters.data","w");
-	if(!f_result)
+	FILE* f_result1 = fopen("../results/inters1.data","w");
+	if(!f_result1)
 	{
-		printf("Failed to open \"../results/inters.data\".\n");
+		printf("Failed to open \"../results/inters1.data\".\n");
 		return 1;
+	}
+	FILE* f_result2 = fopen("../results/inters2.data","w");
+	if(!f_result2)
+	{
+		printf("Failed to open \"../results/inters2.data\".\n");
+		return 1;
+	}
+
+	FILE* f_servers1[nb_machines];
+	FILE* f_servers2[nb_machines];
+	char buff[64];
+	for(int i=0;i<nb_machines;i++)
+	{
+		sprintf(buff,"../results/server1-%d.data",i);
+		f_servers1[i] = fopen(buff,"w");
+		sprintf(buff,"../results/server2-%d.data",i);
+		f_servers2[i] = fopen(buff,"w");
 	}
 	//We reset the timers before starting to measure.
 	ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
@@ -95,36 +114,65 @@ int main(int argc , char *argv[])
 	int begin =4;
 	int end = 20;
 	int step=1;
+	int rounds;
 
 	for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
 	{
-		average =0;
-		time_computing = 0.0;
+		average1 =0;
+		average2 =0;
+		time_computing1 = 0.0;
+		time_computing2 = 0.0;
 		for(int i=0;i<nb_simuls;i++)
 		{	
 			interval_size = simulation_length/nb_inter;
 			gettimeofday (&tv1, NULL);
-			//average += AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
-			AlgoOneBound(servers_id, message,  message_size, nb_inter,  interval_size,  nb_machines, nb_queues, min, max);
+			average1 += AlgoOneBound(servers_id, message,  message_size, nb_inter,  interval_size,  nb_machines, nb_queues, min, max,&rounds);
 			gettimeofday (&tv2, NULL);
-		    time_computing += time_diff(tv1,tv2);	
-			ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
+			time_computing1 += time_diff(tv1,tv2);
+		}
+		ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
+		for(int j=0;j<nb_machines;j++)
+		{
+			fprintf(f_servers1[j],"%d %f %f %f %f %f \n",nb_inter,times[j][0]/nb_simuls,times[j][1]/nb_simuls,times[j][2]/nb_simuls,times[j][3]/nb_simuls/nb_simuls,times[j][4]/nb_simuls);
+		}
+		for(int i=0;i<nb_simuls;i++)
+		{
+			gettimeofday (&tv1, NULL);
+			average2 += AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			gettimeofday (&tv2, NULL);
+		    time_computing2 += time_diff(tv1,tv2);	
+		}
+		ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
+		for(int j=0;j<nb_machines;j++)
+		{
+			fprintf(f_servers2[j],"%d %f %f %f %f %f \n",nb_inter,times[j][0]/nb_simuls,times[j][1]/nb_simuls,times[j][2]/nb_simuls,times[j][3]/nb_simuls,times[j][4]/nb_simuls);
+		}
+		fprintf(f_result1,"%d %f %f\n",nb_inter,(double)average1/nb_simuls,time_computing1/nb_simuls);
+		fprintf(f_result2,"%d %f %f\n",nb_inter,(double)average2/nb_simuls,time_computing2/nb_simuls);
+		if(max_calculated < average1 / nb_simuls)
+		{
+			max_calculated = average1 / nb_simuls;
+		}
+		if(max_calculated < average2 / nb_simuls)
+		{
+			max_calculated = average2 / nb_simuls;
+		}
+		if(max_time < time_computing1 / nb_simuls)
+		{
+			max_time = time_computing1 / nb_simuls;
+		}
+		if(max_time < time_computing2 / nb_simuls)
+		{
+			max_time = time_computing2 / nb_simuls;
+		}
+		
 
-		}
-		fprintf(f_result,"%d %d %f\n",nb_inter,(int)(average/nb_simuls),time_computing/nb_simuls);
-		if(max_calculated < average / nb_simuls)
-		{
-			max_calculated = average / nb_simuls;
-		}
-		if(max_time < time_computing / nb_simuls)
-		{
-			max_time = time_computing / nb_simuls;
-		}
 		fprintf(stdout,"\r [%5d/%5d]",nb_inter,end);fflush(stdout);
 		
 	}
 	printf("\n");
-	print_gnuplot("../results/inters.pdf",begin,end,0,max_calculated,0,(int)(max_time+1));
+	print_gnuplot("../results/inters.pdf","../results/inters.gplt","Impact of the size of the interval","Number of intervals","Number of intervals calculated",begin,end,0,max_calculated, 2);
+	print_gnuplot("../results/time.pdf","../results/time.gplt","Time computing","Number of intervals","Time (ms)",begin,end,0,(int)max_time+1,3);
 
 
 	//send_exit( message, message_size,  servers_id,  nb_machines);
@@ -137,7 +185,13 @@ int main(int argc , char *argv[])
 	free(message);
 	destroy_sockets(servers_id,nb_machines);
     free(servers_id);
-    fclose(f_result);
+    fclose(f_result1);
+    fclose(f_result2);
+	for(int i=0;i<nb_machines;i++)
+	{
+		fclose(f_servers1[i]);
+		fclose(f_servers2[i]);
+	}
 
     return 0;
 }

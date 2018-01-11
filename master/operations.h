@@ -14,3 +14,4 @@ void floatToint(float f, int * tab);
 void floatTointLoad(float f, int * tab);
 int snifer_machine(Message_kind * what_do_i_read, int nb_machines);
 int updated(int * bound, int nb_queues);
+int all_finished(Message_kind * what_do_i_read, int nb_machines);

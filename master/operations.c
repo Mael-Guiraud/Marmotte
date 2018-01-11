@@ -112,15 +112,25 @@ int snifer_machine(Message_kind * what_do_i_read, int nb_machines)
     return -1;
 }
 
+int all_finished(Message_kind * what_do_i_read, int nb_machines)
+{
+    for(int  i = 0; i < nb_machines; i++)
+    {
+        if (what_do_i_read[i] != PAUSE)  return 0;
+    }
+    return 1;
+}
+
+
 
 int updated(int * bound, int nb_queues)
 {
     for(int i=0;i<nb_queues;i++)
     {
         if(bound[i] != -1)
-            return 0;
+            return 1;
     }
-    return 1;
+    return 0;
 }
 
 

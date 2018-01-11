@@ -16,8 +16,9 @@
 
 #define DEBUG 0
 
-int recv_mess(int * servers_id, int nb_machines,int nb_queues, int interval_size, Message_kind * what_do_i_read, Bounds * bounds, int * nb_finished)
+int recv_mess(int * servers_id,int nb_inter, int nb_machines,int nb_queues, int interval_size, Message_kind * what_do_i_read, Bounds * bounds, int * nb_finished, Interval_state * interval_state)
 {
+
 	// For Select Function
 	int max_sd;
 	fd_set readfds;
@@ -54,12 +55,14 @@ int recv_mess(int * servers_id, int nb_machines,int nb_queues, int interval_size
 		}
 		if(DEBUG)printf("Bounds recv for inter %d\n",buffer_bounds[0]);
 		current_interval = buffer_bounds[0];
-		cpy_state(&buffer_bounds[1], bounds[current_interval+1].ub,nb_queues);
+		if(current_interval < nb_inter-1)
+			cpy_state(&buffer_bounds[1], bounds[current_interval+1].ub,nb_queues);
 		
 	}
 
 	else	//We expect a trajectory
-	{
+	{ 
+
 		//Buffer for the trajectory
 		int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
 		int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
@@ -70,14 +73,19 @@ int recv_mess(int * servers_id, int nb_machines,int nb_queues, int interval_size
 		}
 		if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
 		current_interval = buffer_trajectory[0];
-		cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
+		if(current_interval < nb_inter-1)
+			cpy_state(&buffer_trajectory[size_trajectory_buffer-nb_queues], bounds[current_interval+1].ub,nb_queues);
 		*nb_finished = *nb_finished +1;
+		interval_state[current_interval]= FINISHED;
 	}
+
+	what_do_i_read[current_machine]=PAUSE;	//All servers are waiting for a message
+
 	return current_machine;
 
 }
 
-int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter, int interval_size, int nb_machines,int nb_queues,int min,int max)
+int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter, int interval_size, int nb_machines,int nb_queues,int min,int max, int * rounds)
 {
 
 
@@ -90,6 +98,7 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 	int nb_finished =0;
 	int nb_calculated=0;
 	int current_machine;
+	*rounds=0;
 
 
 	//Remember what kind of message we expect from a server
@@ -127,16 +136,20 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 	while(nb_finished<nb_inter)
 	{
 
+
 		//Loop for one round
+
+		//if(rounds == 10)exit(45);
 		for(int current_interval=0;current_interval<nb_inter;current_interval++)
 		{
+			// printf("%d \n",snifer_machine(what_do_i_read,nb_machines));
+			// for(int i=0;i<nb_machines;i++){printf("%d ",i);}printf("\n");
+			// for(int i=0;i<nb_machines;i++){printf("%d ",what_do_i_read[i]);}printf("\n");
 			//We search for a free machine, if there is not, we wait from an answer.
 			if( (current_machine = snifer_machine(what_do_i_read, nb_machines)) == -1 )
 			{
-				current_machine = recv_mess(servers_id,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished);
+				current_machine = recv_mess(servers_id,nb_inter,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished, interval_state);
 			}
-
-			
 
 			switch(interval_state[current_interval])
 			{
@@ -145,6 +158,7 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 					build_bound_message(message, bounds, current_interval, interval_size, seeds[current_interval],nb_queues);
 				break;
 				case VALIDATED:
+				
 					build_bound_traj_message(message, bounds, current_interval, interval_size, seeds[current_interval],nb_queues);
 					what_do_i_read[current_machine] = TRAJECTORY;
 				break;
@@ -159,43 +173,50 @@ int AlgoOneBound(int * servers_id,int * message, int message_size, int nb_inter,
 				    return(-1);
 				}
 				nb_calculated++;
+				interval_state[current_interval] = SENT;
 			}
-			interval_state[current_interval] = SENT;
+			
 		}
-
 		//We wait for all machines to finish
-		while(snifer_machine(what_do_i_read,nb_machines) != -1)
+		while(!all_finished(what_do_i_read,nb_machines))
 		{
-			recv_mess(servers_id,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished);
+			
+			recv_mess(servers_id,nb_inter,nb_machines,nb_queues, interval_size, what_do_i_read,bounds,&nb_finished,interval_state);
 		}
 		//We treat the reception
 		for(int current_interval=0;current_interval<nb_inter;current_interval++)
 		{
 			//If there is a new bound
-			if(updated(bounds[current_interval].ub,nb_queues))
-			{
-				if(coupling(bounds[current_interval].lb, bounds[current_interval].ub,nb_queues))
+			if(interval_state[current_interval] != FINISHED)
+			{	
+				if(updated(bounds[current_interval].ub,nb_queues))
 				{
-					interval_state[current_interval]=COUPLED;
-				}
-				else
-				{
-					cpy_state(bounds[current_interval].ub,bounds[current_interval].lb,nb_queues);
-					memset(bounds[current_interval].ub,-1,sizeof(int)*nb_queues);
-					interval_state[current_interval]=COUPLED;
+					
+					if(coupling(bounds[current_interval].lb, bounds[current_interval].ub,nb_queues))
+					{
+						interval_state[current_interval]=COUPLED;
+					}
+					else
+					{
+						cpy_state(bounds[current_interval].ub,bounds[current_interval].lb,nb_queues);
+						memset(bounds[current_interval].ub,-1,sizeof(int)*nb_queues);
+						interval_state[current_interval]=UPDATED;
+					}
 				}
 			}
 		}
 		for(int current_interval=0;current_interval<nb_inter-1;current_interval++)
 		{
-			if( (interval_state[current_interval] == FINISHED) ||  (interval_state[current_interval] == VALIDATED)  )
+			if( (interval_state[current_interval] == FINISHED) &&  (interval_state[current_interval+1] != FINISHED)  )
 			{
-				if(interval_state[current_interval+1] == COUPLED)
-				{
-					interval_state[current_interval+1] = VALIDATED;
-				}
+				interval_state[current_interval+1] = VALIDATED;
+			}
+			if( (interval_state[current_interval] == VALIDATED) && (interval_state[current_interval+1] == COUPLED) )
+			{
+				interval_state[current_interval+1] = VALIDATED;
 			}
 		}
+		*rounds++;
 
 	}
 

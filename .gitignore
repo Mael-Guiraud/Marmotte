@@ -1,7 +1,5 @@
 a.out
 *.zip
-*.pdf
-*.gplt
 *.data
 *.o
 prog
