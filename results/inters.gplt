@@ -1,0 +1,11 @@
+set xrange [4:20] 
+set xlabel "Number of intervals" 
+set yrange [0:170] 
+set ylabel "Number of intervals calculated"
+plot '../results/inters1.data' using 1:2 title " One bound "  
+replot '../results/inters2.data' using 1:2 title " Two bound " 
+set key top left 
+set title "Impact of the size of the interval"
+set term postscript color solid
+set output '| ps2pdf - ../results/inters.pdf'
+replot
