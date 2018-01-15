@@ -60,7 +60,7 @@ static void init (unsigned int *A,int seed)
 
 
 
-#define NComponent 2
+#define NComponent 5
 #define SizeDistrib 3*NComponent
 
 

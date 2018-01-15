@@ -14,7 +14,7 @@ set style data histograms
 # Select a row-stacked histogram.
 set style histogram rowstacked
 
-plot "server1-0.data" using 2:xticlabels(1) lc rgb 'green' title "traj", \
+plot "server3.data" using 2:xticlabels(1) lc rgb 'green' title "traj", \
 	"" using 3 lc rgb 'yellow' title "bounds",  \
 	"" using 4 lc rgb 'red' title "recv", \
 	"" using 5 lc rgb 'blue' title "computing"

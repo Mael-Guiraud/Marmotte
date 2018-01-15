@@ -3,6 +3,8 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{amsthm}
@@ -11,6 +13,8 @@
 \author{Jean-Michel Fourneau \and Maël Guiraud \and Yann Strozecki}
 \newcommand{\cS}{\mathcal{S}}
 \newcommand{\todo}[1]{{\color{red} TODO: {#1}}}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
 
  \newtheorem{theorem}{Theorem}
  
@@ -57,7 +61,40 @@ The status of $I_j$ is set to $\textsc{InProgress}$ and the processor $P$ comput
 Finally, if $s_j^{min}$ is equal to $s_j^{max}$, the result of the simulation is stored as the solution on the interval $I_j$
 and $I_j$ is set to $\textsc{Done}$.
 
- \todo{écrire l'algo dans un environnement algo}
+ \todo{Ecrire l'algo dans un environnement algo}
+ 	\begin{algorithm}[H]
+ 	\caption{SMALLEST PARALLEL SANDWICH}
+ 	\begin{algorithmic}
+	\REQUIRE Size of the intervals $t$
+ 	\STATE // {\em Initialisation}
+	\FOR{ $i <$ min(nb\_machines, nb\_inter-1) }
+	\STATE Send $I_{j+1}$ to the server $i$
+	\ENDFOR
+	\STATE // {\em Main loop}
+ 	\WHILE{ All the intervals are not $\textsc{Done}$}
+	\STATE Wait for a server to answer the results of $current\_interval$
+	\IF{The server was computing a trajectory}
+	\STATE set $I_{current\_interval}$ to $\textsc{Done}$
+	\ENDIF
+	\IF{$f^t(s_{current\_interval}^{min}) > s_{current\_interval+1}^{min}$ or $f^t(s_{current\_interval}^{max}) < s_{current\_interval+1}^{max}$ // {\em Better bounds have been found} }
+	\STATE $s_{current\_interval+1}^{min} = f^t(s_{current\_interval}^{min})$
+	\STATE $s_{current\_interval+1}^{max} = f^t(s_{current\_interval}^{max})$
+	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
+	\ENDIF
+	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
+	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ \\ {\em The bounds are coupled} }
+		\STATE Wait a trajectory for $I_{next\_interval}$
+	\ELSE
+		\STATE Wait some bounds for $I_{next\_interval}$
+	\ENDIF	
+		\STATE Send $s_{next\_interval+1}^{min} and s_{next\_interval+1}^{max}$ to the current server
+	\ENDWHILE
+ 
+ 	\end{algorithmic}
+ 	\end{algorithm}
+	
+
+
  
 Remark that the choice of an interval with state $\textsc{ToCompute}$ by a free processor is not specified when there are several avalaible. In practice we propose two ways to select it. The first is to chose the interval of smallest index which is avalaible. We call this algorithm \textsc{Smallest Parallel Sandwich}, smallest for the selection rule and parallel sandwich because it works by 
 reducing the gap between the lower and the upper bound until a single correct state is found. 

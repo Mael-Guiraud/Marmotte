@@ -16,8 +16,8 @@
 
 
 #define MAX_QUEUES 10
-#define NB_MACHINES 3
-#define NB_QUEUES 3
+#define NB_MACHINES 7
+#define NB_QUEUES 5
 
 
 double time_diff(struct timeval tv1, struct timeval tv2)
@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 15000;
+	int simulation_length = 200000;
 	int interval_size;
 
 
@@ -69,13 +69,19 @@ int main(int argc , char *argv[])
 	int max_calculated = 0;
 	long long average1 = 0;
 	long long average2 = 0;
+	long long average3 = 0;
 	struct timeval tv1, tv2;
 	double time_computing1 = 0.0;
 	double time_computing2 = 0.0;
+	double time_computing3 = 0.0;
+
 	double max_time = 0.0;
 
 	//To store the measures of the servers
 	int nb_measures = 5;
+	double average_time[nb_measures];
+	for(int i=0;i<nb_measures;i++)
+		average_time[i] = 0;
 	double **times;
 	assert(times = (double **)malloc(sizeof(double*)*nb_machines));
 	for(int i=0;i<nb_machines;i++)
@@ -96,17 +102,16 @@ int main(int argc , char *argv[])
 		printf("Failed to open \"../results/inters2.data\".\n");
 		return 1;
 	}
-
-	FILE* f_servers1[nb_machines];
-	FILE* f_servers2[nb_machines];
-	char buff[64];
-	for(int i=0;i<nb_machines;i++)
+	FILE* f_result3 = fopen("../results/inters3.data","w");
+	if(!f_result3)
 	{
-		sprintf(buff,"../results/server1-%d.data",i);
-		f_servers1[i] = fopen(buff,"w");
-		sprintf(buff,"../results/server2-%d.data",i);
-		f_servers2[i] = fopen(buff,"w");
+		printf("Failed to open \"../results/inters3.data\".\n");
+		return 1;
 	}
+	FILE* f_servers1 = fopen("../results/server1.data","w");
+	FILE* f_servers2 = fopen("../results/server2.data","w");
+	FILE* f_servers3 = fopen("../results/server3.data","w");
+	
 	//We reset the timers before starting to measure.
 	ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
 
@@ -120,8 +125,16 @@ int main(int argc , char *argv[])
 	{
 		average1 =0;
 		average2 =0;
+		average3 =0;
 		time_computing1 = 0.0;
 		time_computing2 = 0.0;
+		time_computing3 = 0.0;
+
+		for(int i=0;i<nb_measures;i++)
+			average_time[i] = 0;
+
+
+		//simul 1 bound
 		for(int i=0;i<nb_simuls;i++)
 		{	
 			interval_size = simulation_length/nb_inter;
@@ -131,10 +144,16 @@ int main(int argc , char *argv[])
 			time_computing1 += time_diff(tv1,tv2);
 		}
 		ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
-		for(int j=0;j<nb_machines;j++)
+		for(int i=0;i<nb_measures;i++)
 		{
-			fprintf(f_servers1[j],"%d %f %f %f %f %f \n",nb_inter,times[j][0]/nb_simuls,times[j][1]/nb_simuls,times[j][2]/nb_simuls,times[j][3]/nb_simuls/nb_simuls,times[j][4]/nb_simuls);
+			for(int j=0;j<nb_machines;j++)
+			{
+					average_time[i] += times[j][i];				
+			}
 		}
+		fprintf(f_servers1,"%d %f %f %f %f %f \n",nb_inter,average_time[0]/nb_simuls,average_time[1]/nb_simuls,average_time[2]/nb_simuls,average_time[3]/nb_simuls/nb_simuls,average_time[4]/nb_simuls);
+	
+		//SIMUL 2 BOUNDS GROUPED	
 		for(int i=0;i<nb_simuls;i++)
 		{
 			gettimeofday (&tv1, NULL);
@@ -143,12 +162,43 @@ int main(int argc , char *argv[])
 		    time_computing2 += time_diff(tv1,tv2);	
 		}
 		ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
-		for(int j=0;j<nb_machines;j++)
+		
+		for(int i=0;i<nb_measures;i++)
+			average_time[i] = 0;
+		for(int i=0;i<nb_measures;i++)
 		{
-			fprintf(f_servers2[j],"%d %f %f %f %f %f \n",nb_inter,times[j][0]/nb_simuls,times[j][1]/nb_simuls,times[j][2]/nb_simuls,times[j][3]/nb_simuls,times[j][4]/nb_simuls);
+			for(int j=0;j<nb_machines;j++)
+			{
+					average_time[i] += times[j][i];				
+			}
 		}
+		fprintf(f_servers2,"%d %f %f %f %f %f \n",nb_inter,average_time[0]/nb_simuls,average_time[1]/nb_simuls,average_time[2]/nb_simuls,average_time[3]/nb_simuls/nb_simuls,average_time[4]/nb_simuls);
+		
+
+		//SIMUL 2 BOUNDS SPLIT
+		for(int i=0;i<nb_simuls;i++)
+		{
+			gettimeofday (&tv1, NULL);
+			average3 += AlgoTwoBounds(SPLIT,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			gettimeofday (&tv2, NULL);
+		    time_computing3 += time_diff(tv1,tv2);	
+		}
+		ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
+		
+		for(int i=0;i<nb_measures;i++)
+			average_time[i] = 0;
+		for(int i=0;i<nb_measures;i++)
+		{
+			for(int j=0;j<nb_machines;j++)
+			{
+					average_time[i] += times[j][i];				
+			}
+		}
+		fprintf(f_servers3,"%d %f %f %f %f %f \n",nb_inter,average_time[0]/nb_simuls,average_time[1]/nb_simuls,average_time[2]/nb_simuls,average_time[3]/nb_simuls/nb_simuls,average_time[4]/nb_simuls);
+		
 		fprintf(f_result1,"%d %f %f\n",nb_inter,(double)average1/nb_simuls,time_computing1/nb_simuls);
 		fprintf(f_result2,"%d %f %f\n",nb_inter,(double)average2/nb_simuls,time_computing2/nb_simuls);
+		fprintf(f_result3,"%d %f %f\n",nb_inter,(double)average3/nb_simuls,time_computing3/nb_simuls);
 		if(max_calculated < average1 / nb_simuls)
 		{
 			max_calculated = average1 / nb_simuls;
@@ -157,6 +207,11 @@ int main(int argc , char *argv[])
 		{
 			max_calculated = average2 / nb_simuls;
 		}
+		if(max_calculated < average3 / nb_simuls)
+		{
+			max_calculated = average3 / nb_simuls;
+		}
+
 		if(max_time < time_computing1 / nb_simuls)
 		{
 			max_time = time_computing1 / nb_simuls;
@@ -164,6 +219,10 @@ int main(int argc , char *argv[])
 		if(max_time < time_computing2 / nb_simuls)
 		{
 			max_time = time_computing2 / nb_simuls;
+		}
+		if(max_time < time_computing3 / nb_simuls)
+		{
+			max_time = time_computing3 / nb_simuls;
 		}
 		
 
@@ -187,11 +246,12 @@ int main(int argc , char *argv[])
     free(servers_id);
     fclose(f_result1);
     fclose(f_result2);
-	for(int i=0;i<nb_machines;i++)
-	{
-		fclose(f_servers1[i]);
-		fclose(f_servers2[i]);
-	}
+    fclose(f_result3);
+
+	fclose(f_servers1);
+	fclose(f_servers2);
+	fclose(f_servers3);
+	
 
     return 0;
 }

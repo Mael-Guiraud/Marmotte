@@ -251,6 +251,11 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
 	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
 
+	if (nb_inter <= nb_machines)
+	{
+		nb_machines = nb_inter-1;
+	}
+
 	//Remember what kind of message we expect from a server
 	Message_kind what_do_i_read[nb_machines];
 
@@ -258,10 +263,7 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 	Interval_state * interval_state;
 	assert(interval_state = malloc(sizeof(Interval_state)*(nb_inter)));
 		
-	if (nb_inter < nb_machines)
-	{
-		nb_machines = nb_inter;
-	}
+
 
 
 
@@ -431,11 +433,21 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 														
 								//We update the next interval only if it's not finished yet
 								if(interval_state[current_interval+1] != FINISHED)
-									interval_state[current_interval+1] = UPDATED;
+								{
+									if(current_interval < nb_inter-2)
+										interval_state[current_interval+1] = UPDATED;
+									else
+									{
+										if ( coupling(bounds[current_interval+1].lb, bounds[current_interval+1].ub,nb_queues) )
+											interval_state[current_interval+1] = UPDATED;
+									}
+								}
+									
 								
 							}
 							interval_state[current_interval] = FINISHED;
 							nb_finished++;
+							if(DEBUG)printf("%d FINSHED \n",nb_finished);
 						}
 						//We dont want to update next bounds if this is the last interval
 						
@@ -444,6 +456,7 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 					{
 						interval_state[current_interval] = FINISHED;
 						nb_finished++;
+						if(DEBUG)printf("%d FINSHED \n",nb_finished);
 					}
 
 					if(DEBUG)
@@ -459,10 +472,10 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 					}
 					else
 					{
-						printf("[%d] \n",next_macro_inter*(nb_inter/nb_machines));
+						//printf("[%d] \n",next_macro_inter*(nb_inter/nb_machines));
 						new_interval = sniffer_interval(interval_state,nb_inter,next_macro_inter*(nb_inter/nb_machines));
 						next_macro_inter = (next_macro_inter+1)%nb_machines;
-						printf("%d %d\n",new_interval,next_macro_inter);
+						//printf("%d %d\n",new_interval,next_macro_inter);
 					}
 					if(DEBUG)printf("New interval = %d \n",new_interval);
 					//If there is no updated intervals (end of the simulation), the server doesnt work anymore

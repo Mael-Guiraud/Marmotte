@@ -18,7 +18,8 @@ void print_gnuplot(char * namepdf, char* namegplt,char* title, char* titlex, cha
 	"set ylabel \"%s\"\n"
 
 	"plot '../results/inters1.data' using 1:%d title \" One bound \"  \n"
-	"replot '../results/inters2.data' using 1:%d title \" Two bound \" \n"
+	"replot '../results/inters2.data' using 1:%d title \" Two bound grouped \" \n"
+	"replot '../results/inters3.data' using 1:%d title \" Two bound splited\" \n"
 
 
 	"set key top left \n"
@@ -29,7 +30,7 @@ void print_gnuplot(char * namepdf, char* namegplt,char* title, char* titlex, cha
 	
 	"set output '| ps2pdf - %s'\n"
 	"replot\n"
-	,min_x,max_x,titlex,min_y,max_y,titley,col,col,title,namepdf);
+	,min_x,max_x,titlex,min_y,max_y,titley,col,col,col,title,namepdf);
 	fclose(f_GPLT);
 
 }
