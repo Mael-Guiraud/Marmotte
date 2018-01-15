@@ -3,6 +3,8 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{amsthm}
@@ -11,6 +13,8 @@
 \author{Jean-Michel Fourneau \and Maël Guiraud \and Yann Strozecki}
 \newcommand{\cS}{\mathcal{S}}
 \newcommand{\todo}[1]{{\color{red} TODO: {#1}}}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
 
  \newtheorem{theorem}{Theorem}
  
@@ -57,7 +61,40 @@ The status of $I_j$ is set to $\textsc{InProgress}$ and the processor $P$ comput
 Finally, if $s_j^{min}$ is equal to $s_j^{max}$, the result of the simulation is stored as the solution on the interval $I_j$
 and $I_j$ is set to $\textsc{Done}$.
 
- \todo{écrire l'algo dans un environnement algo}
+ \todo{Ecrire l'algo dans un environnement algo}
+ 	\begin{algorithm}[H]
+ 	\caption{SMALLEST PARALLEL SANDWICH}
+ 	\begin{algorithmic}
+	\REQUIRE Size of the intervals $t$
+ 	\STATE // {\em Initialisation}
+	\FOR{ $i <$ min(nb\_machines, nb\_inter-1) }
+	\STATE Send $I_{j+1}$ to the server $i$
+	\ENDFOR
+	\STATE // {\em Main loop}
+ 	\WHILE{ All the intervals are not $\textsc{Done}$}
+	\STATE Wait for a server to answer the results of $current\_interval$
+	\IF{The server was computing a trajectory}
+	\STATE set $I_{current\_interval}$ to $\textsc{Done}$
+	\ENDIF
+	\IF{$f^t(s_{current\_interval}^{min}) > s_{current\_interval+1}^{min}$ or $f^t(s_{current\_interval}^{max}) < s_{current\_interval+1}^{max}$ // {\em Better bounds have been found} }
+	\STATE $s_{current\_interval+1}^{min} = f^t(s_{current\_interval}^{min})$
+	\STATE $s_{current\_interval+1}^{max} = f^t(s_{current\_interval}^{max})$
+	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
+	\ENDIF
+	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
+	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ \\ {\em The bounds are coupled} }
+		\STATE Wait a trajectory for $I_{next\_interval}$
+	\ELSE
+		\STATE Wait some bounds for $I_{next\_interval}$
+	\ENDIF	
+		\STATE Send $s_{next\_interval+1}^{min} and s_{next\_interval+1}^{max}$ to the current server
+	\ENDWHILE
+ 
+ 	\end{algorithmic}
+ 	\end{algorithm}
+	
+
+
  
 Remark that the choice of an interval with state $\textsc{ToCompute}$ by a free processor is not specified when there are several avalaible. In practice we propose two ways to select it. The first is to chose the interval of smallest index which is avalaible. We call this algorithm \textsc{Smallest Parallel Sandwich}, smallest for the selection rule and parallel sandwich because it works by 
 reducing the gap between the lower and the upper bound until a single correct state is found. 
@@ -66,48 +103,46 @@ an interval inside its meta-interval, and the smallest such interval is selected
  \textsc{Balanced Parallel Sandwich}, since we try to assign the same computing power to all parts of the sequence we compute. 
  
  
- \begin{theorem}
-  Algorithms \textsc{Smallest Parallel Sandwich} and \textsc{Balanced Parallel Sandwich}
-  solve the problem \textsc{SimulationPO} in time bounded by $O(cn)$ where $c$ is a bound on the time to compute $f$.
+ \begin{theorem}\label{th:alg_ok}
+  Algorithms \textsc{Smallest Parallel Sandwich} solve the problem \textsc{SimulationPO} in time bounded by $O(cn)$ where $c$ is a bound on the time to compute $f$.
   \end{theorem}
   
 \begin{proof}
-To prove that the algorithm terminates in time $O(cn)$, we prove that, at any point in time, there is a processor which is computing a new part of the sequence we must produce. By induction on the computation time of the algorithm, assume a processor $P$ finishes to compute the sequence on an interval. Then consider the smallest interval $I_j$ which is not marked $\textsc{Done}$. If it is in state $\textsc{InProgress}$, then 
- a processor is computing the solution on $I_j$. If it is in state $\textsc{ToCompute}$, it will be selected by the free processor $P$ and since $I_{j-1}$ is in state $\textsc{Done}$, $x_j^{min} = x_j^{max}$ and $P$ will compute the solution on $I_j$.
+To prove that the algorithm terminates in time $O(cn)$, we prove that, at any point in time, there is a processor which is computing a new part of the sequence we must produce. We do the proof by induction on the computation time of the algorithm. Assume a processor $P$ finishes to compute the sequence on an interval. Then consider the smallest interval $I_j$ which is not marked $\textsc{Done}$. If it is in state $\textsc{InProgress}$, then a processor is computing the solution on $I_j$. If it is in state $\textsc{ToCompute}$, it will be selected by the free processor $P$ and since $I_{j-1}$ is in state $\textsc{Done}$, $x_j^{min} = x_j^{max}$ and $P$ will compute the solution on $I_j$.
 
 We must also prove that when an interval is set to $\textsc{Done}$, the right sequences of states has been computed. 
 It follows from the fact that  $x_j^{min} \leq f^{jt}(s)$ and $x_j^{max} \geq f^{jt}(s)$. It can be proved by induction on the number of times the variables $x_j^{min}$ and  $x_j^{max}$ are updated, using the monotonicity of $f$ and the initialization of these variables to $\top$ and $\bot$. Hence when $x_j^{min} = x_j^{max}$ then it is also equal to $f^{jt}(s)$ and this value is enough to 
 compute the sequence on $I_j$. 
 \end{proof}
 
+Remark first that the time bound $O(cn)$ is the same as for the \emph{sequential} algorithm which just applies
+$f$ repeatedly. It is not worst, and it can be better, if at some point we have  $x_j^{min} = x_j^{max}$, we say that the 
+two sequences are coupling. If this phenomena happens frequently, the speed-up can be important. 
+For instance, in the best case, we have a coupling on each interval the first time it is simulated, then the sequential time is bounded by $O(ct)$.
+
+Finally, we can prove a theorem for \textsc{Balanced Parallel Sandwich} similar to Theorem~\ref{th:alg_ok},
+by using the fact that the steps of all processors are synchronized, therefore when one processor is free, they all are, which is enough to prove that one processor will always be computing a new part of the solution.
 
  \todo{Faire un petit modèle probabiliste qui pour une proba de coupler donnée combien on va faire de calculs.
  Ça serait bien de se servir de ça pour couper des intervalles de la bonne taille. }
  
-\todo{Donner une borne simple en moyenne quand les intervalles sont suffisemment long} 
- 
 Remark that all processors do the simulation using only their private memory and the two states at the beginning of the interval. This scheme is thus reasonably adapted to a distributed computing environment where the cost of transmitting information between processors is high. 
-
 
 In our application to the simulation of a random process, the states of the process 
 are often equipped with a partial order, but the random integers are not. 
 However, we have the following property in our random system, if $s_1 \leq s_2$ then $f(s_1,x) \leq f(s_2,x)$. 
-In fact, the random value alone is used to select an action to apply to the system and the action does not depends on the state of the system.
-
-Since a random integer in the sequence depends only on the previous one, we can use the following trick to transform our problem.
-Instead of using a single seed to generate all pseudo random values, one seed for each interval $I_j$ is used.
-That is we have a collection of seeds $x_0, \dots x_{n/t}$ and the $i$th random number will be equal to $R^{i \mod t}(x_{i/t})$ instead of $R^i(x)$.
-By doing that, we change the sequence we simulate, but it is still the same random process, that is all realizations
-of the random process still occur with the same probability. 
-
-\todo{Mieux expliquer cette partie -> dire que ce qu'on garantit c'est qu'on va produire une séquence avec la bonne proba,
-c'est un problème légèrement différent}
+In fact, the random value alone is used to select an action to apply to the system and the action does not depends on the state of the system. Rather than simulating a given sequence $(s,f(s),\dots f^n(s))$, we want to compute a random sequence
+that is to obtain a sequence with the right probability, which is a problem slightly different of \textsc{SimulationPO}.
+We use the following trick to transform our problem: instead of using a single seed to generate all pseudo random values, one seed for each interval $I_j$ is used. We have a collection of seeds $x_0, \dots x_{n/t}$ and the $i$-th random number will be equal to $R^{i \mod t}(x_{i/t})$ instead of $R^i(x)$.
+Since a random integer in the sequence depends only on the previous one, the random process is the same, that is  all realizations of the random process still occur with the same probability as when only one seed is used.
+However, we can now abstract away the random numbers from our sequence, even when we divide the sequence into intervals, 
+and use the algorithms we have described which solve \textsc{SimulationPO}.
 
 \subsection{Algos avec intervalles de taille variables}
 
 
 We can slightly improve the algorithm \textsc{Balanced Parallel Sandwich}.
-First we make it simpler by cuting $[n+1]$ into $l$ intervals if we have $l$
+First we make it simpler by cutting $[n+1]$ into $l$ intervals if we have $l$
 processors, that is at first intervals and meta-intervals are the same. Then when a processor
 a processor has correctly simulated its interval, we cut the remaining interval to simulate into 
 intervals of similar sizes and affect one processor to each one.
@@ -120,8 +155,8 @@ intervals of similar sizes and affect one processor to each one.
 The random process we use in our experiments is the following one. We have a system composed of $m$ finite queues of capacity BUFF\_MAX in tandem. A queue is characterized by its number of client $C_i$.  For each queue $i$, three events can occur:
 \begin{itemize}
 \item an arrival, $C_i$ is increased by one, if it is not already to BUFF\_MAX.
-\item a service, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
-\item a departure, the client leave the system. The number of client of the queue is decreased by one if $C_i >0$.
+\item a service, a client leaves the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. When $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
+\item a departure, the client leaves the system. The number of client of the queue is decreased by one if $C_i >0$.
 \end{itemize}
 
 For the queue $i$, every event have a probability denoted by respectively $a_i$, $s_i$ and $d_i$. The last queue has no service, thus $s_m = 0 $. There is thus a total of $3m-1$ different events that can change the system.

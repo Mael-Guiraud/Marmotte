@@ -124,7 +124,8 @@ Finally, we can prove a theorem for \textsc{Balanced Parallel Sandwich} similar 
 by using the fact that the steps of all processors are synchronized, therefore when one processor is free, they all are, which is enough to prove that one processor will always be computing a new part of the solution.
 
  \todo{Faire un petit modèle probabiliste qui pour une proba de coupler donnée combien on va faire de calculs.
- Ça serait bien de se servir de ça pour couper des intervalles de la bonne taille. }
+ Ça serait bien de se servir de ça pour couper des intervalles de la bonne taille. 
+ Peut être faire un calcul simple pour un tradoff entre nombre de processeurs et temps de couplage.}
  
 Remark that all processors do the simulation using only their private memory and the two states at the beginning of the interval. This scheme is thus reasonably adapted to a distributed computing environment where the cost of transmitting information between processors is high. 
 
@@ -155,13 +156,13 @@ intervals of similar sizes and affect one processor to each one.
 The random process we use in our experiments is the following one. We have a system composed of $m$ finite queues of capacity BUFF\_MAX in tandem. A queue is characterized by its number of client $C_i$.  For each queue $i$, three events can occur:
 \begin{itemize}
 \item an arrival, $C_i$ is increased by one, if it is not already to BUFF\_MAX.
-\item a service, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
-\item a departure, the client leave the system. The number of client of the queue is decreased by one if $C_i >0$.
+\item a service, a client leaves the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. When $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
+\item a departure, the client leaves the system. The number of client of the queue is decreased by one if $C_i >0$.
 \end{itemize}
 
 For the queue $i$, every event have a probability denoted by respectively $a_i$, $s_i$ and $d_i$. The last queue has no service, thus $s_m = 0 $. There is thus a total of $3m-1$ different events that can change the system.
 
-The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, following a pseudo random generator.
+The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, using a pseudo random generator. \todo{Dire lequel et donner les valeurs de $a_i$ ...}
 
 \begin{figure}
  \includegraphics[scale=0.75]{figures/tandem.pdf}
@@ -170,14 +171,15 @@ The sequence that we want to parallelize is a succession of drawing of one of th
 
 \todo{ Precise description of the random process avec un dessin}
 
+\subsection{Experimental settings}
+
 Our experimentations are made with the following set-up.
-The central program is running on a MacBook Air, with a processor $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ --without-multilib).
+The main program run on a MacBook Air, with a $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ -- without-multilib).
 
-Then the simulations of intervals are dispatched on up to $7$ Raspberry Pi 3 , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$).
+The simulations of each interval are dispatched on up to $7$ Raspberry Pi $3$ , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$). All the machines are connected to a local network through an HP $14$-$10$ $8$G switch.
 
-All the machines are connected to a local network through an HP $14$-$10$ $8$G switch.
 
-\todo{Description of the experimental settings: quel système d'exploitation/matériel/compilateur/librairies}
+\todo{Dire ce qui est utilisé comme techno entre les raspberry et donc la latence induite (à mesurer)}
 
 \todo{Experiments avec des jolies courbes et des interprétations}
 
