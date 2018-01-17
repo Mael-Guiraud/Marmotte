@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{amsthm}
+\graphicspath{{figures/}}
 %opening
 \title{Parallel computation of the sequence of iterates of a function }
 \author{Jean-Michel Fourneau \and Maël Guiraud \and Yann Strozecki}
@@ -82,7 +83,7 @@ and $I_j$ is set to $\textsc{Done}$.
 	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
 	\ENDIF
 	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
-	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ \\ {\em The bounds are coupled} }
+	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ // {\em The bounds are coupled} }
 		\STATE Wait a trajectory for $I_{next\_interval}$
 	\ELSE
 		\STATE Wait some bounds for $I_{next\_interval}$
@@ -148,39 +149,141 @@ a processor has correctly simulated its interval, we cut the remaining interval 
 intervals of similar sizes and affect one processor to each one.
 
 \subsection{One bound}
-
+\label{sec:onebound}
 
 \section{Experiments}
 
+\subsection{Random process}
+\label{sec:randomproc}
 The random process we use in our experiments is the following one. We have a system composed of $m$ finite queues of capacity BUFF\_MAX in tandem. A queue is characterized by its number of client $C_i$.  For each queue $i$, three events can occur:
 \begin{itemize}
-\item an arrival, $C_i$ is increased by one, if it is not already to BUFF\_MAX.
-\item a service, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
-\item a departure, the client leave the system. The number of client of the queue is decreased by one if $C_i >0$.
+\item An arrival; $C_i$ is increased by one, if it is not already to BUFF\_MAX.
+\item A service; if there is at least one client in $i$, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. If $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
+\item A departure: the client leave the system. The number of client of the queue is decreased by one if $C_i >0$.
 \end{itemize}
 
 For the queue $i$, every event have a probability denoted by respectively $a_i$, $s_i$ and $d_i$. The last queue has no service, thus $s_m = 0 $. There is thus a total of $3m-1$ different events that can change the system.
 
-The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, following a pseudo random generator.
+The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, following a pseudo random generator. 
 
-\begin{figure}
- \includegraphics[scale=0.75]{figures/tandem.pdf}
+In the following experiments, the parameters $a_i$, $s_i$ and $d_i$ of the queues are set by the following rules:
+\begin{itemize}
+\item $P = 0.75$
+\item $\mu = 300$
+\item load = $1.1$
+\item $a_0 = \mu \times $load
+\item $a_i = (1-P) \times a_0, i \in [1:m]$
+\item $s_i = P \times \mu, i \in [0:m]$
+\item $d_i = (1-P) \times \mu, i \in [0:m]$
+\end{itemize}
+All those probabilities are then normalized such that $\sum\limits_{i=0}^m a_i + s_i + d_i = 1$.
+
+With those parameters, every queue have an average load of $1.1$. This load has been experimentally calculated as the load for which the coupling time of the two bounds in the largest.
+
+\begin{figure}[h]
+ \includegraphics[scale=0.75]{tandem.pdf}
  \caption{A system with 3 queues}
 \end{figure}
 
-\todo{ Precise description of the random process avec un dessin}
+\subsection{Hardware and software used}
 
 Our experimentations are made with the following set-up.
 The central program is running on a MacBook Air, with a processor $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ --without-multilib).
 
 Then the simulations of intervals are dispatched on up to $7$ Raspberry Pi 3 , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$).
 
-All the machines are connected to a local network through an HP $14$-$10$ $8$G switch.
+All the machines are connected to a local network through an HP $14$-$10$ $8$G switch. 
 
-\todo{Description of the experimental settings: quel système d'exploitation/matériel/compilateur/librairies}
+During our experiments, we use the socket with the protocol TCP/IP to allow the servers and the master to communicate. All the machines were wired to a local network without access to any external networks. The source code of the simulation is written in C and available on the webpage of the authors. 
+\todo{lien vers site yann avec code}
 
-\todo{Experiments avec des jolies courbes et des interprétations}
+\subsection{Network impact}
+\label{sec:networkimpact}
+Since our network uses a local network with TCP/IP, one must investigate the cost of the network in our simulations. 
+In our source code, we fixed the size of a standard master/server message to 24 integers and the size of the server/master messages depends of the number of queues in the simulation. One must focus on the cost of sending a trajectory, which is by far the largest message, indeed, the size of a trajectory is equal to $t \times m$($t$ is the size of the interval, and $m$ is the number of queues). On the following experiment, we tried to compare the evolution of the cost of the computing time and the network cost for different number of queues going from 1 to 10. We arbitrary set the size of the interval $t$ to $10,000$, which is a good order of magnitude considering the following experiments. The points on fig|~\ref{fig:example} are some average times computed on 100 different simulations.
 
+\begin{figure}[h]
+\centering
+ \includegraphics[scale=0.45]{time_traj.pdf}
+ \caption{Evolution of the computing and communication time of a trajectory of $10,000$ events}
+\end{figure}
+
+As we can see, both the communication an computing times of a trajectory increases linerarly with the number of queues, but the communication time is increasing faster. A linear regression allowed us to calculate the slope of those two point clouds; the slope of the communication time is $3.390585$ while the slope of the computing time is only of $0.885585$. Both of those two correlations coefficients are greater $0.999$. Thus, to avoid an over domination of the network time, which would hide every interesting results, in the following experiments, we will consider a little number of queues in tandem.
+
+\subsection{Algorithm performance evaluation}
+We now want to measure the performance of the \textsc{Smallest Parallel Sandwich} and the \textsc{Balanced Parallel Sandwich}, compared to the One bound algorithm (cf sec~\ref{sec:onebound}). In the following experiment we thus take a random process with $5$ queues, which allows us to have a reasonable amount of computation in the servers, and a not too high $\frac{ \textrm{Network time} }{\textrm{Computing time}}$ ratio. In order to choose the size $n$ of the simulation, we made an upstream experiment to determine the average time between the coupling of the two bounds, for two queues, with the parameters we give in sec~\ref{sec:randomproc}. Thus, this average coupling time is to $28,049$, calculated over $100$ simulations.
+
+\subsubsection{Long simulation}
+We first want to look at the behavior of our algorithms in a simulation in which there is an high probability to have a coupling during the computing of a single interval. We then set the size of the simulation to $n = 210,000$. Fig.~\ref{fig:interslong} and ~\ref{fig:timelong} show the results of respectively, the average sum of the lengths of the intervals computed, and the average total time if simulation in regard of the number of intervals, over $100$ instances. By the way, the size of the interval directly depends of the number of intervals. The total size of the simulation is always the same, that is, $210,000$. We used $7$ servers in those experiments.
+
+\begin{figure}[H]
+\centering
+\label{fig:interslong}
+ \includegraphics[scale=0.45]{interslong.pdf}
+ \caption{Evolution of the average of the sum of the lengths of the intervals computed for $100$ simulations of $210,000$ events.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\label{fig:timelong}
+ \includegraphics[scale=0.45]{timelong.pdf}
+ \caption{Evolution of average for $100$ simulations of $210,000$ events.}
+\end{figure}
+
+
+First, we remark that the \textsc{Smallest Parallel Sandwich}  and the \textsc{Balanced Parallel Sandwich} are always better than the One Bound algorithm. The weak increasing trend for One Bound and \textsc{Smallest Parallel Sandwich} on fig.~\ref{fig:interslong} might be due to the decreasing probability of coupling in one interval when the number of intervals increases. Nevertheless the \textsc{Balanced Parallel Sandwich} seems to have a different behavior after an undetermined threshold. We will study this phenomenon later.
+
+\todo{pas vraiment en fait, j'utilise le fait que il y ait ce point du rupture pour comparer les performances en fonction du nombre de servers mais je ne sais pas du tout pourquoi ca fait ca??}
+
+In contrast to those results, as we can see on fig.~\ref{fig:timelong} , it looks like having few long intervals is more expensive in time than having more shorter intervals. This might be due to the network. Indeed, as we observed in the results of sec.~\ref{sec:networkimpact}, the more the interval is long, the more network increases. Moreover, the experiment in sec.~\ref{sec:networkimpact} were made on a single server communicating with the master. Here, we have 7 servers which probably create some contention, and thus, some additional latency.
+On a single processor, the average time on $100$ simulations for $210,000$ events is to $162.13$ ms.
+
+To make sure that the network is dominating the simulation time, we investigate the activity of the servers during the experiments. Fig.~\ref{fig:servers} shows the average repartition of the computation, network and waiting time of the servers, during the previous experiments, for the computation of the \textsc{Balanced Parallel Sandwich} simulations.
+
+
+\begin{figure}[H]
+\centering
+\label{fig:servers}
+ \includegraphics[scale=0.45]{server.pdf}
+ \caption{Repartition of the activities of the processors during the simulation.}
+\end{figure}
+
+First, we can see that, the most of the time, the servers are waiting for something to do. Since the master algorithm is not very complicated, we suppose that the network highly slows the communication between the master and the servers. The rest of the time, the servers are mainly computing some network operations (sending, receiving).
+\subsubsection{Short simulation}
+We then tried to look if there is a difference when the simulation is short. The following experiment are made with exactly the same parameters than upward, except the simulation length, which is now of $30,000$. In this situation, the probability of coupling is very low.
+
+\begin{figure}[H]
+\centering
+\label{fig:intersshort}
+ \includegraphics[scale=0.45]{intersshort.pdf}
+ \caption{Evolution of the average of the sum of the lengths of the intervals computed for $100$ simulations of $30,000$ events.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\label{fig:timeshort}
+ \includegraphics[scale=0.45]{timeshort.pdf}
+ \caption{Evolution of average for $100$ simulations of $30,000$ events.}
+\end{figure}
+
+The trend of the curves on fig.~\ref{fig:intersshort} are notably similar to the curves of fig.~\ref{fig:interslong}. 
+On the other hand, the three algorithm seems to run in a similar time on fig.~\ref{fig:timeshort}. Once again, this is due to the domination of the network time, which is the same for all algorithms, since the messages are all short.
+On a single processor, the average time on $100$ simulations for $30,000$ events is to $23.06$ ms.
+\todo{expliquer un peu plus, de toute facon on calcule tout les intervals en attendant le gars du debut vu que ca a tres peu de chance de coupler}
+
+
+\subsection{Number of server used}
+We now want to study the impact of the number of server used. As we noticed in fig.~\ref{fig:interslong}, there is an interessant point when the number of intervals is twice the number of servers (this threshold was observed for any number of servers between 2 and 7). We then look at the execution time of $100$ simulation from $2$ to $7$ servers, whith the \textsc{Balanced Parallel Sandwich} algorithm. The number of event $n$ of the simulation is set to $210,000$, and the number of intervals is always set to $2 \times \textrm{number of servers}$, since it is the first number at which the execution time of the algorithm starts to stagnate to it's lower value, for any number of processors.
+
+\begin{figure}[H]
+\centering
+\label{fig:nbservs}
+ \includegraphics[scale=0.45]{numberofservers.pdf}
+ \caption{Impact of the number of servers on the execution time.}
+\end{figure}
+
+As we can see on fig.\ref{fig:nbservs}, the more we have servers, the faster the algorithm runs.
+\todo{bof cette conclusion, vu que c'est le reseau qui masque tout}
 
 Practical problems: cost of the network transmission, especially for transmitting long sequences.
 -> measure the time of a two way trip for a small message and the time of sending an interval.

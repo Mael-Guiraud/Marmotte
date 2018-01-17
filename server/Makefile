@@ -1,4 +1,4 @@
-CFLAGS = -std=c99 -c -Wall -g -O3
+CFLAGS = -std=c99 -c -Wall -g 
 
 all: run
 

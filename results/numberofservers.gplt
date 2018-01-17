@@ -1,0 +1,9 @@
+set xrange [1:8] 
+set xlabel "Number of servers" 
+set yrange [0:450] 
+set ylabel "Time (ms)"
+plot '../results/inters3.data' using ($1/2):3 notitle 
+set nokey 
+set term postscript color solid
+set output '| ps2pdf - ../results/numberofservers.pdf'
+replot

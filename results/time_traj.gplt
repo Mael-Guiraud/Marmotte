@@ -1,0 +1,9 @@
+set xrange [0:11]
+set xlabel "Number of queues" 
+set ylabel "Time (ms)"
+plot 'time_traj.data' using 1:2 title "Communication time"   
+replot 'nb_queues.data' using 1:2 title "Computing time"   
+set key top left 
+set term postscript color solid
+set output '| ps2pdf - time_traj.pdf'
+replot

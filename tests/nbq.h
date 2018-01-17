@@ -1,0 +1,1 @@
+#define NB_QUEUES 10

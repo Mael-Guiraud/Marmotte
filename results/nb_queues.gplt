@@ -1,0 +1,9 @@
+
+set xlabel "Number of queues" 
+set ylabel "Time (ms)"
+plot 'nb_queues.data' using 1:2 notitle   
+set key top left 
+set title "Time computing on a single processor"
+set term postscript color solid
+set output '| ps2pdf - nb_queues.pdf'
+replot

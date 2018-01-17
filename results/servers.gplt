@@ -14,11 +14,14 @@ set style data histograms
 # Select a row-stacked histogram.
 set style histogram rowstacked
 
-plot "server3.data" using 2:xticlabels(1) lc rgb 'green' title "traj", \
-	"" using 3 lc rgb 'yellow' title "bounds",  \
-	"" using 4 lc rgb 'red' title "recv", \
-	"" using 5 lc rgb 'blue' title "computing"
+plot "server3.data" using 2:xticlabels(1) lc rgb 'green' title "Time sending Trajectories", \
+	"" using 3 lc rgb 'yellow' title "Time sending Bounds",  \
+	"" using 4 lc rgb 'red' title "Time receiving some messages", \
+	"" using 5 lc rgb 'blue' title "Time Computing", \
+	"" using 6 lc rgb 'purple' title "Time Waiting"
+
 set term postscript color solid
-	
+set xlabel "Number of intervals"
+set ylabel "Time (ms)"
 set output '| ps2pdf - server.pdf'
 replot

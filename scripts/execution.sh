@@ -7,5 +7,5 @@
 for i in `cat ../addressescalcul`;
 do
 #	xterm -hold -e "ssh pi@$i 'make'"&
-	ssh pi@$i 'make' &
+	ssh pi@$i 'make ' &
 done

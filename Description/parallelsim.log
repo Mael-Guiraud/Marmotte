@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.6.14)  15 JAN 2018 15:43
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.6.14)  17 JAN 2018 03:00
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -790,18 +790,18 @@ Package: amsthm 2015/03/04 v2.20.2
 (./parallelsim.aux)
 \openout1 = `parallelsim.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 21.
-LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
+LaTeX Font Info:    ... okay on input line 22.
 
 (/usr/local/texlive/2017basic/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -864,19 +864,19 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 )) ABD: EveryShipout initializing macros
-LaTeX Font Info:    Try loading font information for U+msa on input line 23.
+LaTeX Font Info:    Try loading font information for U+msa on input line 24.
 
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 23.
+LaTeX Font Info:    Try loading font information for U+msb on input line 24.
 
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \hbox (badness 1484) in paragraph at lines 79--79
+Underfull \hbox (badness 1484) in paragraph at lines 80--80
 [] []\OT1/cmr/bx/n/10 if $\OML/cmm/m/it/10 f[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10
  s[]\OT1/cmr/m/n/10 ) \OML/cmm/m/it/10 > s[]$ \OT1/cmr/m/n/10 or $\OML/cmm/m/it
 /10 f[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 s[]\OT1/cmr/m/n/10 ) \OML/cmm/m/it/10 
@@ -884,54 +884,152 @@ Underfull \hbox (badness 1484) in paragraph at lines 79--79
  []
 
 [2] [3] [4]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 155.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 160.
 
  (/usr/local/texlive/2017basic/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 155.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 160.
 
 <figures/tandem.pdf, id=32, 456.94714pt x 95.10532pt>
 File: figures/tandem.pdf Graphic file (type pdf)
  <use figures/tandem.pdf>
-Package pdftex.def Info: figures/tandem.pdf used on input line 165.
+Package pdftex.def Info: figures/tandem.pdf used on input line 184.
 (pdftex.def)             Requested size: 342.7095pt x 71.3288pt.
 
-Overfull \hbox (139.94537pt too wide) in paragraph at lines 178--179
-[]\OT1/cmr/m/n/10 TODO: De-scrip-tion of the ex-per-i-men-tal set-tings: quel s
-yst^^Reme d'exploitation/mat^^Seriel/compilateur/librairies[] 
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[5]
+
+LaTeX Warning: Reference `fig:example' on page 6 undefined on input line 203.
+
+<figures/time_traj.pdf, id=37, 794.97pt x 614.295pt>
+File: figures/time_traj.pdf Graphic file (type pdf)
+
+<use figures/time_traj.pdf>
+Package pdftex.def Info: figures/time_traj.pdf used on input line 207.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 207--208
+ [][] 
  []
 
-[5 <./figures/tandem.pdf>] [6] (./parallelsim.aux) ) 
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[6 <./figures/tandem.pdf>]
+<figures/interslong.pdf, id=51, 794.97pt x 614.295pt>
+File: figures/interslong.pdf Graphic file (type pdf)
+
+<use figures/interslong.pdf>
+Package pdftex.def Info: figures/interslong.pdf used on input line 222.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 222--223
+ [][] 
+ []
+
+[7 <./figures/time_traj.pdf, page is rotated 90 degrees>]
+<figures/timelong.pdf, id=59, 794.97pt x 614.295pt>
+File: figures/timelong.pdf Graphic file (type pdf)
+ <use figures/timelong.pdf>
+Package pdftex.def Info: figures/timelong.pdf used on input line 229.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 229--230
+ [][] 
+ []
+
+[8 <./figures/interslong.pdf, page is rotated 90 degrees>]
+<figures/server.pdf, id=66, 794.97pt x 614.295pt>
+File: figures/server.pdf Graphic file (type pdf)
+ <use figures/server.pdf>
+Package pdftex.def Info: figures/server.pdf used on input line 247.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 247--248
+ [][] 
+ []
+
+[9 <./figures/timelong.pdf, page is rotated 90 degrees>]
+<figures/intersshort.pdf, id=73, 794.97pt x 614.295pt>
+File: figures/intersshort.pdf Graphic file (type pdf)
+
+<use figures/intersshort.pdf>
+Package pdftex.def Info: figures/intersshort.pdf used on input line 258.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 258--259
+ [][] 
+ []
+
+[10 <./figures/server.pdf, page is rotated 90 degrees>]
+<figures/timeshort.pdf, id=80, 794.97pt x 614.295pt>
+File: figures/timeshort.pdf Graphic file (type pdf)
+
+<use figures/timeshort.pdf>
+Package pdftex.def Info: figures/timeshort.pdf used on input line 265.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 265--266
+ [][] 
+ []
+
+[11 <./figures/intersshort.pdf, page is rotated 90 degrees>]
+<figures/numberofservers.pdf, id=87, 794.97pt x 614.295pt>
+File: figures/numberofservers.pdf Graphic file (type pdf)
+
+<use figures/numberofservers.pdf>
+Package pdftex.def Info: figures/numberofservers.pdf used on input line 281.
+(pdftex.def)             Requested size: 357.7332pt x 276.43019pt.
+
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 281--282
+ [][] 
+ []
+
+[12 <./figures/timeshort.pdf, page is rotated 90 degrees>]
+
+LaTeX Warning: Reference `fig:nbservs' on page 13 undefined on input line 285.
+
+[13 <./figures/numberofservers.pdf, page is rotated 90 degrees>]
+(./parallelsim.aux)
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 12937 strings out of 494437
- 251378 string characters out of 6166645
- 290697 words of memory out of 5000000
- 16005 multiletter control sequences out of 15000+600000
+ 12983 strings out of 494437
+ 252375 string characters out of 6166645
+ 290801 words of memory out of 5000000
+ 16044 multiletter control sequences out of 15000+600000
  13359 words of font info for 51 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 55i,9n,54p,825b,493s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2017bas
-ic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/201
-7basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive
-/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texl
-ive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/local
-/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/l
-ocal/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></us
-r/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb><
-/usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pf
-b></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12
-.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r17.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr7.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmsy10.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmsy7.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmti10.pfb>
-Output written on parallelsim.pdf (6 pages, 180881 bytes).
+ 55i,9n,54p,831b,491s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx1
+0.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mbx12.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmbx9.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmcsc10.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmex10.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmmi5.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2017basic/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2017basic/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2017basic/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2017basic/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2017basic/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2017basic/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2017basic
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on parallelsim.pdf (13 pages, 219864 bytes).
 PDF statistics:
- 91 PDF objects out of 1000 (max. 8388607)
- 67 compressed objects within 1 object stream
+ 148 PDF objects out of 1000 (max. 8388607)
+ 108 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 18 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 53 words of extra memory for PDF output out of 10000 (max. 10000000)
 

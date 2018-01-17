@@ -18,19 +18,19 @@ void print_gnuplot(char * namepdf, char* namegplt,char* title, char* titlex, cha
 	"set ylabel \"%s\"\n"
 
 	"plot '../results/inters1.data' using 1:%d title \" One bound \"  \n"
-	"replot '../results/inters2.data' using 1:%d title \" Two bound grouped \" \n"
-	"replot '../results/inters3.data' using 1:%d title \" Two bound splited\" \n"
+	"replot '../results/inters2.data' using 1:%d title \" Smallest Parallel Sandwich \" \n"
+	"replot '../results/inters3.data' using 1:%d title \" Balanced Parallel Sandwich\" \n"
 
 
-	"set key top left \n"
-	"set title \"%s\"\n"
+	"set key bottom right \n"
+	//"set title \"%s\"\n"
 
 	"set term postscript color solid\n"
 	
 	
 	"set output '| ps2pdf - %s'\n"
 	"replot\n"
-	,min_x,max_x,titlex,min_y,max_y,titley,col,col,col,title,namepdf);
+	,min_x,max_x,titlex,min_y,max_y,titley,col,col,col,namepdf);
 	fclose(f_GPLT);
 
 }

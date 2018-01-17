@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 200000;
+	int simulation_length = 30000;
 	int interval_size;
 
 
@@ -129,7 +129,7 @@ int main(int argc , char *argv[])
 		time_computing1 = 0.0;
 		time_computing2 = 0.0;
 		time_computing3 = 0.0;
-
+		interval_size = simulation_length/nb_inter;
 		for(int i=0;i<nb_measures;i++)
 			average_time[i] = 0;
 
@@ -137,9 +137,9 @@ int main(int argc , char *argv[])
 		//simul 1 bound
 		for(int i=0;i<nb_simuls;i++)
 		{	
-			interval_size = simulation_length/nb_inter;
+			
 			gettimeofday (&tv1, NULL);
-			average1 += AlgoOneBound(servers_id, message,  message_size, nb_inter,  interval_size,  nb_machines, nb_queues, min, max,&rounds);
+			average1 += interval_size*AlgoOneBound(servers_id, message,  message_size, nb_inter,  interval_size,  nb_machines, nb_queues, min, max,&rounds);
 			gettimeofday (&tv2, NULL);
 			time_computing1 += time_diff(tv1,tv2);
 		}
@@ -157,7 +157,7 @@ int main(int argc , char *argv[])
 		for(int i=0;i<nb_simuls;i++)
 		{
 			gettimeofday (&tv1, NULL);
-			average2 += AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			average2 += interval_size*AlgoTwoBounds(GROUPED,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
 			gettimeofday (&tv2, NULL);
 		    time_computing2 += time_diff(tv1,tv2);	
 		}
@@ -179,7 +179,7 @@ int main(int argc , char *argv[])
 		for(int i=0;i<nb_simuls;i++)
 		{
 			gettimeofday (&tv1, NULL);
-			average3 += AlgoTwoBounds(SPLIT,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
+			average3 += interval_size*AlgoTwoBounds(SPLIT,servers_id,message,message_size,nb_inter,interval_size,nb_machines,nb_queues,min,max);
 			gettimeofday (&tv2, NULL);
 		    time_computing3 += time_diff(tv1,tv2);	
 		}
@@ -230,7 +230,7 @@ int main(int argc , char *argv[])
 		
 	}
 	printf("\n");
-	print_gnuplot("../results/inters.pdf","../results/inters.gplt","Impact of the size of the interval","Number of intervals","Number of intervals calculated",begin,end,0,max_calculated, 2);
+	print_gnuplot("../results/inters.pdf","../results/inters.gplt","Impact of the size of the interval","Number of intervals","Average total lenght calculated",begin,end,0,max_calculated, 2);
 	print_gnuplot("../results/time.pdf","../results/time.gplt","Time computing","Number of intervals","Time (ms)",begin,end,0,(int)max_time+1,3);
 
 
