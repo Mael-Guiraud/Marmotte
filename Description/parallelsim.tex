@@ -125,7 +125,8 @@ Finally, we can prove a theorem for \textsc{Balanced Parallel Sandwich} similar 
 by using the fact that the steps of all processors are synchronized, therefore when one processor is free, they all are, which is enough to prove that one processor will always be computing a new part of the solution.
 
  \todo{Faire un petit modèle probabiliste qui pour une proba de coupler donnée combien on va faire de calculs.
- Ça serait bien de se servir de ça pour couper des intervalles de la bonne taille. }
+ Ça serait bien de se servir de ça pour couper des intervalles de la bonne taille. 
+ Peut être faire un calcul simple pour un tradoff entre nombre de processeurs et temps de couplage.}
  
 Remark that all processors do the simulation using only their private memory and the two states at the beginning of the interval. This scheme is thus reasonably adapted to a distributed computing environment where the cost of transmitting information between processors is high. 
 
@@ -160,9 +161,11 @@ The random process we use in our experiments is the following one. We have a sys
 \item An arrival; $C_i$ is increased by one, if it is not already to BUFF\_MAX.
 \item A service; if there is at least one client in $i$, a client leave the queue $i$ and goes in the queue $i+1$. $C_i$ is decreased by one and $C_{i+1}$ is increased by one. If $C_{i+1}$ is equal to BUFF\_MAX, the client is lost.
 \item A departure: the client leave the system. The number of client of the queue is decreased by one if $C_i >0$.
+
 \end{itemize}
 
 For the queue $i$, every event have a probability denoted by respectively $a_i$, $s_i$ and $d_i$. The last queue has no service, thus $s_m = 0 $. There is thus a total of $3m-1$ different events that can change the system.
+
 
 The sequence that we want to parallelize is a succession of drawing of one of those $3m-1$ events. Every event is drawn randomly, following a pseudo random generator. 
 
@@ -187,11 +190,14 @@ With those parameters, every queue have an average load of $1.1$. This load has 
 
 \subsection{Hardware and software used}
 
+\subsection{Experimental settings}
+
 Our experimentations are made with the following set-up.
-The central program is running on a MacBook Air, with a processor $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ --without-multilib).
+The main program run on a MacBook Air, with a $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ -- without-multilib).
 
-Then the simulations of intervals are dispatched on up to $7$ Raspberry Pi 3 , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$).
+The simulations of each interval are dispatched on up to $7$ Raspberry Pi $3$ , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$). All the machines are connected to a local network through an HP $14$-$10$ $8$G switch.
 
+<<<<<<< HEAD
 All the machines are connected to a local network through an HP $14$-$10$ $8$G switch. 
 
 During our experiments, we use the socket with the protocol TCP/IP to allow the servers and the master to communicate. All the machines were wired to a local network without access to any external networks. The source code of the simulation is written in C and available on the webpage of the authors. 
@@ -271,6 +277,10 @@ On the other hand, the three algorithm seems to run in a similar time on fig.~\r
 On a single processor, the average time on $100$ simulations for $30,000$ events is to $23.06$ ms.
 \todo{expliquer un peu plus, de toute facon on calcule tout les intervals en attendant le gars du debut vu que ca a tres peu de chance de coupler}
 
+=======
+
+\todo{Dire ce qui est utilisé comme techno entre les raspberry et donc la latence induite (à mesurer)}
+>>>>>>> 43f1c719ccab17cdd0288dfaf16a9cd2cea56835
 
 \subsection{Number of server used}
 We now want to study the impact of the number of server used. As we noticed in fig.~\ref{fig:interslong}, there is an interessant point when the number of intervals is twice the number of servers (this threshold was observed for any number of servers between 2 and 7). We then look at the execution time of $100$ simulation from $2$ to $7$ servers, whith the \textsc{Balanced Parallel Sandwich} algorithm. The number of event $n$ of the simulation is set to $210,000$, and the number of intervals is always set to $2 \times \textrm{number of servers}$, since it is the first number at which the execution time of the algorithm starts to stagnate to it's lower value, for any number of processors.
