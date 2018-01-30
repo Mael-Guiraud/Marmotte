@@ -12,11 +12,9 @@ void print_trajectory(STATE *traj, int size){
 	printf("\n");
 }
 
-int transition(STATE t1, double random){
-
-	if(random < 0.5 && t1 >0)  t1--;
-	if(random >= 0.5 && t1 < MAX_BUFFER)  t1++;
-	return t1;
+int transition(STATE t1, double random){ 
+	return t1 +  (random >= 0.5 && t1 < MAX_BUFFER) - (random < 0.5 && t1 > 0);
+	//without if so that the complexity does not depends on MAX_BUFFER
 }
 
 int compare(STATE t1, STATE t2){
