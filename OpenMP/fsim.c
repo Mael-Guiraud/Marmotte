@@ -1,7 +1,7 @@
 #include "fsim.h"
 #include <stdlib.h>
 #include <stdio.h>
-#define MAX_BUFFER 10
+#define MAX_BUFFER 100
 
 
 void print_trajectory(STATE *traj, int size){
@@ -14,9 +14,9 @@ void print_trajectory(STATE *traj, int size){
 
 int transition(STATE t1, double random){
 
-if(random < 0.5 && t1 >0)  t1--;
-if(random >= 0.5 && t1 < MAX_BUFFER)  t1++;
-return t1;
+	if(random < 0.5 && t1 >0)  t1--;
+	if(random >= 0.5 && t1 < MAX_BUFFER)  t1++;
+	return t1;
 }
 
 int compare(STATE t1, STATE t2){
