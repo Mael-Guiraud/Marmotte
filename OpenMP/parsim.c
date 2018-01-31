@@ -15,15 +15,13 @@
 int simul_interval(STATE *lb_trajectory, STATE* ub_trajectory, int size, double *randomness){
 	int coupling_point = 0, i = 1;
 	if(compare(lb_trajectory[0],ub_trajectory[0])){//the first elements are coupled
-		for(; i < size; i++){ //simulate the two bounds while it is necessary
+		for(; i < size && compare(lb_trajectory[i-1],ub_trajectory[i-1]); i++){ //simulate the two bounds while it is necessary
 			ub_trajectory[i] = transition(ub_trajectory[i-1],randomness[i-1]);
 			lb_trajectory[i] = transition(lb_trajectory[i-1],randomness[i-1]);
-			if(!compare(lb_trajectory[i],ub_trajectory[i])){//we detect two elements coupled
-				coupling_point = i;
-				break;
-			}
 		}
-		if(i == size) coupling_point = size;//no coupling
+		coupling_point = size;// value when no couplingno coupling
+		if(!compare(lb_trajectory[i-1],ub_trajectory[i-1]))//we detect that we went out of the loops because of coupling
+			coupling_point = i-1;	
 	}
 	for(i++; i < size; i++ ){//the simulation has coupled, simulate only the upper bound
 		ub_trajectory[i] = transition(ub_trajectory[i-1],randomness[i-1]);
@@ -85,7 +83,7 @@ void par_sim_fixed_slices(STATE *trajectory, double *randomness, int size){ //th
 	free(lb_trajectory);
 }
 
-typedef enum{ IDLE_NEW_BOUNDS = 0, COMP_OLD_BOUNDS = 1, COMP_NEW_BOUNDS = 2, IDLE_OLD_BOUNDS = 3, DONE = 4}
+typedef enum{ IDLE_NEW_BOUNDS = 0, IDLE_OLD_BOUNDS = 1, COMP_NEW_BOUNDS = 2, COMP_OLD_BOUNDS = 3, DONE = 4}
 SIM_STATE;
 	//state of a slice during the simulation
 	//0 means to compute, 1 computing and original bounds, 2 computing but bounds updated, 3 computing finished and old bounds, 4 finished
@@ -137,9 +135,9 @@ void par_sim_first_slices(STATE *trajectory, double *randomness, int size){ //gi
   			if( i != interval_number - 1 && not_coupled) update = update_next_bounds(interval_size, sizes[i], lb, ub, random);
 		    //all this part is under lock to make it harmless, but a concurrent access is unlikely 
 		    (void) omp_set_lock (&sim_state_lock);//acquire the lock
-		    if(update) state_of_sim[i+1] = (state_of_sim[i+1] == COMP_OLD_BOUNDS) ? COMP_NEW_BOUNDS : IDLE_NEW_BOUNDS;
+		    if(update && (state_of_sim[i+1] % 2)) state_of_sim[i+1]--;
 		    //check if new bounds has been computed to update the state of i
-		    state_of_sim[i] = (state_of_sim[i] == COMP_NEW_BOUNDS) ? IDLE_NEW_BOUNDS : IDLE_OLD_BOUNDS;
+		    state_of_sim[i] -= 2;
 		    if(sizes[i] == 0) state_of_sim[i] = DONE; //detect if we have finished to simulate the slice
 		    (void) omp_unset_lock (&sim_state_lock);//release the lock
 		    //printf("La thread %d a simule la tranche %d avec comme valeur de départ %d, %d et a couplé apres %d.\n",omp_get_thread_num(),i,lb[0],ub[0],sizes[i]);
@@ -179,8 +177,8 @@ void par_sim_balanced_slices(STATE *trajectory, double *randomness, int size){
 	#pragma omp parallel
   	{
   		while(1){
-  			(void) omp_set_lock(&sim_state_lock);//acquire lock
   			int i, states_sum = 0;
+  			(void) omp_set_lock(&sim_state_lock);//acquire lock
   			for(i = current_meta_interval*meta_interval_size; i < interval_number && state_of_sim[i]; i++){//look for a free slice
   				states_sum += state_of_sim[i];
   			}	
@@ -194,11 +192,11 @@ void par_sim_balanced_slices(STATE *trajectory, double *randomness, int size){
    					continue;//no slice with new bounds avalaible, wait for the next
   				}
   			}							 
-  			current_meta_interval = (i/meta_interval_size) + 1;//we give the priority to the meta interval after the one we just used
-  			if (current_meta_interval == meta_interval_number) current_meta_interval = 0;//change the meta interval when we have scheduled some work
   			//when we arrive at this point we choose to simulate i
   			state_of_sim[i] = COMP_OLD_BOUNDS;
   			(void) omp_unset_lock (&sim_state_lock);//release the lock
+  			current_meta_interval = (i/meta_interval_size) + 1;//we give the priority to the meta interval after the one we just used
+  			if (current_meta_interval == meta_interval_number) current_meta_interval = 0;//change the meta interval when we have scheduled some work
   			STATE *ub = ub_trajectory + i*interval_size;
 			STATE *lb = lb_trajectory + i*interval_size;
 	   		double *random = randomness + i*interval_size;
@@ -210,9 +208,9 @@ void par_sim_balanced_slices(STATE *trajectory, double *randomness, int size){
   			if( i != interval_number - 1 && not_coupled) update = update_next_bounds(interval_size, sizes[i], lb, ub, random);
 		    //all this part is under lock to make it harmless, but a concurrent access is unlikely 
 		    (void) omp_set_lock (&sim_state_lock);//acquire the lock
-		    if(update) state_of_sim[i+1] = (state_of_sim[i+1] == COMP_OLD_BOUNDS) ? COMP_NEW_BOUNDS : IDLE_NEW_BOUNDS;
+		    if(update && (state_of_sim[i+1] % 2)) state_of_sim[i+1]--;
 		    //check if new bounds has been computed to update the state of i
-		    state_of_sim[i] = (state_of_sim[i] == COMP_NEW_BOUNDS) ? IDLE_NEW_BOUNDS : IDLE_OLD_BOUNDS;
+		    state_of_sim[i] -= 2;
 		    if(sizes[i] == 0) state_of_sim[i] = DONE; //detect if we have finished to simulate the slice
 		    (void) omp_unset_lock (&sim_state_lock);//release the lock
 		    //printf("La thread %d a simule la tranche %d avec comme valeur de départ %d, %d et a couplé apres %d.\n",omp_get_thread_num(),i,lb[0],ub[0],sizes[i]);
@@ -235,15 +233,12 @@ double time_diff(struct timeval tv1, struct timeval tv2)
 
 
 int main(){
-	srand(time(NULL));
-	//lancer un timer
-	InitWELLRNG512a(time(NULL));
-	int size = 1000000;
+	int size = 10000000;//length of the simulation
+	int experiment_number = 100;
 	struct timeval start, end;
 	STATE *ub_trajectory = malloc(sizeof(STATE)*size);
-	double mean[4] = {0,0,0,0};
-	double variance[4] = {0,0,0,0};
-	//to simplify, we generate the array of random values beforehand
+	double **results = malloc(sizeof(double *)*4);
+	for(int i = 0; i < 4; i++) results[i] = malloc(sizeof(double)*experiment_number);
 	double *randomness = malloc(sizeof(double)*size);
 	
 	/*
@@ -264,25 +259,30 @@ int main(){
 	printf("Average coupling time of %d, variance of %d.\n",coupling_time, (int) sqrt(variance/99));
 	*/
 	// evaluation of the different methods of simulation
-	for(int i = 0; i < 100; i++){
+	for(int i = 0; i < experiment_number; i++){
+		//init the instance of the simulation
+		srand(time(NULL));
+		InitWELLRNG512a(time(NULL));//init the two RNG generators, using a mostly random time
 		ub_trajectory[0] =  random_state();
 		for(int i = 0; i < size; i++) randomness[i] = WELLRNG512a();			
-		
+		//to simplify the algorithm and the performancem easure, we generate the array of random values before the simulation
+
+		/**************** Sequential simulation ************************/
 		//printf("Random starting state %d, sequential simulation launched.\n ",ub_trajectory[0]);
 		gettimeofday (&start, NULL); 
 		simul_interval(ub_trajectory,ub_trajectory,size,randomness); //sequential simulation
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation séquentielle %f millisecondes.\n",time_diff(start,end));
-		mean[0]+=time_diff(start,end); 
+		results[0][i] = time_diff(start,end); 
 		//print_trajectory(ub_trajectory,size);
 		
-
+		/**************** Parallel simulation ************************/
 		//printf("Random starting state %d, parallel simulation launched.\n\n\n",ub_trajectory[0]);
 		gettimeofday (&start, NULL);
 		par_sim_fixed_slices(ub_trajectory, randomness, size);
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation parallèle sans lock %f millisecondes.\n",time_diff(start,end));
-		mean[1]+=time_diff(start,end);
+		results[1][i] = time_diff(start,end);
 		//print_trajectory(ub_trajectory,size);
 		
 		//printf("Random starting state %d, parallel simulation launched.\n",ub_trajectory[0]);
@@ -290,7 +290,7 @@ int main(){
 		par_sim_first_slices(ub_trajectory, randomness, size);
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation parallèle avec locks %f millisecondes.\n",time_diff(start,end));
-		mean[2]+=time_diff(start,end);
+		results[2][i] = time_diff(start,end);
 		//print_trajectory(ub_trajectory,size);
 
 		//printf("Random starting state %d, parallel simulation launched.\n",ub_trajectory[0]);
@@ -298,14 +298,31 @@ int main(){
 		par_sim_balanced_slices(ub_trajectory, randomness, size);
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation parallèle avec locks et équilibrée %f millisecondes.\n",time_diff(start,end));
-		mean[3]+=time_diff(start,end);
+		results[3][i] = time_diff(start,end);
 		//print_trajectory(ub_trajectory,size);
 	}
 	
-	/************************* Print of the statistics ********************************/
+	/************************* Compute and print the statistics ********************************/
 
-	printf("Temps moyen : Algo sequentiel %f \n Algo sans lock : %f \n Algo avec lock intervalles dans l'ordre %f \n Algo avec locks intervalles répartis %f",mean[0]/100,mean[1]/100,mean[2]/100,mean[3]/100);
-
+	double mean[4] = {0,0,0,0};
+	double variance[4] = {0,0,0,0};
+	for(int i=0; i<experiment_number; i++){
+		for(int j = 0; j < 4; j++){
+			mean[j] += results[j][i];
+		}
+	}
+	for(int j = 0; j < 4; j++) mean[j]/=experiment_number;
+	for(int i=0; i<experiment_number; i++){
+		for(int j = 0; j < 4; j++){
+			variance[j] += (mean[j] -results[j][i])*(mean[j] -results[j][i]);
+		}
+	}
+	for(int j = 0; j < 4; j++) variance[j] = sqrt(variance[j]/(experiment_number-1));
+	printf("Temps moyen, écart type et accélération parallèle \n");
+	printf("Algo séquentiel: %f, %f   \n", mean[0], variance[0]);
+	printf("Algo parallèle sans lock %f, %f, %f \n", mean[1], variance[1],mean[0]/mean[1]);
+	printf("Algo parallèle avec lock premières tranches en premier %f, %f, %f \n", mean[2], variance[2],mean[0]/mean[2]);
+	printf("Algo parallèle avec lock tranches réparties %f, %f, %f \n", mean[3], variance[3],mean[0]/mean[3]);
 	
 
 	/************************Free the memory *************************/

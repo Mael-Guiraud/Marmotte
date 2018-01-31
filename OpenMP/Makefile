@@ -1,4 +1,4 @@
-CFLAGS = -std=c99 -c -O2 -Wall -g -fopenmp 
+CFLAGS = -std=c99 -c -g -O2 -Wall -fopenmp 
 
 all: run
 

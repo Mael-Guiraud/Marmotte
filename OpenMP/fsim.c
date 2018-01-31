@@ -14,7 +14,7 @@ void print_trajectory(STATE *traj, int size){
 
 int transition(STATE t1, double random){ 
 	return t1 +  (random >= 0.5 && t1 < MAX_BUFFER) - (random < 0.5 && t1 > 0);
-	//without if so that the complexity does not depends on MAX_BUFFER
+	//without branch so that the execution time does not depends on MAX_BUFFER
 }
 
 int compare(STATE t1, STATE t2){
