@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2017.10.19)  19 JAN 2018 15:39
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2017.10.19)  2 FEB 2018 12:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -751,6 +751,7 @@ Package: amsthm 2015/03/04 v2.20.2
 \dth@everypar=\toks42
 )
 \c@theorem=\count124
+\c@proposition=\count125
  (./parallelsim.aux)
 \openout1 = `parallelsim.aux'.
 
@@ -768,16 +769,16 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 22.
 LaTeX Font Info:    ... okay on input line 22.
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count125
+\scratchcounter=\count126
 \scratchdimen=\dimen160
 \scratchbox=\box41
-\nofMPsegments=\count126
-\nofMParguments=\count127
+\nofMPsegments=\count127
+\nofMParguments=\count128
 \everyMPshowfont=\toks43
-\MPscratchCnt=\count128
+\MPscratchCnt=\count129
 \MPscratchDim=\dimen161
-\MPnumerator=\count129
-\makeMPintoPDFobject=\count130
+\MPnumerator=\count130
+\makeMPintoPDFobject=\count131
 \everyMPtoPDFconversion=\toks44
 ) (/usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -848,161 +849,168 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \hbox (badness 1484) in paragraph at lines 80--80
+Overfull \hbox (65.5056pt too wide) in paragraph at lines 62--67
+\OT1/cmr/m/n/10 pro-ces-sor $\OML/cmm/m/it/10 P$ \OT1/cmr/m/n/10 com-putes the 
+two se-quences $\OML/cmm/m/it/10 T\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 s[]in; x[];
+ [] ; x[]\OT1/cmr/m/n/10 )$ and $\OML/cmm/m/it/10 T\OT1/cmr/m/n/10 (\OML/cmm/m/
+it/10 s[]ax; x[]; [] ; x[]\OT1/cmr/m/n/10 )$.
+ []
+
+
+Underfull \hbox (badness 1484) in paragraph at lines 84--84
 [] []\OT1/cmr/bx/n/10 if $\OML/cmm/m/it/10 f[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10
  s[]\OT1/cmr/m/n/10 ) \OML/cmm/m/it/10 > s[]$ \OT1/cmr/m/n/10 or $\OML/cmm/m/it
 /10 f[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 s[]\OT1/cmr/m/n/10 ) \OML/cmm/m/it/10 
 <
  []
 
-[2] [3] [4]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 161.
+[2] [3] [4] [5]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 205.
 
  (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 161.
-<figures/tandem.pdf, id=32, pagebox=cropbox, 456.94714pt x 95.10532pt>
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 205.
+<figures/tandem.pdf, id=36, pagebox=cropbox, 456.94714pt x 95.10532pt>
 File: figures/tandem.pdf Graphic file (type pdf)
 <use figures/tandem.pdf>
-Package pdftex.def Info: figures/tandem.pdf  used on input line 187. on input l
-ine 187.
-Package pdftex.def Info: Requested size: 342.7095pt x 71.3288pt on input line 1
-87.
+Package pdftex.def Info: figures/tandem.pdf  used on input line 231. on input l
+ine 231.
+Package pdftex.def Info: Requested size: 342.7095pt x 71.3288pt on input line 2
+31.
 
+[6 <./figures/tandem.pdf>]
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+LaTeX Warning: Reference `fig:example' on page 7 undefined on input line 253.
 
-[5]
-
-LaTeX Warning: Reference `fig:example' on page 6 undefined on input line 209.
-
-<figures/time_traj.pdf, id=37, pagebox=cropbox, 794.97pt x 614.295pt>
+<figures/time_traj.pdf, id=51, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/time_traj.pdf Graphic file (type pdf)
 <use figures/time_traj.pdf>
-Package pdftex.def Info: figures/time_traj.pdf  used on input line 213. on inpu
-t line 213.
+Package pdftex.def Info: figures/time_traj.pdf  used on input line 257. on inpu
+t line 257.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 213.
+ 257.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 213--214
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 257--258
  [][] 
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[6 <./figures/tandem.pdf>] [7 <./figures/time_traj.pdf, page is rotated 90 degr
-ees>]
-<figures/interslong.pdf, id=58, pagebox=cropbox, 794.97pt x 614.295pt>
+[7]
+<figures/interslong.pdf, id=56, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/interslong.pdf Graphic file (type pdf)
 <use figures/interslong.pdf>
-Package pdftex.def Info: figures/interslong.pdf  used on input line 228. on inp
-ut line 228.
+Package pdftex.def Info: figures/interslong.pdf  used on input line 272. on inp
+ut line 272.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 228.
+ 272.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 228--229
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 272--273
  [][] 
  []
 
-<figures/timelong.pdf, id=59, pagebox=cropbox, 794.97pt x 614.295pt>
+[8 <./figures/time_traj.pdf, page is rotated 90 degrees>]
+<figures/timelong.pdf, id=63, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/timelong.pdf Graphic file (type pdf)
 <use figures/timelong.pdf>
-Package pdftex.def Info: figures/timelong.pdf  used on input line 235. on input
- line 235.
+Package pdftex.def Info: figures/timelong.pdf  used on input line 279. on input
+ line 279.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 235.
+ 279.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 235--236
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 279--280
  [][] 
  []
 
-[8 <./figures/interslong.pdf, page is rotated 90 degrees>]
-<figures/server.pdf, id=66, pagebox=cropbox, 794.97pt x 614.295pt>
+[9 <./figures/interslong.pdf, page is rotated 90 degrees>]
+<figures/server.pdf, id=70, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/server.pdf Graphic file (type pdf)
 <use figures/server.pdf>
-Package pdftex.def Info: figures/server.pdf  used on input line 253. on input l
-ine 253.
+Package pdftex.def Info: figures/server.pdf  used on input line 297. on input l
+ine 297.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 253.
+ 297.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 253--254
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 297--298
  [][] 
  []
 
-[9 <./figures/timelong.pdf, page is rotated 90 degrees>]
-<figures/intersshort.pdf, id=73, pagebox=cropbox, 794.97pt x 614.295pt>
+[10 <./figures/timelong.pdf, page is rotated 90 degrees>]
+<figures/intersshort.pdf, id=77, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/intersshort.pdf Graphic file (type pdf)
 <use figures/intersshort.pdf>
-Package pdftex.def Info: figures/intersshort.pdf  used on input line 264. on in
-put line 264.
+Package pdftex.def Info: figures/intersshort.pdf  used on input line 308. on in
+put line 308.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 264.
+ 308.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 264--265
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 308--309
  [][] 
  []
 
-[10 <./figures/server.pdf, page is rotated 90 degrees>]
-<figures/timeshort.pdf, id=80, pagebox=cropbox, 794.97pt x 614.295pt>
+[11 <./figures/server.pdf, page is rotated 90 degrees>]
+<figures/timeshort.pdf, id=84, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/timeshort.pdf Graphic file (type pdf)
 <use figures/timeshort.pdf>
-Package pdftex.def Info: figures/timeshort.pdf  used on input line 271. on inpu
-t line 271.
+Package pdftex.def Info: figures/timeshort.pdf  used on input line 315. on inpu
+t line 315.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 271.
+ 315.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 271--272
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 315--316
  [][] 
  []
 
-[11 <./figures/intersshort.pdf, page is rotated 90 degrees>]
-<figures/numberofservers.pdf, id=87, pagebox=cropbox, 794.97pt x 614.295pt>
+[12 <./figures/intersshort.pdf, page is rotated 90 degrees>]
+<figures/numberofservers.pdf, id=91, pagebox=cropbox, 794.97pt x 614.295pt>
 File: figures/numberofservers.pdf Graphic file (type pdf)
 <use figures/numberofservers.pdf>
-Package pdftex.def Info: figures/numberofservers.pdf  used on input line 291. o
-n input line 291.
+Package pdftex.def Info: figures/numberofservers.pdf  used on input line 335. o
+n input line 335.
 Package pdftex.def Info: Requested size: 357.7332pt x 276.43019pt on input line
- 291.
+ 335.
 
-Overfull \hbox (12.7332pt too wide) in paragraph at lines 291--292
+Overfull \hbox (12.7332pt too wide) in paragraph at lines 335--336
  [][] 
  []
 
-[12 <./figures/timeshort.pdf, page is rotated 90 degrees>] [13 <./figures/numbe
-rofservers.pdf, page is rotated 90 degrees>] (./parallelsim.aux)
+[13 <./figures/timeshort.pdf, page is rotated 90 degrees>] (./parallelsim.bbl)
+[14 <./figures/numberofservers.pdf, page is rotated 90 degrees>]
+(./parallelsim.aux)
 
 LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 12932 strings out of 494829
- 249439 string characters out of 6177999
- 285759 words of memory out of 5000000
- 15972 multiletter control sequences out of 15000+600000
- 13359 words of font info for 51 fonts, out of 8000000 for 9000
+ 12947 strings out of 494829
+ 249635 string characters out of 6177999
+ 286819 words of memory out of 5000000
+ 15983 multiletter control sequences out of 15000+600000
+ 13718 words of font info for 52 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 55i,9n,54p,831b,491s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,8n,54p,831b,491s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texli
-ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texlive/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pf
-b></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></us
-r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share
-/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on parallelsim.pdf (13 pages, 220746 bytes).
+ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texlive/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7
+.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></u
+sr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/sha
+re/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texl
+ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on parallelsim.pdf (14 pages, 243776 bytes).
 PDF statistics:
- 148 PDF objects out of 1000 (max. 8388607)
- 108 compressed objects within 2 object streams
+ 155 PDF objects out of 1000 (max. 8388607)
+ 113 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  53 words of extra memory for PDF output out of 10000 (max. 10000000)
 
