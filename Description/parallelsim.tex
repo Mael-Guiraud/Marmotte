@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{amsthm}
+\usepackage[colorlinks=true,breaklinks=true,linkcolor=blue]{hyperref}
 \graphicspath{{figures/}}
 %opening
 \title{Parallel simulation of the trajectory of a Markov chain with partially ordered states}
@@ -41,7 +42,7 @@ In practice, the values $x_1,\dots,x_n$ are given by a pseudo random generator i
 These values can be generated efficiently in parallel without changing their distribution and thus the distribution of the generated 
 trajectories: An integer $k$ is chosen and the values $x_{ki}$ are generated using a pseudo random generator and a random seed, then in parallel a pseudo random generator is used to generate $x_{ki +1},\dots, x_{ki + k - 1}$ using $x_{ki}$ as a seed. When $ k = \sqrt{n}$, this computation uses a parallel time of $O(\sqrt{n})$. This efficient parallelization justifies our choice of considering the sequence $x_1,\dots,x_n$ as an input in the problem \textsc{PoTraSim}.
 
-To formalize our parallel algorithms, we choose a simple PRAM model --exclusive read and exclusive write (EREW)-- with shared memory to neglect synchronization and communication problems (see~\cite{jaja1992introduction}). This simplification is reasonable in a multicore machine, since in our algorithms we use very few concurrent accesses to only limited informations, which can be dealt with no or almost no locking. For a distributed computing point of view, the cost of communication is also relevant since it tends to dominate the computing time. Both contexts are investigated in our experimentations.
+To formalize our parallel algorithms, we choose a simple PRAM model --exclusive read and exclusive write (EREW)-- with shared memory to neglect synchronization and communication problems (see~\cite{jaja1992introduction}). This simplification is reasonable in a multicore machine, since in our algorithms we use very few concurrent accesses to only limited informations, which can be dealt with no or almost no locking. For a distributed computing point of view, the cost of communication would also be relevant since it could dominate the computing time. Both contexts are investigated in our experimentations.
 
 
 \todo{Expliquer ici ce qui s'est fait avant (avec moins de suppositions). Ce qui s'est fait en général avec des espaces d'états po (travail de JMF)
@@ -49,7 +50,7 @@ Expliquer ensuite nos contributions.}
 
 \section{Parallel computation}
 
-The main idea of the method is to divide the sequence $T$ of size $n$ into smaller intervals of $t$ states. If we know the initial state of each interval then we can compute the sequences of iterates independently. 
+The main idea of the method is to divide the sequence $T$ of size $n$ into smaller intervals of $t$ consecutive states. If we know the initial state of each interval then we can compute the sequences of iterates independently. 
 In the PRAM model, with an unbounded number of processors and zero cost of communication, it may be optimal to have $t$ small and independent from $n$, but in practice cores are a scarce resources and we will set $n/t$ to a value related to the number of machines or cores available.
 
 \subsection{Two bounds}
@@ -59,9 +60,8 @@ In this section, we describe an algorithm which solves \textsc{PoTraSim} in para
 Let us now describe the execution of the algorithm. At the beginning, the status of each interval is $\textsc{ToCompute}$, and the lower bounds are set to the minimal elements and the upper bounds to the maximal except for the first: 
 $status_0 = \textsc{ToCompute}$, $s_0^{min} = s_0^{max} = s$ and for all $0 < j < k$, $status_j = \textsc{ToCompute}$,  $s_j^{min} = \bot$ and $s_j^{max} = \top$. 
 While there is a free processor $P$ and a $j$ such that $status_j = \textsc{ToCompute}$, the index $j$ is selected. The variable $status_j$ is then set to $\textsc{Computed}$ and the processor $P$ computes the two sequences $T(s_j^{min},x_{jt},\dots,x_{(j+1)t})$ and $T(s_j^{max},x_{jt},\dots,x_{(j+1)t})$. 
-The last value of the two computed sequences, let us denote them by $s_{min}$ and $s_{max}$, are then compared to the bounds of the next interval if there is one.  
- If $s_{min} > s_{j+1}^{min}$ or $ s_{max} < s_{j+1}^{max}$ then better bounds have been found and $P$ sets $s_{j+1}^{min} = s_{min}$, $s_{j+1}^{max} = s_{max})$ and $s_{j+1} = \textsc{ToCompute}$.
-Finally, when a processor simulate the interval $j$ and at the beginning $s_j^{min} = s_j^{max}$, the result of the simulation is stored as a part of the trajectory and $s_j = \textsc{Done}$ at the end.
+Let us denote the last value of the two computed sequences by $s_{min}$ and $s_{max}$. These values are compared to the bounds of the next interval if there is one: If $s_{min} > s_{j+1}^{min}$ or $ s_{max} < s_{j+1}^{max}$ then better bounds have been found and $P$ sets $s_{j+1}^{min} = s_{min}$, $s_{j+1}^{max} = s_{max})$ and $status_{j+1} = \textsc{ToCompute}$.
+Finally, when a processor simulate the interval $j$ and at the beginning $s_j^{min} = s_j^{max}$, the result of the simulation is stored as a part of the trajectory and it sets $status_j = \textsc{Done}$.
 The algorithm we have described is called \textsc{Speculative Sandwich} and we give its pseudocode in Figure~\ref{fig:par_sandwich}.
 
 \todo{Update the pseudo code}
@@ -105,24 +105,25 @@ The algorithm we have described is called \textsc{Speculative Sandwich} and we g
 \begin{proof}
 First, we prove that \textsc{Speculative Sandwich} terminates and always compute the right answer.
 Recall that we have stated that for all $j$, $s_j^{min} \leq s_{j*t} \leq s_j^{max}$. We can prove that 
-this is true during all the algorithm by induction on the computation time. Indeed, $s_j^{min}$ and $s_j^{max}$ are changed when a simulation from $s_{j-1}^{min}$ and $s_{j-1}^{max}$ find tighter bounds. By induction hypothesis $s_{j-1}^{min} \leq s_{(j-1)*t} \leq s_{j-1}^{max}$ since they have been computed before. The monotony of $f$ guarantees that $j, s_j^{min} \leq s_{j*t} \leq s_j^{max}$. This guarantee that when $s_j^{min} = s_j^{max}$, the trajectory we simulate is correct. 
+this is true during all the algorithm by induction on the computation time. Indeed, $s_j^{min}$ and $s_j^{max}$ are changed when a simulation from $s_{j-1}^{min}$ and $s_{j-1}^{max}$ find tighter bounds. By induction hypothesis $s_{j-1}^{min} \leq s_{(j-1)*t} \leq s_{j-1}^{max}$ since they have been computed before. The monotony of $f$ implies that $s_j^{min} \leq s_{j*t} \leq s_j^{max}$. As a consequence, when $s_j^{min} = s_j^{max}$, we have $s_j^{min} = s_{jt}$ hence the trajectory whihch is simulated is correct. 
 
-Let us prove that the when the algorithm stops it has computed all the trajectory. Assume for the sake of contradiction that when the algorithm stops there is an interval with status $\textsc{Computed}$ and let 
-$j$ the smallest index such that $status_j = \textsc{Computed}$. We have $j>0$ since $status_0 = \textsc{Done}$ because $s_0^{min} = s_0^{max} = s$. Hence $j-1$ is positive and $status_{j-1} = \textsc{Done}$ by definition. But then \textsc{Speculative Sandwich} has updated the bounds $s_j^{min}$ and $s_j^{max}$ to $s_{jt}$ after the last simulation of the interval $j-1$. As a consequence \textsc{Speculative Sandwich} must have simulated the interval $j$ and marked it $\textsc{Done}$, a contradiction.
+Let us prove that the when the algorithm stops it has computed all the trajectories. Assume for the sake of contradiction that when the algorithm stops there is an interval with status $\textsc{Computed}$ and let 
+$j$ the smallest index such that $status_j = \textsc{Computed}$. We have $j>0$ since $status_0 = \textsc{Done}$ because $s_0^{min} = s_0^{max} = s$ at the beginning of the algorithm. Hence $j-1$ is positive and $status_{j-1} = \textsc{Done}$ by definition. But then \textsc{Speculative Sandwich} has updated the bounds $s_j^{min}$ and $s_j^{max}$ to $s_{jt}$ after the last simulation of the interval $j-1$. As a consequence \textsc{Speculative Sandwich} must have simulated the interval $j$ and marked it $\textsc{Done}$, a contradiction.
 
 Finally let us prove that \textsc{Speculative Sandwich} terminates. 
 To do that, it is enough to remark that each time a new interval is simulated,
-it implies that its beginning bounds are tighter. Since the number of states is finished,
-it follows that at some point in the algorithm, for each interval its bounds are equal and its status is set to $\textsc{Done}$.
+it implies that its beginning bounds are tighter. Since the number of states is finite,
+each interval can be simulated only a finite number of time (bounded by the number of states) which  implies 
+that the algorithm stops after a finite time (bounded by $|\cS|*k$).
 \end{proof}
 
 
-Remark that the way we select an index $j$ when there are several $status_j$ equal to $\textsc{ToCompute}$ is not specified. Each policy to select it gives rise to a different implementation of the algorithm \textsc{Speculative Sandwich}. Note that if we have an unbounded number of cores, we can always affect each available interval to a different processor simultaneously, therefore the policies are all the same. Hence they make sense in a context where the number of processors is limited as shown in Section~\ref{sec:exp}.
+Remark that the way we select an index $j$ when there are several $status_j$ equal to $\textsc{ToCompute}$ is not specified. Each policy to select it gives rise to a different implementation of the algorithm \textsc{Speculative Sandwich}. Note that if we have an unbounded number of cores, we can always affect each available interval to a different processor simultaneously, therefore the policies are all the same. Hence they make sense in a context where the number of processors is limited as shown in Section~\ref{sec:expertiments}.
 
 We propose two different policies. 
 The first is the \textsc{Ordered} policy: choose the available interval with the smallest index. 
-The second policy is called \textsc{Balanced} as we try to make the processors work on all parts of the trajectory more evenly. The $k$ intervals of size $t$ are grouped in $l$ larger meta-interval and we store for each meta interval $i$ an integer variable $intervals_i$ which counts how many time an interval of the meta interval has been simulated.
- Then we select $j$ the available interval with the the smallest $(intervals_{j/l},j/l,j)$ in the lexicographic order. 
+The second policy is called \textsc{Balanced} as we try to make the processors work on all parts of the trajectory more evenly. The $k$ intervals of size $t$ are grouped in $l$ larger meta-intervals and we store for each meta-interval $i$ an integer variable $interval_i$ which counts how many time an interval of the meta-interval has been simulated.
+ Then we select $j$ the available interval with the the smallest $(interval_{j/l},j/l,j)$ in the lexicographic order. 
 
 For different policies, we would like to have a guarantee on the running time of  \textsc{Speculative Sandwich}. In particular, we would like it to be faster than the sequential time to solve \textsc{PoTraSim}.
 
@@ -131,13 +132,13 @@ For different policies, we would like to have a guarantee on the running time of
 \end{proposition}
 \begin{proof}
 We prove the proposition by induction on the time to compute the trajectory on the first $j$ intervals. 
-Assume, by induction hypothesis, that a processor $P$ has finished in time $T$ less than $Kjt$ to simulate an interval so that the first $j$ intervals are correctly computed. There is a time less or equal to $T$, such that a processor has finished the simulation of the interval $j-1$ and its status has been set to $\textsc{Done}$. Then by construction of \textsc{Speculative Sandwich}, the interval $j$ had its status set to $\textsc{ToCompute}$ and $s_j^{min} = s_j^{max}$ before time $T$.
+Assume, by induction hypothesis, that a processor $P$ has finished in time $T$ less than $Kjt$ to simulate an interval so that the first $j$ intervals are correctly simlated (they are marked $\textsc{Done}$). There is a time less or equal to $T$, such that a processor has finished the simulation of the interval $j-1$ and its status has been set to $\textsc{Done}$. Then by construction of \textsc{Speculative Sandwich}, the interval $j$ had its status set to $\textsc{ToCompute}$ and $s_j^{min} = s_j^{max}$ before time $T$.
 If $status_j =  \textsc{Computed}$, by the previous remark, the interval is being 
 simulated with the correct starting bound and will finish in less than $Kt$ time.
-If $status_j =  \textsc{ToCompute}$, since the processor $P$ is free, it will simulate the interval $j$, since the \textsc{Ordered} select the smallest available interval. This simulation will be finished in less than $Kt$ time. Thus the $j+1$ first intervals will be simulated in time less than $T + Kt \leq K(j+1)t$, which proves the induction.
+If $status_j =  \textsc{ToCompute}$, since the processor $P$ is free, it will simulate the interval $j$, since the \textsc{Ordered} policy selects the smallest available interval. This simulation will be finished in less than $Kt$ time. Thus the $j+1$ first intervals will be simulated in time less than $T + Kt \leq K(j+1)t$, which proves the induction.
 \end{proof}
 
-We have proved that the \textbf{Ordered} policy is always as fast as the sequential algorithm.
+We have proved that the \textsc{Ordered} policy is always as fast as the sequential algorithm.
 It would be interesting to understand when it is faster and by how much. 
 If at some point of the algorithm, we have  $x_j^{min} = x_j^{max}$, we say that the 
 two sequences are \textbf{coupling} on the interval $j$. It is when this phenomena happens fast and frequently that the speed-up can be important. We illustrate that in the next proposition by assuming a simplified deterministic coupling time.
@@ -145,13 +146,18 @@ We could derive the same kind of bounds for any random process given the mean an
 
 \begin{proposition}
  Let $f$ be such that, there is a $m$ such that for any $x_1,\dots,x_m$, the last element of
- $T(\bot,x_1,\dots,x_m)$ and the last element of $T(\bot,x_1,\dots,x_m)$ are equal. Then the parallel time is 
- $O(Kn/p*\lceil m/t \rceil)$ where $t$ is the size of an interval, $K$ a bound on the evaluation of $f$ and $p$ is the number of processors and satisfies $p < n/t$.
+ $T(\bot,x_1,\dots,x_m)$ and the last element of $T(\bot,x_1,\dots,x_m)$ are equal. Then \textsc{PoTraSim} is solved by 
+ \textsc{Speculative Sandwich} in parallel time $O(K(n/p)\lceil mp/n \rceil)$ where $K$ is a bound on the evaluation of $f$, $p$ is the number of processors.
 \end{proposition}
 \begin{proof}
- Each time an interval is simulated again, it means that its initial bounds have been improved. By a simple recurrence, it implies that the bounds obtained after simulating an interval $i$ times can be seen as the simulation of $i$ consecutive intervals. It means that we will always have a coupling in an interval when it has been simulated $\lceil m/t \rceil$ times,
- which implies that each interval are simulated at most $\lceil m/t \rceil$. Moreover, in this simple model, when bounds have been improved at the beginning of the interval, we obtain better bound at the end. It means that there are always $p$ interval being simulated, $d$ interval done and $n - d - p$ intervals to do during the simulation.  
+We set $t = n/p$ in \textsc{Speculative Sandwich} (the proof works as long as $t <  n/p$). 
+When an interval is simulated, it means that its initial bounds have been improved by the simulation of the previous interval
+(except at the beginning). Thus the bounds obtained at the end of the simulation can be seen as the results of a simulation of size $2t$ instead of $t$.  By a simple recurrence, we can generalize this remarks and states that the bounds obtained after simulating an interval $i$ times can be seen as the result of the simulation of $i$ consecutive intervals.  Hence there is a coupling while simulating an interval when it has been simulated $\lceil m/t \rceil = \lceil mp/n \rceil$ times. Thus, each interval are simulated at most $\lceil mp/n \rceil + 1$ times. Moreover, in this simple model, when bounds have been improved at the beginning of the interval, we obtain better bounds at the end. It means that all intervals which have not status $\textsc{Done}$ are being simulated
+in parallel. As a consequence, after $\lceil mp/n \rceil + 1$ times all intervals have status $\textsc{Done}$ by the previous remak and the algorithms stops. The parallel time of the algorithm is thus $O(Kt \lceil mp/n\rceil)$.
 \end{proof}
+
+In the previous proposition, if $p$ is large enough or equivalently if $m$ is small enough so that $mp/n > 1$ then 
+the parallel time can be simply expressed as $O(Km)$.
 
 \todo{Preuve un peu rapide et ça serait intéressant de la faire en probabiliste -> demander à JMF}
 
@@ -162,16 +168,18 @@ We could derive the same kind of bounds for any random process given the mean an
 
 \todo{description of the algorithm and complexity bounds}
 
-\section{Experimental evaluations}
+\section{Experimental evaluations}\label{sec:expertiments}
 
-In this part, we experiment the proposed algorithms in the context of a multicore machine and of 
-distributed computing. The codes used for the experimentations can be found on the author webpage .....
+In this part, we experiment the proposed algorithms on a multicore machine and in a distributed computing setting. The C code used for the experimentations can be found on one of the author's webpage~\cite{webpage}.
+\todo{Dire ici le compilateur + les librairies open MP, ou sockets sur IP + générateur de nombre aléatoire et citer}
 
 \subsection{Settings}
 \label{sec:randomproc}
 
 In this section, we present the Markov chain we simulate in our experiments. We choose a network of queues,
 classically used to model buffers in telecommunication networks. The example is complicated enough that theoretical results are hard to get and it needs to be simulated for a long time to understand its behavior, justifying the parallel simulation approach.
+
+\todo{dire mieux et citer des travaux : JMF}
 
 We have a system composed of $m$ finite queues of capacity $BUFF\_MAX$ in tandem. A queue is characterized by its number of client $C_i$.  For each queue $i$, three events can occur:
 \begin{itemize}
@@ -207,9 +215,11 @@ With those parameters, every queue have an average load of $1$. This load has be
 In this section, we present the results of our simulation on a multicore machine.
 This is close to the PRAM model we have presented since the communications cost between cores
 are small and there is a large shared memory which can be used to write the trajectories as they are computed.
-Hence we made a simple optimization to our algorithms: when the lower bound and the upper bound are computed in an interval,
-we test whether there is some coupling. If we detect a coupling at step $T$ in the interval, we compute the real trajectory 
-from this moment on and not the \emph{two bounds}. Moreover, we store the step $T$ so that the next time we simulate 
+
+
+We made a simple optimization to our algorithms: when the lower bound and the upper bound are computed in an interval,
+we test whether there is a coupling. If we detect a coupling at step $T$ in the interval, we compute the real trajectory 
+from this moment on and not the \emph{two bounds}. Moreover, we store the number $T$ so that the next time we simulate 
 the interval, the simulation is stopped at $T$.
  
 To ensure that two cores do not write or read the status of an interval at the same time we need to use locks,
@@ -218,30 +228,27 @@ That is why we introduce a simple variant of \textsc{Speculative Sandwich} that 
 If we have $p$ cores available, then $t = n/p$ and each processor is affected to a specific interval. 
 The algorithm is the following:  each processor simulates its interval and modify the bounds of the next and continue to do so until it has computed the right trajectory for its interval. This methods may waste time, in particular because we need to set
 $t = n/p$ which means that as soon as the first interval is computed, a processor will go unused. On the other hand, it can be 
-implemented without locks since each processor simulate a different part of the trajectory and that we do not need to read and set some status for the processors.
+implemented without locks since each processor simulate a different part of the trajectory and that no status of the intervals must be maintained.
 
 
-\todo{Dire la machine + code en C avec OpenMP + le générateur de nombre aléatoire}
+\todo{Dire ici la machine de test et mettre le résultat des expériences. Si on peut mettre en valeur les différences des algos le faire, en utilisant un temps de couplage moyen légérement plus grand que la taille d'un intervalle}
 
 
 \subsection{Distributed computing}
 
-Dire pourquoi ça se passe pas trop mal en distributed computing. 
-Expliquer qu'on ne va pas envoyer la trajectoire (pas souvent utilisé en pratique) et qu'on va faire gaffe au temps de transfert. Remark that all processors do the simulation using only their private memory and the two states at the beginning of the interval. This scheme is thus reasonably adapted to a distributed computing environment where the cost of transmitting information between processors is high. 
-\todo{Dire les machines + le réseau + C et sockets over IP pour la com}
-% 
-% Our experimentations are made with the following set-up.
-The main program run on a MacBook Air, with a $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz. The operating system of the machine is macOS High Sierra v$10.13.1$. The source code is compiled with  gcc version $7.1.0$ (Homebrew GCC $7.1.0$ -- without-multilib).
+In this section, we test our algorithms in a distributed computing settings. We use a master computer which dispatches
+to many other slave computers the simulation of the intervals according to the algorithm $\textsc{Speculative Sandwich}$.
+It sends two states to a slave which are used as a starting point of the simulation. The master also maintains the status of each interval and of each slave (computing or not). When a simulation is finished the slave send back the two states obtained at the end 
+to the master. This generates very little traffic on the network and the only problem is the latency: the time between the sending of a message and its reception may be long \todo{le donner avec une expérience}.  The only thing which has a large impact on the network and may take more time than the simulation is the sending of the correct trajectory back to the master. Therefore we decided to skip this part in our experiments. It is realistic, since most of the time the trajectory is not needed but rather statistics on it which can be transmitted much quicker. 
 
-The simulations of each interval are dispatched on up to $7$ Raspberry Pi $3$ , Model B, with $1GB$ of RAM. Their operating system is  Raspbian GNU/Linux $8.0$, installed on a micro SD card element$14$ with a size of $8$GB. The source code is compiled with gcc version $4.9.2$ (Raspbian $4.9.2-10$). All the machines are connected to a local network through an HP $14$-$10$ $8$G switch.
+The master in our experiments is a MacBook Air with a $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz.
+The slaves are $7$ Raspberry Pi $3$ , Model B, with $1GB$ of RAM. Note that the performance of the master is not relevant
+while the performance of the slaves directly impact the time to simulate a trajectory. The machines are connected to a local network through an HP $14$-$10$ $8$G switch and communicate using sockets and the protocol TCP/IP. 
 
-During our experiments, we use the socket with the protocol TCP/IP to allow the servers and the master to communicate. All the machines were wired to a local network without access to any external networks. 
-
-\subsection{Network impact}
-\label{sec:networkimpact}
 
 \todo{Pas besoin de faire une sous section, mais le but c'est de voir le cout d'un aller-retour par rapport à une étape de sim
 pour bien régler la taille des intervalles}
+
 Since our network uses a local network with TCP/IP, one must investigate the cost of the network in our simulations. 
 In our source code, we fixed the size of a standard master/server message to 24 integers and the size of the server/master messages depends of the number of queues in the simulation. One must focus on the cost of sending a trajectory, which is by far the largest message, indeed, the size of a trajectory is equal to $t \times m$($t$ is the size of the interval, and $m$ is the number of queues). On the following experiment, we tried to compare the evolution of the cost of the computing time and the network cost for different number of queues going from 1 to 10. We arbitrary set the size of the interval $t$ to $10,000$, which is a good order of magnitude considering the following experiments. The points on fig|~\ref{fig:example} are some average times computed on 100 different simulations.
 
