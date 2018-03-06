@@ -1,3 +1,6 @@
+*.bbl
+*.blg
+*.log
 a.out
 *.zip
 *.data
@@ -5,3 +8,4 @@ a.out
 prog
 maitre
 *.ps
+parallelism.pdf
