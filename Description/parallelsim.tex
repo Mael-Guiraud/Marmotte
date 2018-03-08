@@ -67,40 +67,40 @@ While there is a free processor $P$ and an index $j$ such that $status_j = \text
 Let us denote the last value of the two computed sequences by $s_{min}$ and $s_{max}$. These values are compared to the bounds of the next interval if there is one: If $s_{min} > s_{j+1}^{min}$ or $ s_{max} < s_{j+1}^{max}$ then better bounds have been found and $P$ sets $s_{j+1}^{min} = s_{min}$, $s_{j+1}^{max} = s_{max})$ and $status_{j+1} = \textsc{ToCompute}$.
 Finally, when a processor simulate the interval $j$ and at the beginning $s_j^{min} = s_j^{max}$, the result of the simulation is  the correct trajectory and thus stored, then $status_j$ is set to $\textsc{Done}$.
 The algorithm we have described is called \textsc{Speculative Sandwich} and we give its pseudocode in Figure~\ref{fig:par_sandwich}.
-
-\todo{Update the pseudo code}
- 	\begin{algorithm}[H]
- 	\caption{Speculative Sandwich}
- 	\label{fig:par_sandwich}
- 	\begin{algorithmic}
-	\REQUIRE Size of the intervals $t$
- 	\STATE // {\em Initialisation}
-	\FOR{ $i <$ min(nb\_machines, nb\_inter-1) }
-	\STATE Send $I_{j+1}$ to the server $i$
-	\ENDFOR
-	\STATE // {\em Main loop}
- 	\WHILE{ All the intervals are not $\textsc{Done}$}
-	\STATE Wait for a server to answer the results of $current\_interval$
-	\IF{The server was computing a trajectory}
-	\STATE set $I_{current\_interval}$ to $\textsc{Done}$
-	\ENDIF
-	\IF{$f^t(s_{current\_interval}^{min}) > s_{current\_interval+1}^{min}$ or $f^t(s_{current\_interval}^{max}) < s_{current\_interval+1}^{max}$ // {\em Better bounds have been found} }
-	\STATE $s_{current\_interval+1}^{min} = f^t(s_{current\_interval}^{min})$
-	\STATE $s_{current\_interval+1}^{max} = f^t(s_{current\_interval}^{max})$
-	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
-	\ENDIF
-	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
-	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ // {\em The bounds are coupled} }
-		\STATE Wait a trajectory for $I_{next\_interval}$
-	\ELSE
-		\STATE Wait some bounds for $I_{next\_interval}$
-	\ENDIF	
-		\STATE Send $s_{next\_interval+1}^{min} and s_{next\_interval+1}^{max}$ to the current server
-	\ENDWHILE
- 
- 	\end{algorithmic}
- 	\end{algorithm}
- 
+% 
+% \todo{Update the pseudo code}
+%  	\begin{algorithm}[H]
+%  	\caption{Speculative Sandwich}
+%  	\label{fig:par_sandwich}
+%  	\begin{algorithmic}
+% 	\REQUIRE Size of the intervals $t$
+%  	\STATE // {\em Initialisation}
+% 	\FOR{ $i <$ min(nb\_machines, nb\_inter-1) }
+% 	\STATE Send $I_{j+1}$ to the server $i$
+% 	\ENDFOR
+% 	\STATE // {\em Main loop}
+%  	\WHILE{ All the intervals are not $\textsc{Done}$}
+% 	\STATE Wait for a server to answer the results of $current\_interval$
+% 	\IF{The server was computing a trajectory}
+% 	\STATE set $I_{current\_interval}$ to $\textsc{Done}$
+% 	\ENDIF
+% 	\IF{$f^t(s_{current\_interval}^{min}) > s_{current\_interval+1}^{min}$ or $f^t(s_{current\_interval}^{max}) < s_{current\_interval+1}^{max}$ // {\em Better bounds have been found} }
+% 	\STATE $s_{current\_interval+1}^{min} = f^t(s_{current\_interval}^{min})$
+% 	\STATE $s_{current\_interval+1}^{max} = f^t(s_{current\_interval}^{max})$
+% 	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
+% 	\ENDIF
+% 	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
+% 	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ // {\em The bounds are coupled} }
+% 		\STATE Wait a trajectory for $I_{next\_interval}$
+% 	\ELSE
+% 		\STATE Wait some bounds for $I_{next\_interval}$
+% 	\ENDIF	
+% 		\STATE Send $s_{next\_interval+1}^{min} and s_{next\_interval+1}^{max}$ to the current server
+% 	\ENDWHILE
+%  
+%  	\end{algorithmic}
+%  	\end{algorithm}
+%  
  
  \begin{theorem}\label{th:alg_ok}
   \textsc{Speculative Sandwich} solves the problem \textsc{PoTraSim}. 
@@ -126,8 +126,8 @@ Remark that the way we select an index $j$ when there are several $status_j$ equ
 
 We propose two different policies. 
 The first is the \textsc{Ordered} policy: choose the available interval with the smallest index. 
-The second policy is called \textsc{Balanced} as we try to make the processors work on all parts of the trajectory more evenly. The $k$ intervals of size $t$ are grouped in $l$ larger meta-intervals and we store for each meta-interval $i$ an integer variable $interval_i$ which counts how many time an interval of the meta-interval has been simulated.
- Then we select $j$ the available interval with the the smallest $(interval_{j/l},j/l,j)$ in the lexicographic order. 
+The second policy is called \textsc{Balanced} as we try to make the processors work on all parts of the trajectory more evenly. The $k$ intervals of size $t$ are grouped in $l$ larger meta-intervals and we store for each meta-interval $i$ an integer variable $sim_i$ which counts how many time an interval of the meta-interval has been simulated.
+ Then we select $j$ the available interval with the the smallest $(_{j/l},j/l,j)$ in the lexicographic order. 
 
 For different policies, we would like to have a guarantee on the running time of  \textsc{Speculative Sandwich}. In particular, we would like it to be faster than the sequential time to solve \textsc{PoTraSim}.
 
@@ -173,12 +173,11 @@ the parallel time can be simply expressed as $O(Km)$.
 
 \section{Experimental evaluations}\label{sec:expertiments}
 
-In this part, we experiment the proposed algorithms on a multicore machine and in a distributed computing setting. The C code used for the experimentations can be found on one of the author's webpage~\cite{webpage}. We have used the C language compiled with gcc 7 
-and we used the OPENMP library to implement parallelization over a multicore machine. 
-In the distributed computing setting, we used sockets over the TCP protocol to distribute informations between machines.
-We use a fast and high quality random number generator from \cite{}. 
+In this part, we experiment the proposed algorithms on a multicore machine and in a distributed computing setting. The code used for the experimentations can be found on one of the author's webpage~\cite{webpage}. The code is in C, compiled with gcc 7.
+We use the WELLRNG512a number generator from \cite{panneton2006improved} to obtain the values $x_1,\dots,x_n$. 
+The OPENMP library is used to parallelize the algorithm on a multicore machine. 
+In the distributed computing setting, we use sockets over the TCP/IP protocol to distribute informations between machines.
 
-\todo{Dire ici le compilateur + les librairies open MP, ou sockets sur IP + générateur de nombre aléatoire et citer}
 
 \subsection{Settings}
 \label{sec:randomproc}
@@ -223,16 +222,17 @@ In this section, we present the results of our simulation on a multicore machine
 This is close to the PRAM model we have presented since the communications cost between cores
 are small and there is a large shared memory which can be used to write the trajectories as they are computed.
 
-
-We made a simple optimization to our algorithms: when the lower bound and the upper bound are computed in an interval,
+We made several practical optimizations to our algorithms: when the lower bound and the upper bound are computed in an interval,
 we test whether there is a coupling. If we detect a coupling at step $T$ in the interval, we compute the real trajectory 
 from this moment on and not the \emph{two bounds}. Moreover, we store the number $T$ so that the next time we simulate 
-the interval, the simulation is stopped at $T$.
+the interval, the simulation is stopped at $T$. Finally, we do not update $status_j$ to $\textsc{ToCompute}$ when it 
+has already coupled and when the starting bounds $s_j^{min}$ and $s_j^{max}$ are different. Indeed, simulating the interval $j$
+when it has already coupled will never help to compute other intervals.
  
 To ensure that two cores do not write or read the status of an interval at the same time we need to use locks,
 which can cause some performance penalties which are not visible when writing the ideal algorithm for a PRAM.
 That is why we introduce a simple variant of \textsc{Speculative Sandwich} that we call \textsc{Fixed Interval}.
-If we have $p$ cores available, then $t = n/p$ and each processor is affected to a specific interval. 
+If we have $p$ cores available, then we set $t = n/p$ and each processor is affected to a specific interval. 
 The algorithm is the following:  each processor simulates its interval and modify the bounds of the next and continue to do so until it has computed the right trajectory for its interval. This methods may waste time, in particular because we need to set
 $t = n/p$ which means that as soon as the first interval is computed, a processor will go unused. On the other hand, it can be 
 implemented without locks since each processor simulate a different part of the trajectory and that no status of the intervals must be maintained.
@@ -244,13 +244,11 @@ implemented without locks since each processor simulate a different part of the 
 \subsection{Distributed computing}
 
 In this section, we test our algorithms in a distributed computing settings. We use a master computer which dispatches
-to many other slave computers the simulation of the intervals according to the algorithm $\textsc{Speculative Sandwich}$.
+to several slave computers the simulation of the intervals according to the algorithm $\textsc{Speculative Sandwich}$.
 It sends two states to a slave which are used as a starting point of the simulation. The master also maintains the status of each interval and of each slave (computing or not). When a simulation is finished the slave send back the two states obtained at the end 
-to the master. This generates very little traffic on the network and the only problem is the latency: the time between the sending of a message and its reception may be long \todo{le donner avec une expérience}.  The only thing which has a large impact on the network and may take more time than the simulation is the sending of the correct trajectory back to the master. Therefore we decided to skip this part in our experiments. It is realistic, since most of the time the trajectory is not needed but rather statistics on it which can be transmitted much quicker. 
+to the master. This generates very little traffic on the network and the only problem is the latency: the time between the sending of a message and its reception may be long \todo{dire comme montré dans la figure blah}.  The only thing which has a large impact on the load of the network and may take more time than the simulation is the sending of the correct trajectory back to the master. Therefore we skip this part in our experiments. It is realistic, since most of the time the trajectory is not needed but rather statistics on it which can be transmitted much quicker. 
 
-The master in our experiments is a MacBook Air with a $2.2$ GHz Intel Core i$7$, and $8$ Go of RAM DDR$3$ at $1600$ MHz.
-The slaves are $7$ Raspberry Pi $3$ , Model B, with $1GB$ of RAM. Note that the performance of the master is not relevant
-while the performance of the slaves directly impact the time to simulate a trajectory. The machines are connected to a local network through an HP $14$-$10$ $8$G switch and communicate using sockets and the protocol TCP/IP. 
+The master computer in our experiments is a MacBook Air and the slaves are $7$ Raspberry Pi $3$ (Model B) with $1GB$ of RAM. Note that the performances of the master are not relevant while the performances of the slaves directly impact the time to simulate a trajectory. The machines are connected to a local network through a $1$ $Gbs$ switch and communicate using sockets and the protocol TCP/IP. 
 
 
 \todo{Pas besoin de faire une sous section, mais le but c'est de voir le cout d'un aller-retour par rapport à une étape de sim
