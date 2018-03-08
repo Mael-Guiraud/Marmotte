@@ -97,7 +97,8 @@ void par_sim_fixed_slices(STATE *lb_trajectory, STATE *ub_trajectory, double *ra
 }
 
 
-//allowing processors to compute interval which are already being computed degrade the performance, so we forbid it 
+//allowing processors to compute interval which are already being computed degrade the performance, because
+//we can couple several time, which is wasteful. However the code is simpler when we do not deal with the array computing
 //we select always the first avalaible non computing interval
 void par_sim_first_slices_first(STATE *lb_trajectory, STATE *ub_trajectory, double *randomness, int size, int interval_number){ //use only two binary states by slice 
  	int interval_size = size/interval_number; 
@@ -121,8 +122,8 @@ void par_sim_first_slices_first(STATE *lb_trajectory, STATE *ub_trajectory, doub
   		while(interval_done < interval_number){
   			(void) omp_set_lock(&sim_state_lock);//acquire lock to read the states
   			int i; 
-  			for( i = 0; i < interval_number && (!available_interval[i] || computing[i]); i++){//look for a free slice
-  			}							 
+  			for( i = 0; i < interval_number && (!available_interval[i] || computing[i]); i++){//look for a slice with new bounds which is not being computed
+  			}						 
   			if(i == interval_number){
   				(void) omp_unset_lock (&sim_state_lock);//release the lock, we have not found an interesting interval
   			}
@@ -134,7 +135,7 @@ void par_sim_first_slices_first(STATE *lb_trajectory, STATE *ub_trajectory, doub
 				STATE *lb = lb_trajectory + i*interval_size;
 		   		double *random = randomness + i*interval_size;
 		   		if(!compare(lb[0],ub[0])){//detect if it is the last time the slice is simulated
-	  				 #pragma omp atomic
+	  				#pragma omp atomic
 	  				interval_done++;
 	  			}
 		   		//printf("La thread %d simule la tranche %d sur %d étapes avec comme valeur de départ %d, %d.\n",omp_get_thread_num(),i,sizes[i],lb[0],ub[0]);
@@ -162,7 +163,7 @@ void par_sim_first_slices_first(STATE *lb_trajectory, STATE *ub_trajectory, doub
 
 typedef struct{unsigned char load; unsigned char pos;} statistic;
 
-void par_sim_balanced(STATE *lb_trajectory, STATE *ub_trajectory, double *randomness, int size, int interval_number, int meta_interval_number){ //use only two binary states by slice 
+void par_sim_balanced(STATE *lb_trajectory, STATE *ub_trajectory, double *randomness, int size, int interval_number, int meta_interval_number){ //use only two binary states by slice + stats
 	int interval_size = size/interval_number; 
 	int meta_interval_size = interval_number/meta_interval_number;//number of intervals in a meta-interval
  	int *available_interval = malloc(sizeof(int)*interval_number);//boolean to store if an interval has new bounds	
@@ -189,8 +190,8 @@ void par_sim_balanced(STATE *lb_trajectory, STATE *ub_trajectory, double *random
   	{
   		while(interval_done < interval_number){
   			(void) omp_set_lock(&sim_state_lock);//acquire lock to read the states
-  			int i, j; 
-			for(j = 0; j < meta_interval_number; j++){//look for a free slice inside the meta interval j
+  			int i = 0, j = 0; 
+			for( j = 0 ; j < meta_interval_number; j++){//look for a free slice inside the meta interval j
   				for(i = interval_stats[j].pos*meta_interval_size; i < (interval_stats[j].pos+1)*meta_interval_size && (!available_interval[i] || computing[i]); i++){}			 
   				if(i < (interval_stats[j].pos+1)*meta_interval_size) {break;}//we have found the correct i
   			}

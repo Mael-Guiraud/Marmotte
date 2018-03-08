@@ -1,7 +1,7 @@
 #include "fsim.h"
 #include <stdlib.h>
 #include <stdio.h>
-#define MAX_BUFFER 100
+#define MAX_BUFFER 10
 
 
 void print_trajectory(STATE *traj, int size){
