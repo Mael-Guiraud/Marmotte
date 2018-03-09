@@ -11,7 +11,7 @@
 
 //Options 
 
-#define COUPLING_TIME 0
+#define COUPLING_TIME 1
 
 
 //simulate a lower bound and an upper bound on the random process. When both are equal, it is the process itself 

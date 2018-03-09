@@ -1,3 +1,9 @@
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+  CC = gcc-7
+else
+  CC = gcc
+endif
 CFLAGS = -std=c99 -c -g -O2 -Wall -fopenmp 
 
 all: run
@@ -9,16 +15,16 @@ debug: clean link
 	valgrind --leak-check=full --show-reachable=yes --track-fds=yes --track-origins=yes ./parsim
 
 link: parsim.o alea.o fsim.o 
-	gcc -o parsim parsim.o alea.o fsim.o -g -fopenmp -lm
+	$(CC) -o parsim parsim.o alea.o fsim.o -g -fopenmp -lm
 
 parsim.o: parsim.c 
-	gcc $(CFLAGS) parsim.c
+	$(CC) $(CFLAGS) parsim.c
 
 alea.o: alea.c
-	gcc $(CFLAGS) alea.c
+	$(CC) $(CFLAGS) alea.c
 
 fsim.o: fsim.c
-	gcc $(CFLAGS) fsim.c
+	$(CC) $(CFLAGS) fsim.c
 
 
 profile: clean link

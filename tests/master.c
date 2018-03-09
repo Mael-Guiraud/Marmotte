@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
     struct timeval tv1, tv2;
     int size_buff_send = 10 * 2 +4;
     int sendbuf[size_buff_send];
-    int size_buff_recv = NB_QUEUES * 10000 +1;
+    int size_buff_recv = NB_QUEUES +1;
 	int  recvbuf[size_buff_recv];
     double average = 0.0;
     double time_dif = 0.0;

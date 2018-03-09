@@ -1,6 +1,7 @@
-#define NB_QUEUES 10
-typedef struct { int queues[NB_QUEUES]; } STATE;
+typedef int STATE;
 
+
+void print_trajectory(STATE *traj, int size);
 
 STATE transition(STATE t, double random);//return the next state using random
 

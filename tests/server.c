@@ -38,7 +38,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in socket_type;
 	fd_set readfds;
 	int taille_socket_type = sizeof(socket_type);
-	int size_buff_send = NB_QUEUES * 10000 +1;
+	int size_buff_send = NB_QUEUES +1;
 	int  sendbuf[size_buff_send];
 	int size_buff_recv = 24;
 	int recvbuf[size_buff_recv];

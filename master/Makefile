@@ -6,7 +6,7 @@ else
 endif
 
 
-CFLAGS = -c -g -std=c99 -Wall -O2
+CFLAGS = -c -g -std=c99 -Wall -O3
 
 all: maitre
 	mkdir -p ../results

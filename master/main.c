@@ -15,9 +15,9 @@
 #include "data_treatment.h"
 
 
-#define MAX_QUEUES 10
+#define MAX_QUEUES 100
 #define NB_MACHINES 7
-#define NB_QUEUES 5
+#define NB_QUEUES 20
 
 
 double time_diff(struct timeval tv1, struct timeval tv2)
@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 30000;
+	int simulation_length = 100000;
 	int interval_size;
 
 

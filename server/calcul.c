@@ -14,7 +14,7 @@
 #include "simuls.h"
 #include "operations.h"
 
-#define BORNE_NB 10
+#define BORNE_NB 100
 
 //Kind of messages recieved by the server
 typedef enum MESSAGE_HEAD{
@@ -190,14 +190,14 @@ int main(int argc , char *argv[])
 						// message[1] = inter id
 						// message[2] = inter size
 						// message[3] = seed
-						Un = gives_un(seeds, message[2],message[1],message[3]);
 						gettimeofday (&tv2, NULL);
 		    			time_recv += time_diff(tv1,tv2);
-						
+		    			gettimeofday (&tv1, NULL);
+						Un = gives_un(seeds, message[2],message[1],message[3]);
 						if(!coupling(&message[4],&message[nb_queues+4]))
 		    	        {
 		    	          	reply[0]=message[1];
-		    	          	gettimeofday (&tv1, NULL);
+		    	          	
 		    	          	if(a == TWO_BOUNDS)
 		    	          	{
 			    	          	for(int i=0;i<message[2];i++)
@@ -230,7 +230,13 @@ int main(int argc , char *argv[])
 		    	        }
 		    	        else
 		    	        {
+		    	        	//Buffer for the trajectory
+		    	        	/* TRAJ RECV MODE
 		    	        	trajectory_size = sizeof(int)*(message[2]*nb_queues+1);
+
+		    	        	*/
+		    	        	/* Last bound recv mode */
+		    	        	trajectory_size = sizeof(int)*(nb_queues+1);
 		    	        	if(old_traj_size != 0)
 		    	        	{
 		    	        		if(old_traj_size != trajectory_size)
@@ -249,14 +255,19 @@ int main(int argc , char *argv[])
 		    	        		assert(trajectory = (int *)malloc(trajectory_size));
 
 		    	        	trajectory[0]=message[1];
-		    	        	gettimeofday (&tv1, NULL);
+		    	        
+
 		    	        	for(int i=0;i<message[2];i++)
 		    				{
 
 		    					F(&message[4],Un[i]);
-
+		    					//Buffer for the trajectory
+			    	        	/* TRAJ RECV MODE
 		    			  		cpy_state(&message[4],&trajectory[1+i*nb_queues]);
+		    			  		*/
 		    				}
+			    	        	/* Last bound recv mode */
+		    				cpy_state(&message[4],&trajectory[1]);
 		    				gettimeofday (&tv2, NULL);
 		    				time_computing  += time_diff(tv1,tv2);
 		    				if( send(master_socket ,trajectory, trajectory_size  , 0) < 0)

@@ -14,7 +14,7 @@
 #include "socket.h"
 #include "operations.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 int recv_mess(int * servers_id,int nb_inter, int nb_machines,int nb_queues, int interval_size, Message_kind * what_do_i_read, Bounds * bounds, int * nb_finished, Interval_state * interval_state)
 {
@@ -64,7 +64,14 @@ int recv_mess(int * servers_id,int nb_inter, int nb_machines,int nb_queues, int 
 	{ 
 
 		//Buffer for the trajectory
+
+		//Buffer for the trajectory
+		/* TRAJ RECV MODE
 		int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
+
+		*/
+		/* Last bound recv mode */
+		int size_trajectory_buffer = (nb_queues ) + 1;;
 		int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
 		if (recv(servers_id[current_machine], buffer_trajectory, sizeof(int)*size_trajectory_buffer, MSG_WAITALL) < 0)
 		{
@@ -248,8 +255,14 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 	int buffer_bounds[size_bounds_buffer];
 
 	//Buffer for the trajectory
+	/* TRAJ RECV MODE
 	int size_trajectory_buffer = (nb_queues * interval_size) + 1;;
+
+	*/
+	/* Last bound recv mode */
+	int size_trajectory_buffer = (nb_queues ) + 1;;
 	int * buffer_trajectory = (int *)malloc(sizeof(int)*size_trajectory_buffer);
+	
 
 	if (nb_inter <= nb_machines)
 	{
@@ -297,6 +310,7 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 		else
 		{
 			macro_inter = i * (nb_inter/nb_machines);
+			//printf("machine %d, inter %d on %d\n",i,macro_inter,nb_inter);
 			if (coupling(bounds[macro_inter].lb, bounds[macro_inter].ub,nb_queues))
 			{
 				what_do_i_read[i] = TRAJECTORY;
@@ -363,6 +377,7 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 						if(DEBUG)printf("Traj recv for inter %d\n",buffer_trajectory[0]);
 						current_interval = buffer_trajectory[0];
 						
+						
 					}
 
 					if(DEBUG)
@@ -398,7 +413,16 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 									//The penultimate intervals updates the last one only if the bounds are coupled
 									if(current_interval < nb_inter -2 ) 
 									{
-										interval_state[current_interval+1] = UPDATED;
+										//RAjouter test ici
+										if(coupling(bounds[current_interval+1].lb,bounds[current_interval+1].ub,nb_queues))
+										{
+											interval_state[current_interval+1] = UPDATED;
+										}
+										else
+										{
+											if(!coupling(bounds[current_interval+2].lb,bounds[current_interval+2].ub,nb_queues))
+												interval_state[current_interval+1] = UPDATED;
+										}
 									}
 									else
 									{
@@ -435,7 +459,17 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 								if(interval_state[current_interval+1] != FINISHED)
 								{
 									if(current_interval < nb_inter-2)
-										interval_state[current_interval+1] = UPDATED;
+									{	
+										if(coupling(bounds[current_interval+1].lb,bounds[current_interval+1].ub,nb_queues))
+										{
+											interval_state[current_interval+1] = UPDATED;
+										}
+										else
+										{
+											if(!coupling(bounds[current_interval+2].lb,bounds[current_interval+2].ub,nb_queues))
+												interval_state[current_interval+1] = UPDATED;
+										}
+									}
 									else
 									{
 										if ( coupling(bounds[current_interval+1].lb, bounds[current_interval+1].ub,nb_queues) )

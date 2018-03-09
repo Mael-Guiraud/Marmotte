@@ -238,15 +238,15 @@ int main(){
    
     int i,j;
     double k;
-    int nb_simuls = 1000000;
-    int temps_couplage_max = 50000;
+    int nb_simuls = 1000;
+    int temps_couplage_max = 500000;
     int diviseur = 10;
     int taille_tab = temps_couplage_max/diviseur;
     int nombre_occurences[taille_tab];
     FILE * f; 
     char nom[64];
     long long int nb_couplage =0;
-    for(k=0.1;k<1.6;k+=0.1)
+    for(k=1.1;k<1.2;k+=0.1)
     {
         InitDistribution(k);
         for(i=0;i<taille_tab;i++)
