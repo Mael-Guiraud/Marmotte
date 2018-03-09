@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 100000;
+	int simulation_length = 2000000;
 	int interval_size;
 
 

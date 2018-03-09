@@ -176,6 +176,14 @@ the parallel time can be simply expressed as $O(Km)$.
 
 \todo{description of the algorithm and complexity bounds -> Mael}
 
+We want to compare the two previous algorithms with the usual way to parallelize a simulation in the time. 
+This algorithm only uses one lower bound of the simulation for each interval. The variable $status_j$ has five different values:  $\textsc{ToCompute}$,  $\textsc{Computed}$,  $\textsc{Done}$,  $\textsc{Validated}$ and $\textsc{Coupled}$.
+The first interval is initialized to: $status_0 = \textsc{Validated}$ and $s_0 = s$.
+Each interval $j>0$ is initialized to $status_j = \textsc{ToCompute}$ and the lower bounds are set to the minimal element that is  $s_j = \bot$. 
+
+This algorithm works in rounds. Every rounds, each interval $j$ set to $\textsc{ToCompute}$ or $\textsc{Validated}$ are calculated and the processor calculates new bounds for the interval $j+1$. An interval set to $\textsc{ToCompute}$ is then set to $\textsc{Computed}$, and $\textsc{Validated}$ becomes $\textsc{Done}$.
+ Let us call $s_j^{-1}$ the lower bound calculated for the interval $j$ at the previous round. At the end of each rounds, the intervals $j$ with new calculated bounds are set to $\textsc{ToCompute}$ if $s_j^{-1} < s_j$. If $s_j^{-1} = s_j$ then $status_j = \textsc{Coupled}$. We then start for the interval $0$ and spread the information about the correct state of the simulation: If the interval $j$ is $\textsc{Validated}$ or $\textsc{Done}$, and the interval $j+1$ is $\textsc{Coupled}$, then $state_{j+1} = \textsc{Validated}$.
+
 \section{Experimental evaluations}\label{sec:expertiments}
 
 In this part, we experiment the proposed algorithms on a multicore machine and in a distributed computing setting. The code used for the experimentations can be found on one of the author's webpage~\cite{webpage}. The code is in C, compiled with gcc 7.
