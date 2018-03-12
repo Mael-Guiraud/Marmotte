@@ -1,9 +1,9 @@
-plot   "../tests/distribution_couplage0.9.data" title "Load 0.9" with lines
-replot   "../tests/distribution_couplage1.0.data" title "Load 1.0" with lines
-replot   "../tests/distribution_couplage1.1.data" title "Load 1.1" with lines
+plot   "../tests/distribution_couplage0.9.data" smooth bezier title "Load 0.9" with lines
+replot   "../tests/distribution_couplage1.0.data" smooth bezier title "Load 1.0" with lines
+replot   "../tests/distribution_couplage1.1.data" smooth bezier title "Load 1.1" with lines
 set title "Coupling time distributions for different loads"
-set ylabel "nb occurs"
-set xlabel "coupling time"
+set ylabel "Distribution (%)"
+set xlabel "Coupling time (Number of events)"
 set term postscript color solid
 set output '| ps2pdf - distribs.pdf'
 replot

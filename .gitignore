@@ -1,3 +1,4 @@
+*.out
 *.aux
 *.bbl
 *.blg
@@ -9,4 +10,4 @@ a.out
 prog
 maitre
 *.ps
-parallelism.pdf
+parallelsim.pdf

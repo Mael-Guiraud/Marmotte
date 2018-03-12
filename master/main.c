@@ -55,7 +55,7 @@ int main(int argc , char *argv[])
 
 
 	//Send the simulation config to the servers
-	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.1,0.75,300.0,nb_queues);
+	send_config( message,message_size, servers_id,  nb_machines,  min,  max, 1.0,0.75,300.0,nb_queues);
 	
 
 	//Parameters of the simulation
@@ -116,7 +116,7 @@ int main(int argc , char *argv[])
 	ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
 
 	//interval measures parameters
-	int begin =4;
+	int begin =2;
 	int end = 20;
 	int step=1;
 	int rounds;
