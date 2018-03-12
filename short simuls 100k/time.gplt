@@ -1,0 +1,12 @@
+set xrange [2:20] 
+set xlabel "Number of intervals" 
+set yrange [100:300] 
+set ylabel "Time (ms)"
+plot 'inters1.data' using 1:3 title " One bound "  
+replot 'inters2.data' using 1:3 title "Speculative Sandwich Ordered " 
+replot 'inters3.data' using 1:3 title "Speculative Sandwich Balanced" 
+replot 114 title "Sequential simulation" lc 7
+set key top left 
+set term postscript color solid
+set output '| ps2pdf - time.pdf'
+replot

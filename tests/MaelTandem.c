@@ -272,7 +272,7 @@ int main(){
             initEtatMIN(min);
             initEtatMAX(max,100);
             gettimeofday (&tv1, NULL);
-            for(i=0;i<7000000;i++)
+            for(i=0;i<10000000;i++)
             {
                 
                  u = WELLRNG512a();
