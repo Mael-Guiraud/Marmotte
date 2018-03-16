@@ -1,4 +1,4 @@
-set xrange [2:20] 
+set xrange [1:24] 
 set xlabel "Number of intervals" 
 set yrange [0:3000]
 set ylabel "Time (ms)"

@@ -287,7 +287,6 @@ int AlgoTwoBounds(Mode m,int * servers_id,int * message,int message_size,int nb_
 	initDpeartureBounds(bounds[0].lb, bounds[0].ub, max,nb_queues);
 
 
-
 	//We consider all intervals to UPDATED, (exept the last one)
 	for(int i=0; i<nb_inter-1; i++)
 		interval_state[i] = UPDATED;

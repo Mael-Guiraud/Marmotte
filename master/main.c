@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 10000000;
+	int simulation_length = 100000;
 	int interval_size;
 
 
@@ -116,13 +116,12 @@ int main(int argc , char *argv[])
 	ask_for_time_display(times,message,message_size,servers_id, nb_machines,nb_measures);
 
 	//interval measures parameters
-	int begin =14;
-	int end = 14;
+	int begin =21;
+	int end = 23;
 	int step=1;
 	int rounds;
-	nb_inter = 14;
-	//for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
-	for(nb_machines=1;nb_machines<= NB_MACHINES+1;nb_machines++)
+
+	for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
 	{
 
 		average1 =0;
@@ -134,7 +133,6 @@ int main(int argc , char *argv[])
 		interval_size = simulation_length/nb_inter;
 		for(int i=0;i<nb_measures;i++)
 			average_time[i] = 0;
-
 
 		//simul 1 bound
 		for(int i=0;i<nb_simuls;i++)
@@ -228,7 +226,7 @@ int main(int argc , char *argv[])
 		}
 		
 
-		fprintf(stdout,"\r [%5d/%5d]",nb_inter,end);fflush(stdout);
+		//fprintf(stdout,"\r [%5d/%5d]",nb_inter,end);fflush(stdout);
 		
 	}
 	printf("\n");
