@@ -5,7 +5,7 @@
 #define MAX_BUFFER 100
 
 #define MIN 0
-#define LOAD 0.9
+#define LOAD 1.0
 #define P 0.75
 #define MU 300
 

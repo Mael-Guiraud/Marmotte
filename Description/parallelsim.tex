@@ -286,43 +286,44 @@ We now want to measure the performance of the \textsc{Speculative Sandwich} algo
 
 \paragraph {Short simulation}
 We first tried to look at the performances of the algorithms on a simulation short enough to be sure that there will be no coupling between the two bounds before the end of the simulation, i.e., the simulation is computed sequentially for the beginning of the simulation. We thus choose $n = 100,000$ and we measured the total time of the simulation with a different number of intervals. Fig~\ref{fig:short_time} shows the average total time of $10$ simulations for the three different parallels algorithms and the sequential simulation made on one slave. The measures for the balanced policy starts at $14$ because this policy is the same as the ordered one when the number of intervals is lower than twice the number of processors.
-\begin{figure}[H]
+\begin{figure}[]
 \centering
 \label{fig:interslong}
- \includegraphics[scale=0.45]{time_short.pdf}
+ \includegraphics[scale=0.4]{time_short.pdf}
 \caption{Total time computing for a sequence of $100,000$ events.}\label{fig:short_time}.
 \end{figure}
 
 As we can see, the time of the parallel simulation of the \textsc{Speculative Sandwich} algorithm does not depends of the number of intervals. This make sense since the trajectory is computed "sequentially" because there is no coupling. Hence, one processor will fully compute the correct trajectory communicating at each end of interval with the master. Nevertheless, this time is still longer than the time to compute the full trajectory on a single processor, because there is the network time to take into consideration. In the other hand, since the One bound algorithm works in round, during which each intervals might be updated. The total time of simulation seems to scale linearly when the number of intervals is greater than the number of slaves. Indeed, if there is enough slaves to treat all the intervals in parallel, even if only one processor is computing the correct trajectory, there is no loss of times. Nevertheless, if there is too much intervals, since the round have to be fully computed to go to the next round, the slaves will be used to compute some "useless" intervals and thus we this time is purely lost.
 
 \paragraph{Longer simulation}
-We now want to look at the behavior of our algorithm when the chances of coupling during an interval are greater. Fig~\ref{fig:mid_time}~and~\ref{fig:long_time} shows us the computing time of sequences of respectively $2$M and $10$M of events. With the sequence of $10$M of events, we ensure that the bounds are coupling for each size of intervals. With the sequence of $2M$ of events, the more there is some intervals, the less the chances of coupling are great.
-
- \begin{minipage}[b]{0.45\linewidth}
+We now want to look at the behavior of our algorithm when the chances of coupling during an interval are greater. Fig.~\ref{fig:mid_time}~and~\ref{fig:long_time} shows us the computing time of sequences of respectively $2$M and $10$M of events. With the sequence of $10$M of events, we ensure that the bounds are coupling for each size of intervals. With the sequence of $2M$ of events, the more there is some intervals, the less the chances of coupling are great.
 
 
+\begin{figure}[]
         \begin{center}
-      \includegraphics[scale=0.25]{time_mid.pdf}
+      \includegraphics[scale=0.4]{time_mid.pdf}
 
-      \captionof{figure}{Sequence of $2$M events}    \label{fig:mid_time}
+      \caption{Sequence of $2$M events}    \label{fig:mid_time}
       \end{center} 
-  \end{minipage}
-  \hfill
-   \begin{minipage}[b]{0.45\linewidth}
+\end{figure}
+\begin{figure}[]
         \begin{center}
-      \includegraphics[scale=0.25]{time_long.pdf}
-      \captionof{figure}{Sequence of $10$M events}    \label{fig:long_time}
+      \includegraphics[scale=0.4]{time_long.pdf}
+      \caption{Sequence of $10$M events}    \label{fig:long_time}
       \end{center} 
-  \end{minipage}
+\end{figure}
   
+First of all, we remark that the \textsc{Speculative Sandwich} algorithm with \textsc{Balanced} policy is always better than the other algorithms.
+  Those experiments shows that this gives us some better computation times than a sequential computation. Furthermore, it is interesting to choose correctly the number of intervals to cut the simulations. Indeed, one can observe different phenomenas on the behavior of the curves.
+First, we remark that the time of computing is decreasing for up to $8$ intervals. That correspond to the number of slaves plus one. Indeed, the more slaves we have, the faster the algorithm goes. The "plus one" is due to the structure of the algorithm. Indeed, the last interval of the simulation is computed only when the penultimate computes some coupled bounds. Here, we have some intervals greater than the coupling time, and thus each interval is computed two times in parallel, except the first and the last one, that are computed only once. If we add another interval, the algorithm have to wait for a free slave to compute it. One can imagine that each machine will compute two intervals except one that will compute two and add additional compute time to the parallel simulation.
 
-  Those experiments shows that our algorithms gives us some better computation times than a sequential computation if we choose correctly the number of intervals to cut the simulations. Indeed, the time of computing is decreasing for up to $8$ intervals.
-    \todo{pourquoi ca remonte a 9 ? Je pense que les algos se comportent bien quand tous les proc travaillent en paralelle (8/14), et que quand certains commencent a ne rien faire c'est moins bon}
-    Also, we can see a threshold if we choose a number of intervals equal to twice the number of processors, at which the Speculative algorithm with balanced policy runs in its minimal time.
+We can remark that this phenomena occurs each time we have a number of interval equal to $k \times l +1$, with $l$ the number of slaves and $k\in \mathbb{N}$. Nevertheless, Fig.~\ref{fig:mid_time} shows that if the interval is too short to ensure a coupling time in less than one interval, the total computation time is longer than when the size of the intervals is long enough to ensure the coupling of the two bounds. Indeed, as shown in Fig.~\ref{fig:long_time}, the computation time for a number of intervals  $k \times l +1$ decrease if we increase $k$, because the simulation is long enough, and thus, the size of the interval is still greater than the coupling time of the bounds, even for $k = 3$.
+
+Thus, to ensure a minimal computation time of the simulation, one must choose the number of interval considering the coupling time. The most efficient algorithm is the  \textsc{Speculative Sandwich} with \textsc{Balanced} policy, and we can decrease the computation time to it's lower by choosing a number of intervals equal to $k \times l +1$, with $l$ the number of slaves and $k$ chosen such that the size of the intervals $n/k$ is as short as possible, but still greater than the maximal coupling time of the two bounds. 
     
     \paragraph{Impact of the number of slaves}
  One must try to measure the impact of the number of slaves on the time of the simulation.
- We fixed the number of intervals to $14$ for a simulation of $10$M of events and we measured the total time of the  \textsc{Speculative Sandwich} algorithm with  \textsc{Ordered} policy varying the number of slaves from $1$ to $7$. Fig~\ref{fig:nbservs} shows the average total time on $100$ simulations for each number of slaves.
+ We fixed the number of intervals to $14$ for a simulation of $10$M of events and we measured the total time of the  \textsc{Speculative Sandwich} algorithm with  \textsc{Ordered} policy varying the number of slaves from $1$ to $7$. Fig.~\ref{fig:nbservs} shows the average total time on $100$ simulations for each number of slaves.
 \begin{figure}[H]
 \centering
 \label{fig:nbservs}

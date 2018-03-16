@@ -283,7 +283,7 @@ int main(){
 
 	
 	int size = 10000000;//length of the simulation
-	int experiment_number = 100;//should be larger than one
+	int experiment_number = 10;//should be larger than one
 	int interval_number = omp_get_max_threads();
 	//memory used in all experiments
 	STATE *lb_trajectory = malloc(sizeof(STATE)*size);
