@@ -171,12 +171,11 @@ the parallel time can be simply expressed as $O(Km)$.
 \subsection{One bound}
 \label{sec:onebound}
 
-\todo{description of the algorithm and complexity bounds -> Mael}
 
-We want to compare the two previous algorithms with the usual way to parallelize a simulation in the time. 
-This algorithm only uses one lower bound of the simulation for each interval. The variable $status_j$ has five different values:  $\textsc{ToCompute}$,  $\textsc{Computed}$,  $\textsc{Done}$,  $\textsc{Validated}$ and $\textsc{Coupled}$.
+We want to compare the two previous algorithms with the usual way to parallelize a simulation. 
+This algorithm only uses one lower bound of the simulation for each interval and thus also works when no a priori upper bound can be given on the state of the system. The variable $status_j$ has five different values:  $\textsc{ToCompute}$,  $\textsc{Computed}$,  $\textsc{Done}$,  $\textsc{Validated}$ and $\textsc{Coupled}$.
 The first interval is initialized to: $status_0 = \textsc{Validated}$ and $s_0 = s$.
-Each others interval $j>0$ are initialized to $status_j = \textsc{ToCompute}$ and their lower bounds are set to the minimal element that is  $s_j = \bot$. 
+Each other interval $j>0$ is initialized to $status_j = \textsc{ToCompute}$ and their lower bounds are set to the minimal element that is  $s_j = \bot$. 
 
 This algorithm works in rounds. Every rounds, each interval $j$ set to $\textsc{ToCompute}$ or $\textsc{Validated}$ is calculated and the processor calculates new bound for the interval $j+1$. An interval set to $\textsc{ToCompute}$ is then set to $\textsc{Computed}$, and an interval to $\textsc{Validated}$ becomes $\textsc{Done}$ after the computation.
  Let us call $s_j^{-1}$ the lower bound calculated for the interval $j$ at the previous round. At the end of each rounds, the intervals $j$ with new calculated bounds are set to $\textsc{ToCompute}$ if $s_j^{-1} < s_j$. In the case where $s_j^{-1} = s_j$, then $status_j$ is set to $\textsc{Coupled}$. 
@@ -320,19 +319,21 @@ We now look at the behavior of our algorithm when the chances of coupling during
       \end{center} 
 \end{figure}
   
-First of all, remark that the \textsc{Speculative Sandwich} algorithm with \textsc{Balanced} policy is always better than the other algorithms. Moreover, the different parallel algorithms have better computation times than a sequential simulation. Furthermore, it is important to choose correctly the number of intervals to cut the simulation time. Indeed, one can observe different phenomena on the behavior of the curves.
+First of all, remark that the \textsc{Speculative Sandwich} algorithm with \textsc{Balanced} policy is always better than the other algorithms. Moreover, the different parallel algorithms have better computation times than a sequential simulation. Furthermore, it is important to choose correctly the number of intervals to cut the simulation time.
+
+
+Indeed, one can observe two different phenomena on the behavior of the curves.
 First, the computation time is decreasing when the number of intervals grows up to $8$. That correspond to the number of slaves plus one. The different algorithms need as many intervals as slave to make them work, so increasing the number of interval up to $8$
 is the same as increasing the number of slaves. There is an interval more than slaves, because of the algorithm: the last interval of the simulation is computed only when it can be correctly simulated. Here, when the intervals are larger than the coupling time, each interval is computed two times in parallel, except the first and the last one, that are computed only once. 
 Now, if we consider $9$ intervals, each machine will compute two intervals except one that will compute three and that will make the 
-parallel simulation longer (whatever its policy). 
+parallel simulation longer (whatever its policy). The phenomena we have just described occurs for $k \times l + 1$ intervals, with $l$ the number of slaves and $k\in \mathbb{N}$.
 
-The phenomena we have just described occurs for $k \times l + 1$ intervals, with $l$ the number of slaves and $k\in \mathbb{N}$.
-Thus to optimize the running time, it is much better to chose $k \times l +1$ intervals than $k \times l +2$. 
+Fig.~\ref{fig:mid_time} shows that when the interval is too short to ensure a coupling, the total computation time becomes longer than when the size of the intervals is long enough to ensure the coupling. Hence to optimize the running time, it is much better to chose $k \times l +1$ intervals than $k \times l +2$, and we must also chose $k$ so that the size of the intervals is more than the coupling time. 
 
-
-We can remark that this phenomena occurs each time we have a number of interval equal to $k \times l +1$, with $l$ the number of slaves and $k\in \mathbb{N}$. Nevertheless, Fig.~\ref{fig:mid_time} shows that if the interval is too short to ensure a coupling time in less than one interval, the total computation time is longer than when the size of the intervals is long enough to ensure the coupling of the two bounds. Indeed, as shown in Fig.~\ref{fig:long_time}, the computation time for a number of intervals  $k \times l +1$ decrease if we increase $k$, because the simulation is long enough, and thus, the size of the interval is still greater than the coupling time of the bounds, even for $k = 3$.
-
-Thus, to ensure a minimal computation time of the simulation, one must choose the number of interval considering the coupling time. The most efficient algorithm is the  \textsc{Speculative Sandwich} with \textsc{Balanced} policy, and we can decrease the computation time to it's lower by choosing a number of intervals equal to $k \times l +1$, with $l$ the number of slaves and $k$ chosen such that the size of the intervals $n/k$ is as short as possible, but still greater than the maximal coupling time of the two bounds. 
+% 
+% We can remark that this phenomena occurs each time we have a number of interval equal to $k \times l +1$, with $l$ the number of slaves and $k\in \mathbb{N}$. Nevertheless, Fig.~\ref{fig:mid_time} shows that if the interval is too short to ensure a coupling time in less than one interval, the total computation time is longer than when the size of the intervals is long enough to ensure the coupling of the two bounds. Indeed, as shown in Fig.~\ref{fig:long_time}, the computation time for a number of intervals  $k \times l +1$ decrease if we increase $k$, because the simulation is long enough, and thus, the size of the interval is still greater than the coupling time of the bounds, even for $k = 3$.
+% 
+% Thus, to ensure a minimal computation time of the simulation, one must choose the number of interval considering the coupling time. The most efficient algorithm is the  \textsc{Speculative Sandwich} with \textsc{Balanced} policy, and we can decrease the computation time to it's lower by choosing a number of intervals equal to $k \times l +1$, with $l$ the number of slaves and $k$ chosen such that the size of the intervals $n/k$ is as short as possible, but still greater than the maximal coupling time of the two bounds. 
     
     \paragraph{Impact of the number of slaves}
     

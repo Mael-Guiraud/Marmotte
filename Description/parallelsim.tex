@@ -171,17 +171,16 @@ the parallel time can be simply expressed as $O(Km)$.
 \subsection{One bound}
 \label{sec:onebound}
 
-\todo{description of the algorithm and complexity bounds -> Mael}
 
-We want to compare the two previous algorithms with the usual way to parallelize a simulation in the time. 
-This algorithm only uses one lower bound of the simulation for each interval. The variable $status_j$ has five different values:  $\textsc{ToCompute}$,  $\textsc{Computed}$,  $\textsc{Done}$,  $\textsc{Validated}$ and $\textsc{Coupled}$.
+We want to compare the two previous algorithms with the usual way to parallelize a simulation. 
+This algorithm only uses one lower bound of the simulation for each interval and thus also works when no a priori upper bound can be given on the state of the system. The variable $status_j$ has five different values:  $\textsc{ToCompute}$,  $\textsc{Computed}$,  $\textsc{Done}$,  $\textsc{Validated}$ and $\textsc{Coupled}$.
 The first interval is initialized to: $status_0 = \textsc{Validated}$ and $s_0 = s$.
-Each others interval $j>0$ are initialized to $status_j = \textsc{ToCompute}$ and their lower bounds are set to the minimal element that is  $s_j = \bot$. 
+Each other interval $j>0$ is initialized to $status_j = \textsc{ToCompute}$ and their lower bounds are set to the minimal element that is  $s_j = \bot$. 
 
-This algorithm works in rounds. Every rounds, each interval $j$ set to $\textsc{ToCompute}$ or $\textsc{Validated}$ is calculated and the processor calculates new bound for the interval $j+1$. An interval set to $\textsc{ToCompute}$ is then set to $\textsc{Computed}$, and an interval to $\textsc{Validated}$ becomes $\textsc{Done}$ after the computation.
- Let us call $s_j^{-1}$ the lower bound calculated for the interval $j$ at the previous round. At the end of each rounds, the intervals $j$ with new calculated bounds are set to $\textsc{ToCompute}$ if $s_j^{-1} < s_j$. In the case where $s_j^{-1} = s_j$, then $status_j$ is set to $\textsc{Coupled}$. 
+The algorithm works in rounds. Every round, all intervals $j$ such that $status_j$ is equal to $\textsc{ToCompute}$ or $\textsc{Validated}$ is simulated from the state $s_j$ and a new bound is obtained for the interval $j+1$. If $status_j = \textsc{ToCompute}$, then  we set $status_j = \textsc{Computed}$. If $status_j = \textsc{Validated}$, then  we set $status_j = \textsc{Done}$.
+ Let us call $s'_j$ the lower bound calculated for the interval $j$ at the previous round. At the end of each round, the intervals $j$ with new calculated bounds are set to $\textsc{ToCompute}$ if $s'_j < s_j$. In the case where $s'_j = s_j$, then $status_j$ is set to $\textsc{Coupled}$. 
  
-Afterward, a new step spreads the information about the correct trajectory starting to the interval $0$. If an interval $j$ is $\textsc{Validated}$ or $\textsc{Done}$, the interval $j+1$ is set to $ \textsc{Validated}$ if $state_{j+1} = \textsc{Validated}$. This means that the correct trajectory for the interval $j+1$ will be calculated at the next round.
+Afterward, a new step spreads the information about the correct trajectory starting from the interval $0$. If an interval $j$ is $\textsc{Validated}$ or $\textsc{Done}$, the interval $j+1$ is set to $ \textsc{Validated}$ if $state_{j+1} = \textsc{Validated}$. This means that the correct trajectory for the interval $j+1$ will be calculated at the next round.
 
 \section{Experimental evaluations}\label{sec:expertiments}
 
