@@ -1,4 +1,4 @@
-#define NB_QUEUES 10
+#define NB_QUEUES 20
 typedef struct { int queues[NB_QUEUES]; } STATE;
 
 

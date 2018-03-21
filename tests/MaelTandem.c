@@ -245,7 +245,7 @@ int main(){
    
     int i,j;
     double k;
-    int nb_simuls = 100000;
+    int nb_simuls = 100;
     int temps_couplage_max = 500000;
     int diviseur = 1000;
     int taille_tab = temps_couplage_max/diviseur;
@@ -257,7 +257,7 @@ int main(){
     FILE * f; 
     char nom[64];
     long long int nb_couplage =0;
-    for(k=0.9;k<1.1;k+=0.01)
+    for(k=1;k<1.1;k+=0.1)
     {
         InitDistribution(k);
         for(i=0;i<taille_tab;i++)
@@ -272,7 +272,7 @@ int main(){
             initEtatMIN(min);
             initEtatMAX(max,100);
             gettimeofday (&tv1, NULL);
-            for(i=0;i<2000000;i++)
+            for(i=0;i<10000000;i++)
             {
                 
                  u = WELLRNG512a();
@@ -282,8 +282,8 @@ int main(){
                  afficheEtat(max);*/
                  
                  F(min,u);
-                 F(max,u);
-                if(couplage(min,max))
+                 //F(max,u);
+                /*if(couplage(min,max))
                 {
                     if(i/diviseur<taille_tab)nombre_occurences[i/diviseur]++;
                     nb_couplage+=i;
@@ -292,16 +292,16 @@ int main(){
                     //afficheEtat(max);
                     break;
 
-                }
+                }*/
 
                     
             }
             gettimeofday (&tv2, NULL);
             average += time_diff(tv1,tv2);
-           if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
+          // if(j%(nb_simuls/100) == 0)fprintf(stdout,"\r[%3d%%]",j/(nb_simuls/100));fflush(stdout);
             
         }
-       printf("\n Temps de couplage moyen pour %d simulations: %lld\n",j,nb_couplage/nb_simuls+1);
+      /* printf("\n Temps de couplage moyen pour %d simulations: %lld\n",j,nb_couplage/nb_simuls+1);
         nb_couplage = 0;
         sprintf(nom,"distribution_couplage%.1f.data",k);
         f = fopen(nom,"w");
@@ -309,7 +309,7 @@ int main(){
         {
             fprintf(f,"%d %f\n",i*diviseur,(float)((float)nombre_occurences[i]/(float)nb_simuls*100));
         }
-        fclose(f);
+        fclose(f);*/
         printf("Average %f \n",average/nb_simuls);
     }
     return 0;

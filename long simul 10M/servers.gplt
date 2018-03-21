@@ -14,7 +14,7 @@ set style data histograms
 # Select a row-stacked histogram.
 set style histogram rowstacked
 
-plot "server2.data" using 2:xticlabels(1) lc rgb 'green' title "Time sending Trajectories", \
+plot "server3.data" using 2:xticlabels(1) lc rgb 'green' title "Time sending Trajectories", \
 	"" using 3 lc rgb 'yellow' title "Time sending Bounds",  \
 	"" using 4 lc rgb 'red' title "Time receiving some messages", \
 	"" using 5 lc rgb 'blue' title "Time Computing", \

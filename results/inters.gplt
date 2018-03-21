@@ -1,6 +1,6 @@
-set xrange [4:20] 
+set xrange [21:23] 
 set xlabel "Number of intervals" 
-set yrange [0:19600000] 
+set yrange [0:1188469] 
 set ylabel "Average total lenght calculated"
 plot '../results/inters1.data' using 1:2 title " One bound "  
 replot '../results/inters2.data' using 1:2 title " Smallest Parallel Sandwich " 
