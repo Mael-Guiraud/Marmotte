@@ -11,7 +11,7 @@
 
 //Options 
 
-#define COUPLING_TIME 1
+#define COUPLING_TIME 0
 
 
 //simulate a lower bound and an upper bound on the random process. When both are equal, it is the process itself 
@@ -240,6 +240,7 @@ void par_sim_balanced(STATE *lb_trajectory, STATE *ub_trajectory, double *random
 }
 
 
+
 void par_sim_balanced_slices(STATE *lb_trajectory, STATE *ub_trajectory, double *randomness, int size, int interval_number){ 
 	par_sim_balanced(lb_trajectory, ub_trajectory, randomness, size, interval_number, omp_get_max_threads());//the last value is how much intervals are in a meta interval 
 }
@@ -267,7 +268,9 @@ void statistics(int experiment_number, int size, int interval_number, double *me
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation séquentielle %f millisecondes.\n",time_diff(start,end));
 		results[i] = time_diff(start,end); 	
-	}
+		fprintf(stdout,"\r %d  per cent of experiments done\n", ((i+1)*100)/(experiment_number));
+		fflush(stdout); 
+			}
 	*mean = 0;
 	*var = 0;
 	for(int i=0 ; i < experiment_number; i++) *mean += results[i];
@@ -305,8 +308,8 @@ int main(){
 	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (peu d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
 
 
-	statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
-	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+	//statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
+	//printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
 
 	/*************************Evaluation of the coupling time************/
 	if(COUPLING_TIME){
