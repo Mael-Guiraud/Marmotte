@@ -1,4 +1,5 @@
 set xrange [1:8] 
+set yrange [3500:12000] 
 set xlabel "Number of slaves" 
 set ylabel "Time (ms)"
 plot 'numberofservers.data' title "Parallel Simulation"
