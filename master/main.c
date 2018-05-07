@@ -60,12 +60,12 @@ int main(int argc , char *argv[])
 
 	//Parameters of the simulation
 	int nb_inter;
-	int simulation_length = 100000;
+	int simulation_length = 10000000;
 	int interval_size;
 
 
 	//Var for the simulation
-	int nb_simuls = 10;
+	int nb_simuls = 100;
 	int max_calculated = 0;
 	long long average1 = 0;
 	long long average2 = 0;
@@ -120,8 +120,9 @@ int main(int argc , char *argv[])
 	int end = 23;
 	int step=1;
 	int rounds;
-
-	for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
+	nb_inter = 22;
+	//for(nb_inter = begin;nb_inter <= end;nb_inter+= step)
+	for(nb_machines=2;nb_machines<= 7 ; nb_machines++)
 	{
 
 		average1 =0;
@@ -133,7 +134,7 @@ int main(int argc , char *argv[])
 		interval_size = simulation_length/nb_inter;
 		for(int i=0;i<nb_measures;i++)
 			average_time[i] = 0;
-
+		/*
 		//simul 1 bound
 		for(int i=0;i<nb_simuls;i++)
 		{	
@@ -174,7 +175,7 @@ int main(int argc , char *argv[])
 		}
 		fprintf(f_servers2,"%d %f %f %f %f %f \n",nb_inter,average_time[0]/nb_simuls,average_time[1]/nb_simuls,average_time[2]/nb_simuls,average_time[3]/nb_simuls/nb_simuls,average_time[4]/nb_simuls);
 		
-
+*/
 		//SIMUL 2 BOUNDS SPLIT
 		for(int i=0;i<nb_simuls;i++)
 		{
@@ -199,6 +200,7 @@ int main(int argc , char *argv[])
 		fprintf(f_result1,"%d %f %f\n",nb_inter,(double)average1/nb_simuls,time_computing1/nb_simuls);
 		fprintf(f_result2,"%d %f %f\n",nb_inter,(double)average2/nb_simuls,time_computing2/nb_simuls);
 		fprintf(f_result3,"%d %f %f\n",nb_inter,(double)average3/nb_simuls,time_computing3/nb_simuls);
+		printf("%d %f \n",nb_machines,time_computing3/nb_simuls);
 		if(max_calculated < average1 / nb_simuls)
 		{
 			max_calculated = average1 / nb_simuls;

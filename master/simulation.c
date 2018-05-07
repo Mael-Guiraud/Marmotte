@@ -14,7 +14,7 @@
 #include "socket.h"
 #include "operations.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int recv_mess(int * servers_id,int nb_inter, int nb_machines,int nb_queues, int interval_size, Message_kind * what_do_i_read, Bounds * bounds, int * nb_finished, Interval_state * interval_state)
 {
