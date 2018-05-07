@@ -178,9 +178,9 @@ The first interval is initialized to: $status_0 = \textsc{Validated}$ and $s_0 =
 Each other interval $j>0$ is initialized to $status_j = \textsc{ToCompute}$ and their lower bounds are set to the minimal element that is  $s_j = \bot$. 
 
 The algorithm works in rounds. Every round, all intervals $j$ such that $status_j$ is equal to $\textsc{ToCompute}$ or $\textsc{Validated}$ is simulated from the state $s_j$ and a new bound is obtained for the interval $j+1$. If $status_j = \textsc{ToCompute}$, then  we set $status_j = \textsc{Computed}$. If $status_j = \textsc{Validated}$, then  we set $status_j = \textsc{Done}$.
- Let us call $s'_j$ the lower bound calculated for the interval $j$ at the previous round. At the end of each round, the intervals $j$ with new calculated bounds are set to $\textsc{ToCompute}$ if $s'_j < s_j$. In the case where $s'_j = s_j$, then $status_j$ is set to $\textsc{Coupled}$. 
+ Let us call $s'_j$ the lower bound computed for the interval $j$ at the previous round. At the end of each round, the intervals $j$ with new computed bounds are set to $\textsc{ToCompute}$ if $s'_j < s_j$. In the case where $s'_j = s_j$, then $status_j$ is set to $\textsc{Coupled}$. 
  
-Afterward, a new step spreads the information about the correct trajectory starting from the interval $0$. If an interval $j$ is $\textsc{Validated}$ or $\textsc{Done}$, the interval $j+1$ is set to $ \textsc{Validated}$ if $state_{j+1} = \textsc{Validated}$. This means that the correct trajectory for the interval $j+1$ will be calculated at the next round.
+Afterward, a new step spreads the information about the correct trajectory starting from the interval $0$. If an interval $j$ is $\textsc{Validated}$ or $\textsc{Done}$, the interval $j+1$ is set to $ \textsc{Validated}$ if $state_{j+1} = \textsc{Validated}$. This means that the correct trajectory for the interval $j+1$ will be computed at the next round.
 
 \section{Experimental evaluations}\label{sec:expertiments}
 
@@ -224,7 +224,7 @@ and fix the probabilities as follows:
 
 All those probabilities are then normalized such that $\sum\limits_{i=0}^{m-1} a_i + s_i + d_i = 1$.
 
-With those parameters, every queue have an average load of $1$. This load has been experimentally calculated as the load for which the coupling time of the two bounds is the largest. Fig~\ref{fig:distribs} shows the distributions of the coupling times of a system with $20$ queues in tandem, with the previous parameters and for several $loads$. Those results are computed over $100,000$ instances of trajectories. 
+With those parameters, every queue have an average load of $1$. This load has been experimentally computed as the load for which the coupling time of the two bounds is the largest. Fig~\ref{fig:distribs} shows the distributions of the coupling times of a system with $20$ queues in tandem, with the previous parameters and for several $loads$. Those results are computed over $100,000$ instances of trajectories. 
 
 \begin{figure}[!h]
 \centering
