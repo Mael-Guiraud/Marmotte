@@ -13,6 +13,11 @@
 
 #define COUPLING_TIME 0
 
+//Hack to test the local memory
+
+STATE **lb_local;
+STATE **ub_local;
+double **random_local;
 
 //simulate a lower bound and an upper bound on the random process. When both are equal, it is the process itself 
 //and we store it in the upper bound only
@@ -92,6 +97,48 @@ void par_sim_fixed_slices(STATE *lb_trajectory, STATE *ub_trajectory, double *ra
 	    	 // do not update the next bounds when they are already optimal or when we compute the last slice
 		    if( i != interval_number - 1 && not_coupled) update_next_bounds(interval_size, coupling_point, lb, ub, random);
 			//while(!compare(old_lb, lb[0]) && !compare(old_ub, ub[0]) && coupling_point > 0) {}//wait for new bounds
+		}
+	}
+}
+//one thread by interval, no lock. The memory is allocated as locally as possible
+
+void par_sim_fixed_slices_local(STATE *lb_interval, STATE *ub_interval, double *randomness, int size, int interval_number){ 
+	int interval_size = size/interval_number; 
+	for(int i = 1; i < interval_number; i++){
+		lb_interval[i] = min_state();	
+		ub_interval[i] = max_state(); 
+	}
+	//the array containing the beginning state of each interval is allocated and initialized
+	#pragma omp parallel for schedule(monotonic:dynamic) 
+	for(int i = 0; i < interval_number; i++){
+		int coupling_point = interval_size;
+		int coupled = 0;
+		double *random_l = random_local[i];
+		STATE *lb_l = lb_local[i];
+		STATE *ub_l = ub_local[i];
+		if(i == interval_number -1) coupling_point += size%interval_number;//the few additional steps are put one the last interval
+		memcpy(random_l, randomness + i*interval_size, coupling_point*sizeof(double));
+	    
+	    //STATE old_lb = lb[0], old_ub = ub[0];
+	    while(coupling_point > 0){
+    	//printf("Je suis la thread %d qui fait l'indice %d et j'utilise comme valeur de départ %d et %d pour simuler %d étapes\n",omp_get_thread_num(),i,lb[0], ub[0], number_steps);
+  			//old_lb = lb[0];
+    		//old_ub = ub[0];
+	    	lb_l[0] = lb_interval[i];
+	    	ub_l[0] = ub_interval[i];
+	    	coupling_point = simul_interval(lb_l, ub_l, coupling_point, random_l);
+		    if(!coupled && i != interval_number - 1 ){
+		    	STATE next_ub = transition(ub_l[interval_size -1],random_l[interval_size -1]);
+		    	if(compare(next_ub, ub_interval[i+1]) == -1) ub_interval[i+1] = next_ub;
+		    	if(coupling_point < interval_size + size%interval_number){
+		    		coupled = 1;
+		    		lb_interval[i+1] = next_ub;
+		    	}
+		    	else{
+		    		STATE next_lb = transition(lb_l[interval_size -1],random_l[interval_size -1]);			    	
+			    	if(compare(next_lb, lb_interval[i+1]) == 1) lb_interval[i+1] = next_lb;
+		    	}
+		    }
 		}
 	}
 }
@@ -286,12 +333,23 @@ int main(){
 
 	
 	int size = 10000000;//length of the simulation
-	int experiment_number = 10;//should be larger than one
+	int experiment_number = 100;//should be larger than one
 	int interval_number = omp_get_max_threads();
 	//memory used in all experiments
 	STATE *lb_trajectory = malloc(sizeof(STATE)*size);
 	STATE *ub_trajectory = malloc(sizeof(STATE)*size);//the initial state is in the first elements of these two arrays
 	unsigned int seed = time(NULL);
+	//hack to allocate the memory locally only once
+	ub_local = malloc(sizeof(STATE*)*interval_number);
+	lb_local = malloc(sizeof(STATE*)*interval_number);
+	random_local = malloc(sizeof(double*)*interval_number);
+	#pragma omp parallel for schedule(monotonic:dynamic) 
+	for(int i = 0; i < interval_number; i++){
+		 ub_local[i] =  malloc(sizeof(STATE)*size/interval_number);
+		 lb_local[i] =  malloc(sizeof(STATE)*size/interval_number);
+	     random_local[i] = malloc(sizeof(double)*size/interval_number);
+	}
+
 	double mean, var;
 	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,sequential_sim);
 	printf("Algorithme séquentiel: temps moyen %f variance %f. \n\n",mean,var);
@@ -299,6 +357,10 @@ int main(){
 
 	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices);
 	printf("Algorithme parallèle sans lock: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+
+
+	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices_local);
+	printf("Algorithme parallèle sans lock à mémoire locale: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
 
 	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_first_slices_first);
 	printf("Algorithme parallèle premières tranches en premiers : temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
