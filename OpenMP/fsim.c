@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #define MAX_BUFFER 100
 
 #define MIN 0
