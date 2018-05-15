@@ -11,7 +11,7 @@
 
 //Options 
 
-#define COUPLING_TIME 1
+#define COUPLING_TIME 0
 
 //Hack to test the local memory
 
