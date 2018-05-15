@@ -71,37 +71,37 @@ Finally, when a processor simulate the interval $j$ and at the beginning $s_j^{m
 The algorithm we have described is called \textsc{Speculative Sandwich} and we give its pseudocode in Figure~\ref{fig:par_sandwich}.
 % 
 % \todo{Update the pseudo code}
-%  	\begin{algorithm}[H]
-%  	\caption{Speculative Sandwich}
-%  	\label{fig:par_sandwich}
-%  	\begin{algorithmic}
-% 	\REQUIRE Size of the intervals $t$
-%  	\STATE // {\em Initialisation}
-% 	\FOR{ $i <$ min(nb\_machines, nb\_inter-1) }
-% 	\STATE Send $I_{j+1}$ to the server $i$
-% 	\ENDFOR
-% 	\STATE // {\em Main loop}
-%  	\WHILE{ All the intervals are not $\textsc{Done}$}
-% 	\STATE Wait for a server to answer the results of $current\_interval$
-% 	\IF{The server was computing a trajectory}
-% 	\STATE set $I_{current\_interval}$ to $\textsc{Done}$
-% 	\ENDIF
-% 	\IF{$f^t(s_{current\_interval}^{min}) > s_{current\_interval+1}^{min}$ or $f^t(s_{current\_interval}^{max}) < s_{current\_interval+1}^{max}$ // {\em Better bounds have been found} }
-% 	\STATE $s_{current\_interval+1}^{min} = f^t(s_{current\_interval}^{min})$
-% 	\STATE $s_{current\_interval+1}^{max} = f^t(s_{current\_interval}^{max})$
-% 	\STATE set $I_{current\_interval}$ to $\textsc{ToCompute}$
-% 	\ENDIF
-% 	\STATE next\_interval $\leftarrow$ search the first interval which is to  $\textsc{ToCompute}$
-% 	\IF{ $s_{next\_interval+1}^{min} = s_{next\_interval+1}^{max}$ // {\em The bounds are coupled} }
-% 		\STATE Wait a trajectory for $I_{next\_interval}$
-% 	\ELSE
-% 		\STATE Wait some bounds for $I_{next\_interval}$
-% 	\ENDIF	
-% 		\STATE Send $s_{next\_interval+1}^{min} and s_{next\_interval+1}^{max}$ to the current server
-% 	\ENDWHILE
-%  
-%  	\end{algorithmic}
-%  	\end{algorithm}
+  	\begin{algorithm}[H]
+  	\caption{Speculative Sandwich}
+  	\label{fig:par_sandwich}
+  	\begin{algorithmic}
+ 	\REQUIRE Size of the intervals $t$, number of intervals $k$
+  	\STATE Set $status_j = \textsc{ToCompute}$ for all intervals $j$
+	\STATE Set $s_0^{min} \leftarrow s_0^{max} \leftarrow s$
+	\STATE  Set $s_j^{min} \leftarrow \bot$ and $s_j^{max} \leftarrow \top$ for all $0 < j < k$
+	\STATE 
+  	\WHILE{ There is a $j$ such that $status_j \neq \textsc{Done}$}
+	\STATE Choose an interval $j$ such that $status_j = \textsc{ToCompute}$ 
+	\STATE $\text{Compute  the sequences}~ T(s_j^{min},x_{jt},\dots,x_{(j+1)t}), T(s_j^{max},x_{jt},\dots,x_{(j+1)t})$
+	\STATE Assign to $s_{min}$ and $s_{max}$ the last values of those sequences
+	\IF{ $s_j^{min} = s_j^{max}$}
+	\STATE $status_j = \textsc{Done}$
+	\ELSE
+	\STATE $status_j = \textsc{Computed}$
+	\ENDIF
+	
+	\IF{ $ j \neq k -1$}
+		\IF{$s_{min} > s_{j+1}^{min}$ or $ s_{max} < s_{j+1}^{max}$}
+		\STATE $s_{j+1}^{min} \leftarrow s_{min}$
+		\STATE $s_{j+1}^{max} \leftarrow s_{max}$ 
+		\STATE $status_{j+1} = \textsc{ToCompute}$
+		\ENDIF
+	\ENDIF
+	
+  	\ENDWHILE
+  
+  	\end{algorithmic}
+  	\end{algorithm}
 %  
  
  \begin{theorem}\label{th:alg_ok}

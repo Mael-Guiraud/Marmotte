@@ -11,7 +11,7 @@
 
 //Options 
 
-#define COUPLING_TIME 0
+#define COUPLING_TIME 1
 
 
 //simulate a lower bound and an upper bound on the random process. When both are equal, it is the process itself 
@@ -242,7 +242,7 @@ void par_sim_balanced(STATE *lb_trajectory, STATE *ub_trajectory, double *random
 
 
 void par_sim_balanced_slices(STATE *lb_trajectory, STATE *ub_trajectory, double *randomness, int size, int interval_number){ 
-	par_sim_balanced(lb_trajectory, ub_trajectory, randomness, size, interval_number, omp_get_max_threads());//the last value is how much intervals are in a meta interval 
+	par_sim_balanced(lb_trajectory, ub_trajectory, randomness, size, interval_number, interval_number);//the last value is how much intervals are in a meta interval 
 }
 
 
@@ -286,8 +286,10 @@ int main(){
 
 	
 	int size = 10000000;//length of the simulation
-	int experiment_number = 10;//should be larger than one
-	int interval_number = omp_get_max_threads();
+	int experiment_number = 100;//should be larger than one
+	int interval_number = 16;
+	//int interval_number = omp_get_max_threads();
+	printf("%d \n",interval_number);
 	//memory used in all experiments
 	STATE *lb_trajectory = malloc(sizeof(STATE)*size);
 	STATE *ub_trajectory = malloc(sizeof(STATE)*size);//the initial state is in the first elements of these two arrays
@@ -308,8 +310,8 @@ int main(){
 	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (peu d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
 
 
-	//statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
-	//printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+	statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
+	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
 
 	/*************************Evaluation of the coupling time************/
 	if(COUPLING_TIME){
