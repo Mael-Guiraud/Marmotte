@@ -11,7 +11,7 @@
 
 //Options 
 
-#define COUPLING_TIME 0
+#define COUPLING_TIME 1
 
 //Hack to test the local memory
 
@@ -315,7 +315,7 @@ void statistics(int experiment_number, int size, int interval_number, double *me
 		gettimeofday (&end, NULL);
 		//printf("Temps écoulé pendant la simulation séquentielle %f millisecondes.\n",time_diff(start,end));
 		results[i] = time_diff(start,end); 	
-		fprintf(stdout,"\r %d  per cent of experiments done\n", ((i+1)*100)/(experiment_number));
+		fprintf(stdout,"\r %d  per cent of experiments done", ((i+1)*100)/(experiment_number));
 		fflush(stdout); 
 			}
 	*mean = 0;
@@ -334,67 +334,76 @@ int main(){
 	
 	int size = 10000000;//length of the simulation
 	int experiment_number = 100;//should be larger than one
-	int interval_number = omp_get_max_threads();
-
-	//memory used in all experiments
-	STATE *lb_trajectory = malloc(sizeof(STATE)*size);
-	STATE *ub_trajectory = malloc(sizeof(STATE)*size);//the initial state is in the first elements of these two arrays
-	unsigned int seed = time(NULL);
-	//hack to allocate the memory locally only once
-	ub_local = malloc(sizeof(STATE*)*interval_number);
-	lb_local = malloc(sizeof(STATE*)*interval_number);
-	random_local = malloc(sizeof(double*)*interval_number);
-	#pragma omp parallel for schedule(monotonic:dynamic) 
-	for(int i = 0; i < interval_number; i++){
-		 ub_local[i] =  malloc(sizeof(STATE)*size/interval_number);
-		 lb_local[i] =  malloc(sizeof(STATE)*size/interval_number);
-	     random_local[i] = malloc(sizeof(double)*size/interval_number);
-	}
-
-	double mean, var;
-	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,sequential_sim);
-	printf("Algorithme séquentiel: temps moyen %f variance %f. \n\n",mean,var);
-	double seq_speed = mean;
-
-	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices);
-	printf("Algorithme parallèle sans lock: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
-
-
-	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices_local);
-	printf("Algorithme parallèle sans lock à mémoire locale: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
-
-	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_first_slices_first);
-	printf("Algorithme parallèle premières tranches en premiers : temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
-
-
-	statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
-	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (peu d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
-
-
-	statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
-	printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
-
-	/*************************Evaluation of the coupling time************/
-	if(COUPLING_TIME){
-		int coupling_time = 0;
-		unsigned int *var_coupling_time = malloc(sizeof(unsigned int)*100);
-		double *randomness = malloc(sizeof(double)*size);
+	//int interval_number = omp_get_max_threads();
+	FILE * f = fopen("res.data","w+");
+	for(int interval_number = 1; interval_number <= omp_get_max_threads();interval_number++)
+	{
+		//memory used in all experiments
 		STATE *lb_trajectory = malloc(sizeof(STATE)*size);
-		ub_trajectory[0] = max_state();
-		lb_trajectory[0] = min_state();
-		for(int i = 0; i < 100; i++){
-			InitWELLRNG512a(time(NULL));//init the RNG generator, using a mostly random time
-			for(int j = 0; j < size; j++) randomness[j] = WELLRNG512a();
-			var_coupling_time[i] = simul_interval(lb_trajectory,ub_trajectory,size,randomness); 
-			coupling_time += var_coupling_time[i];
+		STATE *ub_trajectory = malloc(sizeof(STATE)*size);//the initial state is in the first elements of these two arrays
+		unsigned int seed = time(NULL);
+		//hack to allocate the memory locally only once
+		ub_local = malloc(sizeof(STATE*)*interval_number);
+		lb_local = malloc(sizeof(STATE*)*interval_number);
+		random_local = malloc(sizeof(double*)*interval_number);
+		#pragma omp parallel for schedule(monotonic:dynamic) 
+		for(int i = 0; i < interval_number; i++){
+			 ub_local[i] =  malloc(sizeof(STATE)*size/interval_number);
+			 lb_local[i] =  malloc(sizeof(STATE)*size/interval_number);
+		     random_local[i] = malloc(sizeof(double)*size/interval_number);
 		}
-		coupling_time /= 100;
-		long unsigned int variancect = 0;
-		for(int i = 0; i < 100; i++) variancect += (coupling_time-var_coupling_time[i])*(coupling_time-var_coupling_time[i]); 
-		printf("Average coupling time of %d, variance of %d.\n",coupling_time, (int) sqrt(variancect/99));
-		free(var_coupling_time);
+
+		
+	
+		double mean, var;
+		statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,sequential_sim);
+		printf("Algorithme séquentiel: temps moyen %f variance %f. \n\n",mean,var);
+		fprintf(f,"%d %f ",interval_number,mean);
+		double seq_speed = mean;
+
+		statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices);
+		printf("Algorithme parallèle sans lock: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+		fprintf(f,"%f ",mean);
+
+		statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_fixed_slices_local);
+		printf("Algorithme parallèle sans lock à mémoire locale: temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+		fprintf(f,"%f ",mean);
+
+		statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_first_slices_first);
+		printf("Algorithme parallèle premières tranches en premiers : temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+		fprintf(f,"%f ",mean);
+
+		statistics(experiment_number,size,interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
+		printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (peu d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+		fprintf(f,"%f ",mean);
+
+		statistics(experiment_number,size,4*interval_number,&mean,&var,seed,lb_trajectory,ub_trajectory,par_sim_balanced_slices);
+		printf("Algorithme parallèle tranche dans les zones les moins traitées en priorité (bcp d'intervalles): temps moyen %f variance %f accélération %f\n\n",mean,var,seq_speed/mean);
+		fprintf(f,"%f\n",mean);
+	
+		/*************************Evaluation of the coupling time************/
+		if(COUPLING_TIME){
+			int coupling_time = 0;
+			unsigned int *var_coupling_time = malloc(sizeof(unsigned int)*100);
+			double *randomness = malloc(sizeof(double)*size);
+			STATE *lb_trajectory = malloc(sizeof(STATE)*size);
+			ub_trajectory[0] = max_state();
+			lb_trajectory[0] = min_state();
+			for(int i = 0; i < 100; i++){
+				InitWELLRNG512a(time(NULL));//init the RNG generator, using a mostly random time
+				for(int j = 0; j < size; j++) randomness[j] = WELLRNG512a();
+				var_coupling_time[i] = simul_interval(lb_trajectory,ub_trajectory,size,randomness); 
+				coupling_time += var_coupling_time[i];
+			}
+			coupling_time /= 100;
+			long unsigned int variancect = 0;
+			for(int i = 0; i < 100; i++) variancect += (coupling_time-var_coupling_time[i])*(coupling_time-var_coupling_time[i]); 
+			printf("Average coupling time of %d, variance of %d.\n",coupling_time, (int) sqrt(variancect/99));
+			free(var_coupling_time);
+			free(lb_trajectory);
+		}
 		free(lb_trajectory);
+		free(ub_trajectory);
 	}
-	free(lb_trajectory);
-	free(ub_trajectory);
+	fclose(f);
 }

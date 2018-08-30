@@ -1,0 +1,13 @@
+set xlabel "Number of threads" 
+set ylabel "Time"
+plot 'res.data' using 1:2 title "Sequentiel"  
+replot 'res.data' using 1:3 title "Sans lock"  
+replot 'res.data' using 1:4 title "Sans lock memoire locale"  
+replot 'res.data' using 1:5 title "Premieres tranches"  
+replot 'res.data' using 1:6 title "Zones moins traitees"  
+replot 'res.data' using 1:7 title "Zones moins traitees + bcp d'inters"  
+
+set key out bot center
+set term postscript color solid
+set output '| ps2pdf - res.pdf'
+replot

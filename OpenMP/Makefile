@@ -2,7 +2,7 @@ OS := $(shell uname)
 ifeq ($(OS),Darwin)
   CC = gcc-7
 else
-  CC = gcc
+  CC = gcc-7
 endif
 CFLAGS = -std=c99 -c -g -O2 -Wall -fopenmp 
 
